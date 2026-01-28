@@ -1,0 +1,75 @@
+{
+  "description": "Test cases for triage urgency assessment",
+  "cases": [
+    {
+      "id": "emergency_chest_pain",
+      "symptoms": "Severe chest pain radiating to my left arm, feeling sweaty and nauseous, started 30 minutes ago",
+      "expectedUrgency": "emergency",
+      "expectedRedFlags": ["chest pain", "radiating to arm", "sweating"],
+      "expectedSpecialties": ["cardiology"]
+    },
+    {
+      "id": "emergency_stroke_symptoms",
+      "symptoms": "Sudden severe headache, face drooping on one side, difficulty speaking, arm feels weak",
+      "expectedUrgency": "emergency",
+      "expectedRedFlags": ["sudden severe headache", "face drooping", "difficulty speaking", "arm weakness"],
+      "expectedSpecialties": []
+    },
+    {
+      "id": "urgent_abdominal",
+      "symptoms": "Sharp abdominal pain in lower right side for 12 hours, getting worse, low grade fever",
+      "expectedUrgency": "urgent",
+      "expectedRedFlags": ["worsening pain", "fever"],
+      "expectedSpecialties": ["gastro", "gp"]
+    },
+    {
+      "id": "urgent_mental_health",
+      "symptoms": "Feeling very depressed for weeks, can't get out of bed, having dark thoughts about not wanting to be here anymore",
+      "expectedUrgency": "urgent",
+      "expectedRedFlags": ["dark thoughts", "suicidal ideation"],
+      "expectedSpecialties": ["mental_health"]
+    },
+    {
+      "id": "routine_knee_pain",
+      "symptoms": "Knee pain that started a few weeks ago after starting running, worse when going up stairs, no swelling",
+      "expectedUrgency": "routine",
+      "expectedRedFlags": [],
+      "expectedSpecialties": ["orthopedic", "gp"]
+    },
+    {
+      "id": "routine_skin_rash",
+      "symptoms": "Red itchy rash on my arms for about a week, started after switching laundry detergent",
+      "expectedUrgency": "routine",
+      "expectedRedFlags": [],
+      "expectedSpecialties": ["dermatology"]
+    },
+    {
+      "id": "self_care_cold",
+      "symptoms": "Runny nose, mild sore throat, slight cough for 2 days, no fever",
+      "expectedUrgency": "self_care",
+      "expectedRedFlags": [],
+      "expectedSpecialties": ["gp"]
+    },
+    {
+      "id": "self_care_muscle_ache",
+      "symptoms": "Sore muscles after working out yesterday, nothing unusual just typical post-exercise soreness",
+      "expectedUrgency": "self_care",
+      "expectedRedFlags": [],
+      "expectedSpecialties": []
+    },
+    {
+      "id": "urgent_breathing",
+      "symptoms": "Having trouble catching my breath when walking short distances, started last week, also have swollen ankles",
+      "expectedUrgency": "urgent",
+      "expectedRedFlags": ["shortness of breath", "swollen ankles"],
+      "expectedSpecialties": ["cardiology", "gp"]
+    },
+    {
+      "id": "routine_anxiety",
+      "symptoms": "Feeling anxious and worried a lot lately, trouble sleeping, heart races sometimes when stressed",
+      "expectedUrgency": "routine",
+      "expectedRedFlags": [],
+      "expectedSpecialties": ["mental_health", "gp"]
+    }
+  ]
+}
