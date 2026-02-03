@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle } from "lucide-react";
+import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle, LogOut } from "lucide-react";
 
 interface Patient {
   id: string;
@@ -40,8 +41,10 @@ interface Notification {
 }
 
 export default function PatientPortal() {
+  const router = useRouter();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "history" | "notifications">("profile");
   const [formData, setFormData] = useState({
     name: "",
@@ -53,13 +56,23 @@ export default function PatientPortal() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Load patient by email from localStorage
+  // Check auth and load patient on mount
   useEffect(() => {
     const savedEmail = localStorage.getItem("patientEmail");
-    if (savedEmail) {
-      loadPatient(savedEmail);
+    if (!savedEmail) {
+      router.push("/login/patient");
+      return;
     }
-  }, []);
+    setIsAuthenticated(true);
+    loadPatient(savedEmail);
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("patientEmail");
+    localStorage.removeItem("patientName");
+    localStorage.removeItem("patientId");
+    router.push("/login/patient");
+  };
 
   const loadPatient = async (email: string) => {
     try {
@@ -132,6 +145,15 @@ export default function PatientPortal() {
 
   const unreadCount = patient?.notifications.filter(n => !n.read).length || 0;
 
+  // Show loading while checking auth
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -144,11 +166,22 @@ export default function PatientPortal() {
                 Home
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-blue-600">Patient Portal</h1>
+            <h1 className="text-xl font-bold text-blue-600">👤 Patient Portal</h1>
+            {patient && (
+              <span className="text-sm text-muted-foreground">
+                Welcome, {patient.name}
+              </span>
+            )}
           </div>
-          <Link href="/consult">
-            <Button>New Consultation</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/consult">
+              <Button>New Consultation</Button>
+            </Link>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

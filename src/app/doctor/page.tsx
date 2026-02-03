@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, FileText, Send, Clock, ChevronRight, AlertCircle, User } from "lucide-react";
+import { ArrowLeft, Users, FileText, Send, Clock, ChevronRight, AlertCircle, User, LogOut } from "lucide-react";
 
 interface Patient {
     id: string;
@@ -47,9 +48,12 @@ interface Notification {
 }
 
 export default function DoctorDashboard() {
+    const router = useRouter();
     const [patients, setPatients] = useState<Patient[]>([]);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [doctorInfo, setDoctorInfo] = useState<{ name: string; specialty: string } | null>(null);
     const [notificationForm, setNotificationForm] = useState({
         title: "",
         message: "",
@@ -58,9 +62,28 @@ export default function DoctorDashboard() {
     const [sending, setSending] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
 
+    // Check auth on mount
     useEffect(() => {
+        const doctorEmail = localStorage.getItem("doctorEmail");
+        if (!doctorEmail) {
+            router.push("/login/doctor");
+            return;
+        }
+        setIsAuthenticated(true);
+        setDoctorInfo({
+            name: localStorage.getItem("doctorName") || "Doctor",
+            specialty: localStorage.getItem("doctorSpecialty") || "",
+        });
         loadPatients();
-    }, []);
+    }, [router]);
+
+    const handleLogout = () => {
+        localStorage.removeItem("doctorEmail");
+        localStorage.removeItem("doctorName");
+        localStorage.removeItem("doctorId");
+        localStorage.removeItem("doctorSpecialty");
+        router.push("/login/doctor");
+    };
 
     const loadPatients = async () => {
         try {
@@ -94,6 +117,7 @@ export default function DoctorDashboard() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     patientId: selectedPatient.id,
+                    doctorId: localStorage.getItem("doctorId"),
                     ...notificationForm,
                 }),
             });
@@ -122,6 +146,15 @@ export default function DoctorDashboard() {
         }
     };
 
+    // Show loading while checking auth
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50 to-white dark:from-gray-900 dark:to-gray-800">
+                <p className="text-muted-foreground">Loading...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white dark:from-gray-900 dark:to-gray-800">
             {/* Header */}
@@ -135,10 +168,21 @@ export default function DoctorDashboard() {
                             </Button>
                         </Link>
                         <h1 className="text-xl font-bold text-emerald-600">👨‍⚕️ Doctor Dashboard</h1>
+                        {doctorInfo && (
+                            <span className="text-sm text-muted-foreground">
+                                {doctorInfo.name} • {doctorInfo.specialty}
+                            </span>
+                        )}
                     </div>
-                    <Badge variant="outline" className="text-emerald-600 border-emerald-600">
-                        Demo Mode
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-emerald-600 border-emerald-600">
+                            Demo Mode
+                        </Badge>
+                        <Button variant="outline" size="sm" onClick={handleLogout}>
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Logout
+                        </Button>
+                    </div>
                 </div>
             </header>
 
@@ -170,8 +214,8 @@ export default function DoctorDashboard() {
                                             key={patient.id}
                                             whileHover={{ x: 4 }}
                                             className={`p-3 rounded-lg cursor-pointer flex items-center justify-between ${selectedPatient?.id === patient.id
-                                                    ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200"
-                                                    : "bg-muted/50 hover:bg-muted"
+                                                ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200"
+                                                : "bg-muted/50 hover:bg-muted"
                                                 }`}
                                             onClick={() => loadPatientDetails(patient.id)}
                                         >

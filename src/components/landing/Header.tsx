@@ -45,17 +45,17 @@ export function Header() {
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2">
               <Link
-                href="/patient"
+                href="/login/patient"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Patient Portal
+                Patient Login
               </Link>
               <span className="text-muted-foreground/50">|</span>
               <Link
-                href="/doctor"
+                href="/login/doctor"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Doctor Dashboard
+                Doctor Login
               </Link>
             </div>
             <Link
