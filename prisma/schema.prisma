@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Patient model - stores patient profile info
+model Patient {
+  id              String         @id @default(cuid())
+  name            String
+  email           String         @unique
+  age             Int?
+  gender          String?
+  knownConditions String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  consultations   Consultation[]
+  notifications   Notification[]
+}
+
+// Consultation model - stores AI consultation history
+model Consultation {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  
+  symptoms      String
+  urgencyLevel  String?  // emergency, urgent, routine, self_care
+  redFlags      String?  // JSON array stored as string
+  
+  // AI responses stored as JSON strings
+  triageResponse    String?
+  gpResponse        String?
+  specialistResponse String?
+  recommendation    String?
+  
+  createdAt     DateTime @default(now())
+}
+
+// Doctor model - for demo, simple doctor profiles
+model Doctor {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  specialty     String
+  createdAt     DateTime @default(now())
+  
+  notifications Notification[]
+}
+
+// Notification model - doctor to patient messages
+model Notification {
+  id          String   @id @default(cuid())
+  
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  
+  doctorId    String?
+  doctor      Doctor?  @relation(fields: [doctorId], references: [id])
+  
+  title       String
+  message     String
+  type        String   @default("info") // info, warning, appointment, prescription
+  read        Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+}

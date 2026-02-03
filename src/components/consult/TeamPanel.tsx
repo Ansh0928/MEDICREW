@@ -20,6 +20,7 @@ const specialists: AgentRole[] = [
   "dermatology",
   "orthopedic",
   "gastro",
+  "physiotherapy",
 ];
 
 export function TeamPanel({ activeAgents, currentAgent }: TeamPanelProps) {

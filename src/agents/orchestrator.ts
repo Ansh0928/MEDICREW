@@ -43,9 +43,10 @@ type ConsultationGraphState = typeof ConsultationAnnotation.State;
 // Create the LLM instance
 const createLLM = () => {
   return new ChatGoogleGenerativeAI({
-    model: "gemini-pro",
+    model: "gemini-2.0-flash",
     temperature: 0.3,
     apiKey: process.env.GOOGLE_API_KEY,
+    maxRetries: 2,
   });
 };
 

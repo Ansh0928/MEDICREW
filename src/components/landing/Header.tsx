@@ -42,9 +42,32 @@ export function Header() {
           </nav>
 
           {/* CTA */}
-          <Link href="/consult">
-            <Button>Start Consultation</Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2">
+              <Link
+                href="/patient"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Patient Portal
+              </Link>
+              <span className="text-muted-foreground/50">|</span>
+              <Link
+                href="/doctor"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Doctor Dashboard
+              </Link>
+            </div>
+            <Link
+              href="/login"
+              className="sm:hidden text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Login
+            </Link>
+            <Link href="/consult">
+              <Button>Start Consultation</Button>
+            </Link>
+          </div>
         </div>
       </div>
     </motion.header>

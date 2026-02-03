@@ -14,6 +14,7 @@ const teamRoles: AgentRole[] = [
   "dermatology",
   "orthopedic",
   "gastro",
+  "physiotherapy",
 ];
 
 export function MeetTheTeam() {

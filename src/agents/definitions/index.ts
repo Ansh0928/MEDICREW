@@ -6,6 +6,7 @@ import { mentalHealthAgent } from "./mental-health";
 import { dermatologyAgent } from "./dermatology";
 import { orthopedicAgent } from "./orthopedic";
 import { gastroAgent } from "./gastro";
+import { physiotherapyAgent } from "./physiotherapy";
 
 // Registry of all available agents
 export const agentRegistry: Record<AgentRole, AgentDefinition> = {
@@ -16,6 +17,7 @@ export const agentRegistry: Record<AgentRole, AgentDefinition> = {
   dermatology: dermatologyAgent,
   orthopedic: orthopedicAgent,
   gastro: gastroAgent,
+  physiotherapy: physiotherapyAgent,
   orchestrator: {
     role: "orchestrator",
     name: "MediCrew Coordinator",
@@ -50,7 +52,7 @@ export const getRelevantSpecialists = (symptoms: string): AgentRole[] => {
     heart: ["cardiology"],
     palpitation: ["cardiology"],
     "blood pressure": ["cardiology"],
-    
+
     // Mental health
     anxiety: ["mental_health", "gp"],
     depress: ["mental_health", "gp"],
@@ -58,23 +60,35 @@ export const getRelevantSpecialists = (symptoms: string): AgentRole[] => {
     sleep: ["mental_health", "gp"],
     mood: ["mental_health"],
     panic: ["mental_health"],
-    
+
     // Dermatology
     skin: ["dermatology"],
     rash: ["dermatology"],
     itch: ["dermatology"],
     acne: ["dermatology"],
     mole: ["dermatology"],
-    
+
     // Orthopedic
-    joint: ["orthopedic"],
-    back: ["orthopedic"],
-    knee: ["orthopedic"],
-    shoulder: ["orthopedic"],
-    muscle: ["orthopedic"],
+    joint: ["orthopedic", "physiotherapy"],
+    back: ["orthopedic", "physiotherapy"],
+    knee: ["orthopedic", "physiotherapy"],
+    shoulder: ["orthopedic", "physiotherapy"],
+    muscle: ["orthopedic", "physiotherapy"],
     bone: ["orthopedic"],
-    sprain: ["orthopedic"],
-    
+    sprain: ["orthopedic", "physiotherapy"],
+
+    // Physiotherapy specific
+    physio: ["physiotherapy"],
+    rehab: ["physiotherapy"],
+    exercise: ["physiotherapy", "gp"],
+    mobility: ["physiotherapy"],
+    stiff: ["physiotherapy", "orthopedic"],
+    posture: ["physiotherapy"],
+    sports: ["physiotherapy", "orthopedic"],
+    injury: ["physiotherapy", "orthopedic"],
+    strain: ["physiotherapy"],
+    flexibility: ["physiotherapy"],
+
     // Gastro
     stomach: ["gastro", "gp"],
     digest: ["gastro"],
@@ -113,4 +127,5 @@ export {
   dermatologyAgent,
   orthopedicAgent,
   gastroAgent,
+  physiotherapyAgent,
 };

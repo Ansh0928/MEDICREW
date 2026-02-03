@@ -1,14 +1,15 @@
 import { z } from "zod";
 
 // Agent roles in the system
-export type AgentRole = 
-  | "triage" 
-  | "gp" 
-  | "cardiology" 
-  | "mental_health" 
-  | "dermatology" 
+export type AgentRole =
+  | "triage"
+  | "gp"
+  | "cardiology"
+  | "mental_health"
+  | "dermatology"
   | "orthopedic"
   | "gastro"
+  | "physiotherapy"
   | "orchestrator";
 
 // Urgency levels for triage
@@ -28,27 +29,27 @@ export interface ConsultationState {
   // User input
   symptoms: string;
   additionalInfo: string[];
-  
+
   // Conversation history
   messages: AgentMessage[];
-  
+
   // Triage assessment
   urgencyLevel?: UrgencyLevel;
   redFlags: string[];
-  
+
   // Specialist routing
   relevantSpecialties: AgentRole[];
-  
+
   // Final recommendation
   recommendation?: CareRecommendation;
-  
+
   // Metadata
   sessionId: string;
   startedAt: Date;
   currentStep: ConsultationStep;
 }
 
-export type ConsultationStep = 
+export type ConsultationStep =
   | "gathering_info"
   | "triage"
   | "specialist_consultation"
