@@ -7,8 +7,8 @@
  */
 
 import { StateGraph, END, START, Annotation } from "@langchain/langgraph";
-import { ChatGroq } from "@langchain/groq";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { createModel } from "@/lib/ai/config";
 import { AgentMessage, AgentRole } from "./types";
 import { agentRegistry, getRelevantSpecialists } from "./definitions";
 import type {
@@ -42,13 +42,9 @@ const DoctorConsultationAnnotation = Annotation.Root({
 
 type DoctorConsultationState = typeof DoctorConsultationAnnotation.State;
 
-// Create the LLM instance - using Groq for faster inference
+// Create the LLM instance - uses configured provider (Groq or Ollama)
 const createLLM = () => {
-  return new ChatGroq({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.3,
-    apiKey: process.env.GROQ_API_KEY,
-  });
+  return createModel(0.3);
 };
 
 // Format symptom check for prompts
