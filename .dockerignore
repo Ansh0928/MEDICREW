@@ -1,0 +1,53 @@
+# MediCrew Docker Ignore
+# Prevents unnecessary files from being copied during build
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Environment files (should be passed at runtime)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database (should use volume mount)
+*.db
+prisma/*.db
+
+# IDE and editors
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+
+# Documentation
+*.md
+!README.md
+
+# Reference materials
+niche-agent-reference

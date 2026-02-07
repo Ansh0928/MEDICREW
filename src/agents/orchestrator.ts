@@ -1,6 +1,6 @@
 import { StateGraph, END, START, Annotation } from "@langchain/langgraph";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { createModel } from "@/lib/ai/config";
 import {
   ConsultationState,
   AgentMessage,
@@ -8,7 +8,6 @@ import {
   UrgencyLevel,
   CareRecommendation,
   TriageOutputSchema,
-  SpecialistOutputSchema,
 } from "./types";
 import { agentRegistry, getRelevantSpecialists } from "./definitions";
 
@@ -40,14 +39,9 @@ const ConsultationAnnotation = Annotation.Root({
 
 type ConsultationGraphState = typeof ConsultationAnnotation.State;
 
-// Create the LLM instance
+// Create the LLM instance - uses configured provider (Groq or Ollama)
 const createLLM = () => {
-  return new ChatGoogleGenerativeAI({
-    model: "gemini-2.0-flash",
-    temperature: 0.3,
-    apiKey: process.env.GOOGLE_API_KEY,
-    maxRetries: 2,
-  });
+  return createModel(0.3);
 };
 
 // Triage node - assesses urgency and identifies red flags

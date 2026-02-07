@@ -7,7 +7,7 @@
  */
 
 import { StateGraph, END, START, Annotation } from "@langchain/langgraph";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGroq } from "@langchain/groq";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { AgentMessage, AgentRole } from "./types";
 import { agentRegistry, getRelevantSpecialists } from "./definitions";
@@ -42,11 +42,12 @@ const DoctorConsultationAnnotation = Annotation.Root({
 
 type DoctorConsultationState = typeof DoctorConsultationAnnotation.State;
 
+// Create the LLM instance - using Groq for faster inference
 const createLLM = () => {
-  return new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
+  return new ChatGroq({
+    model: "llama-3.3-70b-versatile",
     temperature: 0.3,
-    apiKey: process.env.GOOGLE_API_KEY,
+    apiKey: process.env.GROQ_API_KEY,
   });
 };
 
@@ -246,19 +247,19 @@ Respond with JSON only.
       const parsed = JSON.parse(jsonMatch[0]);
       doctorSummary = {
         insights: {
-          differentialDiagnosis: parsed.insights?.differentialDiagnosis || 
+          differentialDiagnosis: parsed.insights?.differentialDiagnosis ||
             sc.aiAssessment.possibleConditions,
-          recommendedTests: parsed.insights?.recommendedTests || 
+          recommendedTests: parsed.insights?.recommendedTests ||
             ["Physical examination", "Vital signs"],
           redFlags: parsed.insights?.redFlags || state.redFlags,
           aiConfidence: parsed.insights?.aiConfidence || sc.aiAssessment.confidence,
         },
         treatmentPlan: {
-          medications: parsed.treatmentPlan?.medications || 
+          medications: parsed.treatmentPlan?.medications ||
             ["Symptomatic treatment as needed"],
-          lifestyle: parsed.treatmentPlan?.lifestyle || 
+          lifestyle: parsed.treatmentPlan?.lifestyle ||
             ["Rest", "Adequate hydration", "Monitor symptoms"],
-          followUp: parsed.treatmentPlan?.followUp || 
+          followUp: parsed.treatmentPlan?.followUp ||
             "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
         },
       };
