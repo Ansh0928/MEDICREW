@@ -13,11 +13,17 @@ export const getLLMProvider = (): LLMProvider => {
 
 // Create Groq model
 const createGroqModel = (temperature = 0.3): BaseChatModel => {
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY environment variable is not set");
+  }
+
   return new ChatGroq({
     model: "llama-3.3-70b-versatile",
     temperature,
     maxTokens: 2048,
-    apiKey: process.env.GROQ_API_KEY,
+    apiKey,
   });
 };
 
@@ -50,11 +56,17 @@ export const createFastModel = (): BaseChatModel => {
     return createOllamaModel(0.1);
   }
 
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY environment variable is not set");
+  }
+
   return new ChatGroq({
     model: "llama-3.1-8b-instant",
     temperature: 0.1,
     maxTokens: 1024,
-    apiKey: process.env.GROQ_API_KEY,
+    apiKey,
   });
 };
 
