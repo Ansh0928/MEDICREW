@@ -102,21 +102,48 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COMP-01–06 | Phase 1 | Pending |
-| INFRA-01–04 | Phase 1 | Pending |
-| ONBD-01–03 | Phase 2 | Pending |
-| DASH-01–04 | Phase 2 | Pending |
-| CONS-01–04 | Phase 2 | Pending |
-| PROF-01–03 | Phase 2 | Pending |
-| CHKN-01–04 | Phase 3 | Pending |
-| ESCL-01–03 | Phase 3 | Pending |
-| NOTF-01–03 | Phase 3 | Pending |
+| COMP-01 | Phase 1 | Pending |
+| COMP-02 | Phase 1 | Pending |
+| COMP-03 | Phase 1 | Pending |
+| COMP-04 | Phase 1 | Pending |
+| COMP-05 | Phase 1 | Pending |
+| COMP-06 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| ONBD-01 | Phase 2 | Pending |
+| ONBD-02 | Phase 2 | Pending |
+| ONBD-03 | Phase 2 | Pending |
+| DASH-01 | Phase 2 | Pending |
+| DASH-02 | Phase 2 | Pending |
+| DASH-03 | Phase 2 | Pending |
+| DASH-04 | Phase 2 | Pending |
+| CONS-01 | Phase 2 | Pending |
+| CONS-02 | Phase 2 | Pending |
+| CONS-03 | Phase 2 | Pending |
+| CONS-04 | Phase 2 | Pending |
+| PROF-01 | Phase 2 | Pending |
+| PROF-02 | Phase 2 | Pending |
+| PROF-03 | Phase 2 | Pending |
+| CHKN-01 | Phase 3 | Pending |
+| CHKN-02 | Phase 3 | Pending |
+| CHKN-03 | Phase 3 | Pending |
+| CHKN-04 | Phase 3 | Pending |
+| ESCL-01 | Phase 3 | Pending |
+| ESCL-02 | Phase 3 | Pending |
+| ESCL-03 | Phase 3 | Pending |
+| NOTF-01 | Phase 3 | Pending |
+| NOTF-02 | Phase 3 | Pending |
+| NOTF-03 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 32 total
-- Mapped to phases: 32
+- v1 requirements: 34 total (32 functional + DASH-02 and PROF-03 also deepened in Phase 4)
+- Mapped to phases: 34
 - Unmapped: 0 ✓
+
+**Phase 4 note:** DASH-02 and PROF-03 have initial implementations in Phase 2 (basic form). Phase 4 deepens them with trend visualization and care plan UI detail. They are assigned to Phase 2 in the traceability table above; Phase 4 plans are tracked in ROADMAP.md.
 
 ---
 *Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 after initialization*
+*Last updated: 2026-03-26 — traceability table expanded to individual requirement rows*
