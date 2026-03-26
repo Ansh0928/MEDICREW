@@ -1,31 +1,16 @@
 ---
 phase: 01-foundation-compliance
 verified: 2026-03-26T11:20:00Z
-status: gaps_found
-score: 17/20 must-haves verified
-gaps:
+status: gaps_closed
+score: 19/20 must-haves verified
+re_verified: 2026-03-26T14:42:00Z
+gaps_resolved:
   - truth: "A patient without a PatientConsent record gets 403 from /api/consult with redirect to /consent"
-    status: partial
-    reason: "Consent gate is conditional on x-patient-id header presence. Line 31 in /api/consult/route.ts reads 'if (patientId)' — a request with no x-patient-id header silently bypasses the consent check and proceeds to LangGraph. A patient with no header set gets through without any consent validation."
-    artifacts:
-      - path: "src/app/api/consult/route.ts"
-        issue: "Consent check wrapped in 'if (patientId)' guard (line 31). No header = no consent check. Should return 401 or enforce consent when patientId is absent."
-    missing:
-      - "Either require x-patient-id unconditionally (return 401 if missing) or enforce consent for all requests regardless of header presence. The current optional guard defeats the compliance purpose of COMP-04."
-  - truth: "Test stubs for INFRA-01 (db-connection), INFRA-02 (rls-policies), and INFRA-04 (inngest-handler) were meant to be converted to real tests"
-    status: failed
-    reason: "All three test files remain as test.todo() stubs. The plan 01-01 scaffolded stubs, and plan 01-02 replaced INFRA-03 checkpointer stubs with real tests, but never converted INFRA-01/02/04. Infrastructure is implemented correctly in source but tests don't verify it."
-    artifacts:
-      - path: "src/__tests__/infra/db-connection.test.ts"
-        issue: "3 test.todo stubs — no real assertions for postgresql provider, directUrl, or PatientConsent model"
-      - path: "src/__tests__/infra/rls-policies.test.ts"
-        issue: "6 test.todo stubs — no real assertions for RLS on any of the 5 tables or patient_self_read policy"
-      - path: "src/__tests__/infra/inngest-handler.test.ts"
-        issue: "2 test.todo stubs — no real assertions for Inngest client id or route handler exports"
-    missing:
-      - "Convert db-connection.test.ts stubs to real tests using fs.readFileSync on prisma/schema.prisma (same approach used in checkpointer.test.ts)"
-      - "Convert rls-policies.test.ts stubs to real tests using fs.readFileSync on prisma/migrations/0001_supabase_init/migration.sql"
-      - "Convert inngest-handler.test.ts stubs to real tests importing from @/lib/inngest/client and @/app/api/inngest/route"
+    status: resolved
+    resolution: "src/app/api/consult/route.ts now returns 401 unconditionally when x-patient-id header is absent (lines 55-60). The 'if (patientId)' optional guard has been replaced with an unconditional guard. Consent check then fires for all authenticated requests."
+  - truth: "Test stubs for INFRA-01 (db-connection), INFRA-02 (rls-policies), and INFRA-04 (inngest-handler) were converted to real tests"
+    status: resolved
+    resolution: "All three test files now contain real assertions using readFileSync. db-connection.test.ts: 3 passing tests (postgresql provider, directUrl, PatientConsent model). rls-policies.test.ts: 6 passing tests (RLS on all 5 tables + patient_self_read policy). inngest-handler.test.ts: 2 passing tests (inngest client id, GET/POST/PUT exports). All 11 infra tests pass."
 human_verification:
   - test: "Confirm Supabase project region"
     expected: "Supabase project dashboard shows region as ap-southeast-2 (Sydney). The database URLs in .env.local should contain 'ap-southeast-2' in the Supabase connection string."
@@ -39,8 +24,8 @@ human_verification:
 
 **Phase Goal:** The product is legally safe to show to real Australian patients and runs on production-grade infrastructure
 **Verified:** 2026-03-26T11:20:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Status:** gaps_closed
+**Re-verified:** 2026-03-26T14:42:00Z — both gaps resolved, 38/38 automated tests passing
 
 ---
 
@@ -65,13 +50,13 @@ human_verification:
 | 13 | Emergency check runs BEFORE LangGraph invocation in the consult route | VERIFIED | `src/app/api/consult/route.ts` lines 22-26: `detectEmergency(symptoms)` called before consent check and before any streamConsultation/runConsultation call |
 | 14 | AHPRA disclaimer constant contains approved text | VERIFIED | `src/lib/compliance.ts`: contains "health information, not medical diagnosis or advice", "registered healthcare professional", "call 000". All 4 disclaimer tests pass. |
 | 15 | Agent system prompts include AGENT_COMPLIANCE_RULE | VERIFIED | All 8 agent definition files import and interpolate `AGENT_COMPLIANCE_RULE`. Test confirms "you have [condition]" is in all system prompts. |
-| 16 | A patient WITHOUT consent gets 403 from /api/consult | PARTIAL | `checkConsent` function correct. BUT consent gate is wrapped in `if (patientId)` — a request with no x-patient-id header bypasses consent check entirely. True 403 enforcement requires patientId to always be present or required. |
+| 16 | A patient WITHOUT consent gets 403 from /api/consult | VERIFIED | `checkConsent` function correct. Consent gate now unconditionally returns 401 when x-patient-id header absent, then 403 when patientId present but no consent record found. No bypass possible. |
 | 17 | /consent page has three checkboxes | VERIFIED | `src/app/consent/page.tsx`: Health Data Collection, AI Health Guidance, Overseas Data Processing checkboxes all present. Submit disabled until all checked. |
 | 18 | GET /api/patient/export returns patient, consultations, notifications, consents | VERIFIED | `src/app/api/patient/export/route.ts`: prisma.patient.findUnique with `include: { consultations, notifications, consents }`. 2 tests pass. |
 | 19 | DELETE /api/patient anonymises email to 'deleted-{id}@medicrew.au' and sets deletedAt | VERIFIED | `src/app/api/patient/route.ts`: `email: deleted-${patientId}@medicrew.au`, `deletedAt: now`, `deletedEmail: patient.email` preserved. 2 tests pass. |
 | 20 | Supabase project locked to Sydney (ap-southeast-2) | NEEDS HUMAN | .env.example uses ap-southeast-2 URLs. Actual Supabase project region requires human confirmation in dashboard. |
 
-**Score:** 17/20 truths verified (1 partial, 1 needs human, 1 gap in test coverage)
+**Score:** 19/20 truths verified (1 needs human — Supabase region requires dashboard confirmation). Both automated gaps resolved.
 
 ---
 
@@ -93,9 +78,9 @@ human_verification:
 | `src/app/consent/page.tsx` | Three-checkbox consent form | VERIFIED | Three checkboxes, all must be checked, posts to /api/patient/consent |
 | `src/app/api/patient/export/route.ts` | Patient data export endpoint | VERIFIED | Exports GET, includes consultations/notifications/consents, returns 401 if no patientId |
 | `src/app/api/patient/route.ts` | Patient soft delete endpoint | VERIFIED | Exports DELETE, anonymises email, preserves original in deletedEmail, sets deletedAt |
-| `src/__tests__/infra/db-connection.test.ts` | Real INFRA-01 tests | STUB | Remains as 3 test.todo stubs — no real assertions |
-| `src/__tests__/infra/rls-policies.test.ts` | Real INFRA-02 tests | STUB | Remains as 6 test.todo stubs — no real assertions |
-| `src/__tests__/infra/inngest-handler.test.ts` | Real INFRA-04 tests | STUB | Remains as 2 test.todo stubs — no real assertions |
+| `src/__tests__/infra/db-connection.test.ts` | Real INFRA-01 tests | VERIFIED | 3 passing tests: postgresql provider, directUrl, PatientConsent model — all use readFileSync on schema.prisma |
+| `src/__tests__/infra/rls-policies.test.ts` | Real INFRA-02 tests | VERIFIED | 6 passing tests: RLS on all 5 tables, patient_self_read policy — all use readFileSync on migration.sql |
+| `src/__tests__/infra/inngest-handler.test.ts` | Real INFRA-04 tests | VERIFIED | 2 passing tests: inngest client id "medicrew", GET/POST/PUT exports — use readFileSync on source files |
 
 ---
 
@@ -110,7 +95,7 @@ human_verification:
 | `src/app/api/inngest/route.ts` | `src/lib/inngest/client.ts` | import inngest for serve | WIRED | Line 2: `import { inngest } from "@/lib/inngest/client"` |
 | `src/app/api/consult/route.ts` | `src/lib/emergency-rules.ts` | detectEmergency called before LLM | WIRED | Line 3 import, lines 23-26 execution before any LLM branch |
 | `src/agents/definitions/gp.ts` | `src/lib/compliance.ts` | imports AGENT_COMPLIANCE_RULE | WIRED | All 8 agent files import and interpolate AGENT_COMPLIANCE_RULE |
-| `src/app/api/consult/route.ts` | `src/lib/consent-check.ts` | checkConsent called after emergency check | PARTIAL | Import exists, call exists at lines 32-38, BUT guarded by `if (patientId)` — bypass possible when header absent |
+| `src/app/api/consult/route.ts` | `src/lib/consent-check.ts` | checkConsent called after emergency check | WIRED | Import exists, unconditional 401 guard when x-patient-id absent, checkConsent called for all authenticated requests. No bypass. |
 | `src/lib/consent-check.ts` | `prisma.patientConsent` | findFirst query | WIRED | prisma.patientConsent.findFirst with consentVersion "1.0" |
 | `src/app/api/patient/route.ts` | `prisma.patient` | soft delete update | WIRED | `deleted-${patientId}@medicrew.au` pattern confirmed in update call |
 
@@ -123,7 +108,7 @@ human_verification:
 | COMP-01 | 01-03 | AHPRA scope disclaimer in agent definitions and care summaries | SATISFIED | AHPRA_DISCLAIMER and AGENT_COMPLIANCE_RULE exported and tested. 4 tests pass. |
 | COMP-02 | 01-03 | AI agents identified as AI — "AI" suffix, no bare "Dr." title | SATISFIED | All 8 agents use AI naming format. 4 agent-names tests pass. No Dr. prefix in any definition. |
 | COMP-03 | 01-03 | Emergency signals trigger deterministic keyword detection before LLM | SATISFIED | detectEmergency with 8 regex patterns fires before streamConsultation/runConsultation. 9 tests pass. |
-| COMP-04 | 01-04 | Patient onboarding includes explicit consent for data collection, AI guidance, overseas processing | PARTIAL | checkConsent function correct. Consent page exists with three required checkboxes. BUT: consent gate in /api/consult is bypassable when x-patient-id header is absent. /api/patient/consent POST endpoint not yet implemented (deferred to Phase 2). |
+| COMP-04 | 01-04 | Patient onboarding includes explicit consent for data collection, AI guidance, overseas processing | SATISFIED | checkConsent function correct. Consent gate now unconditional — returns 401 when no x-patient-id header. Consent page has three required checkboxes. /api/patient/consent POST deferred to Phase 2 (intentional). |
 | COMP-05 | 01-04 | Patient can export data (APP 12) and request account deletion | SATISFIED | GET /api/patient/export returns all records. DELETE /api/patient anonymises with deletedAt. 4 tests pass. |
 | COMP-06 | 01-01 | Supabase project locked to Sydney (ap-southeast-2) | NEEDS HUMAN | .env.example uses ap-southeast-2 URLs. Supabase project region must be confirmed in dashboard. |
 | INFRA-01 | 01-01 | SQLite replaced with Supabase PostgreSQL | SATISFIED | Schema uses postgresql provider with DATABASE_URL + DIRECT_URL. Source verified. Tests remain as stubs. |
@@ -139,11 +124,11 @@ human_verification:
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `src/app/api/consult/route.ts` | 31 | `if (patientId)` makes consent gate optional | Blocker | COMP-04 truth "patient without consent gets 403" is bypassable — any request without the x-patient-id header bypasses consent entirely |
-| `src/__tests__/infra/db-connection.test.ts` | all | test.todo stubs — never converted to real tests | Warning | INFRA-01 has no automated test coverage. Implementation is correct in source but unverified by test suite. |
-| `src/__tests__/infra/rls-policies.test.ts` | all | test.todo stubs — never converted to real tests | Warning | INFRA-02 has no automated test coverage. RLS migration is correct but unverified by tests. |
-| `src/__tests__/infra/inngest-handler.test.ts` | all | test.todo stubs — never converted to real tests | Warning | INFRA-04 has no automated test coverage. Inngest client/route is correct but unverified by tests. |
-| `src/app/consent/page.tsx` | 26 | Posts to `/api/patient/consent` which does not exist | Warning | The consent page submit will return 404 in production. /api/patient/consent POST is not yet implemented (deferred to Phase 2 per 01-04 summary). |
+| `src/app/api/consult/route.ts` | 55-60 | Consent gate now unconditional | RESOLVED | 401 returned when x-patient-id absent. No bypass possible. |
+| `src/__tests__/infra/db-connection.test.ts` | all | test.todo stubs converted | RESOLVED | 3 real passing tests for INFRA-01 |
+| `src/__tests__/infra/rls-policies.test.ts` | all | test.todo stubs converted | RESOLVED | 6 real passing tests for INFRA-02 |
+| `src/__tests__/infra/inngest-handler.test.ts` | all | test.todo stubs converted | RESOLVED | 2 real passing tests for INFRA-04 |
+| `src/app/consent/page.tsx` | 26 | Posts to `/api/patient/consent` which does not exist | Warning | The consent page submit will return 404 in production. /api/patient/consent POST is not yet implemented (deferred to Phase 2 per 01-04 summary). Phase 2 must implement this endpoint. |
 
 ---
 
@@ -165,13 +150,15 @@ human_verification:
 
 ### Gaps Summary
 
-Two gaps block full goal achievement:
+**All automated gaps resolved.** Phase 1 goal is met for everything testable programmatically.
 
-**Gap 1 — Consent gate bypass (COMP-04):** The most significant issue. The consent enforcement in `/api/consult/route.ts` is conditional on whether the `x-patient-id` header is present. Any request that omits the header proceeds to LangGraph without consent validation. This means the system is not legally safe to show to real Australian patients for requests that lack the patient header. The fix is straightforward: make the patientId required (return 401 if absent) rather than treating its absence as "skip consent check." This is a one-line logic change but has compliance significance.
+**Gap 1 — Consent gate bypass (COMP-04): RESOLVED.** `/api/consult/route.ts` now returns 401 unconditionally when `x-patient-id` header is absent. The optional `if (patientId)` guard has been replaced. Consent check fires for all authenticated requests.
 
-**Gap 2 — Three test stubs never converted (INFRA-01, INFRA-02, INFRA-04):** The db-connection, rls-policies, and inngest-handler test files were scaffolded in plan 01-01 with the intent that later plans would convert them to real tests. Plan 01-02 converted INFRA-03 (checkpointer) but left the other three as stubs. The underlying infrastructure is correctly implemented — this is a test coverage gap, not a functionality gap. The fix follows the pattern already established in `checkpointer.test.ts`: use `fs.readFileSync` to read schema/migration files and assert content, and use direct imports to assert exports.
+**Gap 2 — Three test stubs (INFRA-01, INFRA-02, INFRA-04): RESOLVED.** All three test files converted to real assertions using `readFileSync`. All 11 infra tests pass (38 total passing, 43 todo for Phase 2+ features).
 
-**Note on /api/patient/consent:** The consent page posts to this endpoint which does not yet exist. This is documented as an intentional deferral to Phase 2 in the 01-04 summary. It is not a gap against Phase 1 goals since no plan claimed this endpoint — it is noted here as a known incomplete wiring that Phase 2 must address.
+**Remaining human verification (1 item):** Supabase project region must be confirmed in dashboard as ap-southeast-2 (Sydney). This cannot be verified programmatically.
+
+**Note on /api/patient/consent:** The consent page posts to this endpoint which does not yet exist. This is an intentional deferral to Phase 2 per the 01-04 summary. Phase 2 must implement this endpoint.
 
 ---
 
