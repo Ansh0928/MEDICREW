@@ -5,11 +5,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle, LogOut } from "lucide-react";
+import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle, LogOut, Users, HeartPulse } from "lucide-react";
+import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
+import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
+
+interface AgentStatus {
+  agentName: string;
+  message: string;
+  updatedAt: string;
+}
 
 interface Patient {
   id: string;
@@ -20,6 +28,9 @@ interface Patient {
   knownConditions: string | null;
   consultations: Consultation[];
   notifications: Notification[];
+  careTeamStatus?: {
+    statuses: Record<string, AgentStatus>;
+  } | null;
 }
 
 interface Consultation {
@@ -27,7 +38,7 @@ interface Consultation {
   symptoms: string;
   urgencyLevel: string | null;
   createdAt: string;
-  recommendation: string | null;
+  recommendation: unknown | null;
 }
 
 interface Notification {
@@ -45,7 +56,7 @@ export default function PatientPortal() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "history" | "notifications">("profile");
+  const [activeTab, setActiveTab] = useState<"care-team" | "care-plan" | "history" | "profile" | "notifications">("care-team");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -166,7 +177,7 @@ export default function PatientPortal() {
                 Home
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-blue-600">👤 Patient Portal</h1>
+            <h1 className="text-xl font-bold text-blue-600">Patient Portal</h1>
             {patient && (
               <span className="text-sm text-muted-foreground">
                 Welcome, {patient.name}
@@ -186,15 +197,22 @@ export default function PatientPortal() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Tabs */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             <Button
-              variant={activeTab === "profile" ? "default" : "outline"}
-              onClick={() => setActiveTab("profile")}
+              variant={activeTab === "care-team" ? "default" : "outline"}
+              onClick={() => setActiveTab("care-team")}
             >
-              <User className="w-4 h-4 mr-2" />
-              Profile
+              <Users className="w-4 h-4 mr-2" />
+              Care Team
+            </Button>
+            <Button
+              variant={activeTab === "care-plan" ? "default" : "outline"}
+              onClick={() => setActiveTab("care-plan")}
+            >
+              <HeartPulse className="w-4 h-4 mr-2" />
+              Care Plan
             </Button>
             <Button
               variant={activeTab === "history" ? "default" : "outline"}
@@ -207,6 +225,13 @@ export default function PatientPortal() {
                   {patient.consultations.length}
                 </Badge>
               )}
+            </Button>
+            <Button
+              variant={activeTab === "profile" ? "default" : "outline"}
+              onClick={() => setActiveTab("profile")}
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profile
             </Button>
             <Button
               variant={activeTab === "notifications" ? "default" : "outline"}
@@ -223,6 +248,76 @@ export default function PatientPortal() {
           </div>
 
           <AnimatePresence mode="wait">
+
+            {/* Care Team Tab — live status via Supabase Realtime */}
+            {activeTab === "care-team" && (
+              <motion.div
+                key="care-team"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                {patient ? (
+                  <CareTeamCard
+                    patientId={patient.id}
+                    initialStatuses={patient.careTeamStatus?.statuses ?? {}}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>Loading your care team...</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Care Plan Tab — DASH-02 basic form, Phase 4 will deepen */}
+            {activeTab === "care-plan" && (
+              <motion.div
+                key="care-plan"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Your Care Plan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Your care team is monitoring your health. Check-in scheduling will be available soon.
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm">Status: Active monitoring</p>
+                      <p className="text-sm">Next check-in: Coming in Phase 3</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* History Tab */}
+            {activeTab === "history" && (
+              <motion.div
+                key="history"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Consultation History</h2>
+                  <ConsultationHistoryList
+                    consultations={patient?.consultations.map(c => ({
+                      id: c.id,
+                      symptoms: c.symptoms,
+                      urgencyLevel: c.urgencyLevel,
+                      recommendation: c.recommendation,
+                      createdAt: c.createdAt,
+                    })) ?? []}
+                  />
+                </Card>
+              </motion.div>
+            )}
+
             {/* Profile Tab */}
             {activeTab === "profile" && (
               <motion.div
@@ -300,7 +395,7 @@ export default function PatientPortal() {
 
                     {success && (
                       <div className="p-3 bg-green-50 text-green-600 rounded-md">
-                        ✓ {success}
+                        {success}
                       </div>
                     )}
 
@@ -308,52 +403,6 @@ export default function PatientPortal() {
                       {loading ? "Saving..." : "Save Profile"}
                     </Button>
                   </div>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* History Tab */}
-            {activeTab === "history" && (
-              <motion.div
-                key="history"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Consultation History</h2>
-                  {!patient || patient.consultations.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No consultations yet</p>
-                      <Link href="/consult">
-                        <Button className="mt-4">Start Your First Consultation</Button>
-                      </Link>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {patient.consultations.map((consultation) => (
-                        <Card key={consultation.id} className="p-4 bg-muted/30">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium">{consultation.symptoms}</p>
-                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <Clock className="w-4 h-4" />
-                                {new Date(consultation.createdAt).toLocaleDateString()}
-                              </div>
-                            </div>
-                            <Badge variant={
-                              consultation.urgencyLevel === "emergency" ? "destructive" :
-                                consultation.urgencyLevel === "urgent" ? "default" :
-                                  "secondary"
-                            }>
-                              {consultation.urgencyLevel || "Unknown"}
-                            </Badge>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
                 </Card>
               </motion.div>
             )}
@@ -395,7 +444,7 @@ export default function PatientPortal() {
                                 <Clock className="w-3 h-3" />
                                 {new Date(notification.createdAt).toLocaleDateString()}
                                 {notification.doctor && (
-                                  <span>• From: {notification.doctor.name}</span>
+                                  <span>From: {notification.doctor.name}</span>
                                 )}
                               </div>
                             </div>
@@ -416,6 +465,7 @@ export default function PatientPortal() {
                 </Card>
               </motion.div>
             )}
+
           </AnimatePresence>
         </div>
       </main>
