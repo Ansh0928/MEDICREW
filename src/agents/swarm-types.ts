@@ -36,15 +36,6 @@ export interface SwarmHypothesis {
   residentRole: ResidentRole;
 }
 
-export interface SwarmClarification {
-  id: string;
-  doctorRole: DoctorRole;
-  residentRole: ResidentRole;
-  question: string;
-  answer?: string;
-  status: "pending" | "answered";
-}
-
 export interface SwarmResidentDebateMessage {
   doctorRole: DoctorRole;
   residentRole: ResidentRole;
@@ -89,16 +80,12 @@ export interface SwarmState {
     redFlags: string[];
   } | null;
   leadSwarms: Partial<Record<DoctorRole, SwarmLeadState>>;
-  clarifications: SwarmClarification[];
-  activeClarificationIds: string[];
-  pendingClarifications: SwarmClarification[];
   mdtMessages: SwarmMdtMessage[];
   synthesis: SwarmSynthesis | null;
   primaryLeadRole: DoctorRole | null;
   currentPhase:
     | "triage"
     | "swarm"
-    | "awaiting_patient"
     | "debate"
     | "rectification"
     | "mdt"
@@ -114,7 +101,6 @@ export type SwarmEvent =
   | { type: "doctor_activated"; role: DoctorRole; name: string }
   | { type: "doctor_complete"; role: DoctorRole }
   | { type: "hypothesis_found"; role: DoctorRole; residentRole: ResidentRole; hypothesisId: string; name: string; confidence: number }
-  | { type: "question_ready"; clarificationId: string; role: DoctorRole; question: string }
   | { type: "debate_message"; role: DoctorRole; residentRole: ResidentRole; messageType: DebateMessageType; content: string; referencingHypothesisId?: string }
   | { type: "rectification_complete"; role: DoctorRole; summary: string }
   | { type: "mdt_message"; role: DoctorRole; messageType: MdtMessageType; content: string }
@@ -135,9 +121,6 @@ export function createInitialSwarmState(
     patientInfo,
     triage: null,
     leadSwarms: {},
-    clarifications: [],
-    activeClarificationIds: [],
-    pendingClarifications: [],
     mdtMessages: [],
     synthesis: null,
     primaryLeadRole: null,

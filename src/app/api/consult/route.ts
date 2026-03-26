@@ -27,7 +27,7 @@ function buildCareTeamStatuses(
     seen.add(msg.role);
     statuses[msg.role] = {
       agentName: msg.agentName,
-      message: `Reviewed your symptoms: ${symptoms.substring(0, 50)}...`,
+      message: msg.content.substring(0, 200),
       updatedAt: new Date().toISOString(),
     };
   }
@@ -166,8 +166,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Non-streaming response
-    const result = await runConsultation(symptoms);
+    // Non-streaming response — fetch patient context (same as streaming path)
+    const nonStreamPatient = await prisma.patient.findUnique({
+      where: { id: patientId },
+      select: { knownConditions: true, medications: true, age: true, gender: true, allergies: true },
+    });
+    const nonStreamContext = nonStreamPatient
+      ? `Patient profile: Age ${nonStreamPatient.age ?? 'unknown'}, ${nonStreamPatient.gender ?? 'unknown'}. Known conditions: ${nonStreamPatient.knownConditions ?? 'none'}. Medications: ${(nonStreamPatient.medications as string[] | null ?? []).join(', ') || 'none'}. Allergies: ${(nonStreamPatient.allergies as string[] | null ?? []).join(', ') || 'none'}.`
+      : undefined;
+
+    const result = await runConsultation(symptoms, undefined, undefined, nonStreamContext);
 
     // Write CareTeamStatus after non-streaming consultation completes
     // NOTE: CareTeamStatus table requires REPLICA IDENTITY FULL for Supabase Realtime
@@ -180,11 +188,6 @@ export async function POST(request: NextRequest) {
         update: { statuses },
       });
     }
-
-    const nonStreamingPatient = await prisma.patient.findUnique({
-      where: { id: patientId },
-      select: { name: true },
-    });
 
     const nonStreamingConsultation = await prisma.consultation.create({
       data: {
@@ -203,7 +206,7 @@ export async function POST(request: NextRequest) {
       data: {
         patientId,
         consultationId: nonStreamingConsultation.id,
-        patientName: nonStreamingPatient?.name ?? "there",
+        patientName: nonStreamPatient?.name ?? "there",
       },
     });
 

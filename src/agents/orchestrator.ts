@@ -169,19 +169,19 @@ async function specialistNode(state: ConsultationGraphState): Promise<Partial<Co
     (role) => !["gp", "triage", "orchestrator"].includes(role)
   );
 
-  // Run specialist consultations
-  for (const specialtyRole of specialistsToConsult.slice(0, 2)) {
-    // Limit to 2 specialists
-    const agent = agentRegistry[specialtyRole];
-    if (!agent) continue;
+  // Run specialist consultations in parallel (limit to 2)
+  const previousMessages = state.messages
+    .map((m) => `${m.agentName}: ${m.content}`)
+    .join("\n\n");
 
-    const previousMessages = state.messages
-      .map((m) => `${m.agentName}: ${m.content}`)
-      .join("\n\n");
+  const results = await Promise.all(
+    specialistsToConsult.slice(0, 2).map(async (specialtyRole) => {
+      const agent = agentRegistry[specialtyRole];
+      if (!agent) return null;
 
-    const response = await llm.invoke([
-      new SystemMessage(agent.systemPrompt),
-      new HumanMessage(`
+      const response = await llm.invoke([
+        new SystemMessage(agent.systemPrompt),
+        new HumanMessage(`
 Patient symptoms: ${state.symptoms}
 ${state.additionalInfo.length > 0 ? `Additional information: ${state.additionalInfo.join(", ")}` : ""}
 
@@ -194,14 +194,19 @@ ${previousMessages}
 As the ${agent.name}, please provide your specialist perspective on these symptoms.
 Focus on aspects relevant to your specialty and any specific recommendations.
 `),
-    ]);
+      ]);
 
-    messages.push({
-      role: specialtyRole,
-      agentName: agent.name,
-      content: response.content as string,
-      timestamp: new Date(),
-    });
+      return {
+        role: specialtyRole,
+        agentName: agent.name,
+        content: response.content as string,
+        timestamp: new Date(),
+      };
+    })
+  );
+
+  for (const msg of results) {
+    if (msg) messages.push(msg);
   }
 
   return {
@@ -331,7 +336,8 @@ export function createConsultationGraph(checkpointer?: any) {
 export async function runConsultation(
   symptoms: string,
   sessionId?: string,
-  consultationId?: string
+  consultationId?: string,
+  patientContext?: string
 ): Promise<ConsultationState> {
   let graph;
   let invokeConfig: { configurable?: { thread_id: string } } | undefined;
@@ -344,8 +350,12 @@ export async function runConsultation(
     graph = createConsultationGraph();
   }
 
+  const enrichedSymptoms = patientContext
+    ? `${patientContext}\n\nCurrent symptoms: ${symptoms}`
+    : symptoms;
+
   const initialState = {
-    symptoms,
+    symptoms: enrichedSymptoms,
     additionalInfo: [],
     messages: [],
     redFlags: [],

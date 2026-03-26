@@ -18,7 +18,6 @@ describe('SwarmV2 types', () => {
     const state = createInitialSwarmState('sess-1', 'back pain', { age: '23', gender: 'male' });
     expect(state.currentPhase).toBe('triage');
     expect(state.primaryLeadRole).toBeNull();
-    expect(state.pendingClarifications).toEqual([]);
-    expect(state.activeClarificationIds).toEqual([]);
+    expect(state.mdtMessages).toEqual([]);
   });
 });

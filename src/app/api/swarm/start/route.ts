@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { streamSwarm } from "@/agents/swarm";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { SwarmEvent } from "@/agents/swarm-types";
+import { detectEmergency } from "@/lib/emergency-rules";
 
 // 300s max — full consultation: triage + parallel doctors + debate + synthesis
 // Plus up to 2min clarification wait. Vercel Pro/Enterprise supports 300s.
@@ -26,6 +27,15 @@ export async function POST(request: NextRequest) {
   }
   if (symptoms.length > 2000) {
     return new Response(JSON.stringify({ error: "symptoms must be under 2000 characters" }), { status: 400 });
+  }
+
+  // C1: Emergency detection MUST run before any LLM call (AHPRA compliance rule)
+  const emergency = detectEmergency(symptoms);
+  if (emergency.isEmergency) {
+    return new Response(JSON.stringify(emergency.response), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // Validate patientInfo

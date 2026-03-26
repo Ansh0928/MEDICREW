@@ -6,7 +6,7 @@ import { HuddleChatPanel, ChatMessage } from "./HuddleChatPanel";
 import { FollowUpBar } from "./FollowUpBar";
 import { RoutingChip } from "./RoutingChip";
 import { SynthesisCard } from "./SynthesisCard";
-import { SwarmEvent, SwarmSynthesis } from "@/agents/swarm-types";
+import { SwarmEvent, SwarmSynthesis, SwarmState, SwarmLeadState, DoctorRole } from "@/agents/swarm-types";
 
 // ── Agent display names ───────────────────────────────────────────────────────
 
@@ -86,9 +86,10 @@ interface HuddleRoomProps {
   symptoms: string;
   patientInfo: PatientInfo;
   onReset?: () => void;
+  onSwarmStateChange?: (state: Partial<SwarmState>) => void;
 }
 
-export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
+export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: HuddleRoomProps) {
   const [agents, setAgents] = useState<Record<string, AgentVisualState>>({});
   const [connections, setConnections] = useState<HuddleConnection[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -99,6 +100,10 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // positionsRef holds the latest computed positions so handleEvent (memoised) can read them
   const positionsRef = useRef<Record<string, AgentPosition>>({});
+  // swarmDebugRef accumulates state for the debug panel without causing re-renders
+  const swarmDebugRef = useRef<Partial<SwarmState>>({});
+  const onSwarmStateChangeRef = useRef(onSwarmStateChange);
+  onSwarmStateChangeRef.current = onSwarmStateChange;
 
   const RADIUS = 160;
 
@@ -116,10 +121,27 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
     ]);
   }, []);
 
+  const emitDebugState = useCallback((patch: Partial<SwarmState>) => {
+    swarmDebugRef.current = { ...swarmDebugRef.current, ...patch };
+    onSwarmStateChangeRef.current?.(swarmDebugRef.current);
+  }, []);
+
   const handleEvent = useCallback((event: SwarmEvent) => {
     switch (event.type) {
+      case "phase_changed":
+        emitDebugState({ currentPhase: event.phase });
+        break;
+
       case "doctor_activated":
         updateAgent(event.role, "active");
+        emitDebugState({
+          leadSwarms: {
+            ...swarmDebugRef.current.leadSwarms,
+            [event.role]: swarmDebugRef.current.leadSwarms?.[event.role as DoctorRole] ?? {
+              status: "running", hypotheses: [], residentDebate: [], rectification: null,
+            } as SwarmLeadState,
+          },
+        });
         break;
 
       case "hypothesis_found":
@@ -129,6 +151,18 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
           `${event.name} — confidence ${event.confidence}%`,
           "hypothesis",
         );
+        emitDebugState({
+          leadSwarms: {
+            ...swarmDebugRef.current.leadSwarms,
+            [event.role]: {
+              ...(swarmDebugRef.current.leadSwarms?.[event.role as DoctorRole] ?? { status: "running", residentDebate: [], rectification: null }),
+              hypotheses: [
+                ...(swarmDebugRef.current.leadSwarms?.[event.role as DoctorRole]?.hypotheses ?? []),
+                { id: event.hypothesisId, name: event.name, confidence: event.confidence, reasoning: "", residentRole: event.residentRole },
+              ],
+            } as SwarmLeadState,
+          },
+        });
         break;
 
       case "debate_message": {
@@ -160,10 +194,26 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
       case "rectification_complete":
         updateAgent(event.role, "done");
         addChatMessage(getAgentDisplayName(event.role), event.summary, "rectification");
+        emitDebugState({
+          leadSwarms: {
+            ...swarmDebugRef.current.leadSwarms,
+            [event.role]: {
+              ...(swarmDebugRef.current.leadSwarms?.[event.role as DoctorRole] ?? { hypotheses: [], residentDebate: [], rectification: null }),
+              status: "complete",
+              rectification: { doctorRole: event.role as DoctorRole, summary: event.summary },
+            } as SwarmLeadState,
+          },
+        });
         break;
 
       case "mdt_message":
         addChatMessage(getAgentDisplayName(event.role), event.content, "mdt", event.messageType as ChatMessage["messageType"]);
+        emitDebugState({
+          mdtMessages: [
+            ...(swarmDebugRef.current.mdtMessages ?? []),
+            { doctorRole: event.role as DoctorRole, type: event.messageType, content: event.content },
+          ],
+        });
         break;
 
       case "doctor_complete":
@@ -191,7 +241,7 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
         addChatMessage("System", event.message, "system");
         break;
     }
-  }, [updateAgent, addChatMessage]);
+  }, [updateAgent, addChatMessage, emitDebugState]);
 
   const startConsultation = useCallback(async () => {
     setIsRunning(true);

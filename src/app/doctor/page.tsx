@@ -44,6 +44,7 @@ export default function DoctorPage() {
           <HuddleRoom
             symptoms="I'm 23 years old having back pain due to cycling. Haven't done anything about it. No medicines."
             patientInfo={{ age: "23", gender: "male" }}
+            onSwarmStateChange={setSwarmState}
           />
         </div>
 

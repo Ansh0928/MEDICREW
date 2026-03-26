@@ -57,8 +57,7 @@ export function SwarmChat() {
       case "phase_changed":
         if (event.phase === "debate") setLiveFeed("Your care team is discussing your case...");
         if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
-        if (event.phase === "awaiting_patient") setLiveFeed("Waiting for your answers to continue...");
-        break;
+break;
       case "synthesis_complete":
         setSynthesis(event.data);
         setIsLoading(false);
