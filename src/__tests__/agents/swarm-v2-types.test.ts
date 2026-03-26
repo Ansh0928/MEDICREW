@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RESIDENT_ROLES, createInitialSwarmState } from '@/agents/swarm-types';
+import { RESIDENT_ROLES, DOCTOR_ROLES, createInitialSwarmState } from '@/agents/swarm-types';
 
 describe('SwarmV2 types', () => {
   it('RESIDENT_ROLES contains exactly 4 roles', () => {
@@ -10,10 +10,15 @@ describe('SwarmV2 types', () => {
     expect(RESIDENT_ROLES).toContain('red-flag');
   });
 
+  it('DOCTOR_ROLES contains exactly 7 roles', () => {
+    expect(DOCTOR_ROLES).toHaveLength(7);
+  });
+
   it('createInitialSwarmState sets currentPhase to triage', () => {
     const state = createInitialSwarmState('sess-1', 'back pain', { age: '23', gender: 'male' });
     expect(state.currentPhase).toBe('triage');
     expect(state.primaryLeadRole).toBeNull();
     expect(state.pendingClarifications).toEqual([]);
+    expect(state.activeClarificationIds).toEqual([]);
   });
 });

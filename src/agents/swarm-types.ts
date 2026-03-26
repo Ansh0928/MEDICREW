@@ -145,4 +145,6 @@ export function createInitialSwarmState(
   };
 }
 
+// Module-level answer store — works within a single serverless invocation.
+// Phase 2: replace with Upstash Redis for cross-invocation session resume.
 export const answerStore = new Map<string, string>();
