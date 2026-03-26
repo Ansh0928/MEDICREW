@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
           controller.close();
         } catch (error) {
           console.error("Doctor consultation streaming error:", error);
-          controller.error(error);
+          const errorEvent = JSON.stringify({ error: true, message: "Doctor consultation failed. Please retry." });
+          controller.enqueue(encoder.encode(`data: ${errorEvent}\n\n`));
+          controller.close();
         }
       },
     });
