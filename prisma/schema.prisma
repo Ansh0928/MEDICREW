@@ -13,20 +13,31 @@ datasource db {
 
 // Patient model - stores patient profile info
 model Patient {
-  id              String         @id @default(cuid())
-  name            String
-  email           String         @unique
-  age             Int?
-  gender          String?
-  knownConditions String?
-  deletedAt       DateTime?
-  deletedEmail    String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id                 String         @id @default(cuid())
+  name               String
+  email              String         @unique
+  age                Int?
+  gender             String?
+  knownConditions    String?
+  deletedAt          DateTime?
+  deletedEmail       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
-  consultations   Consultation[]
-  notifications   Notification[]
-  consents        PatientConsent[]
+  // Phase 2: Extended profile fields
+  dateOfBirth        DateTime?
+  medications        String[]       @default([])
+  allergies          String[]       @default([])
+  emergencyContact   Json?          @db.JsonB
+  gpDetails          Json?          @db.JsonB
+  onboardingComplete Boolean        @default(false)
+  supabaseUserId     String?        @unique
+
+  consultations      Consultation[]
+  notifications      Notification[]
+  consents           PatientConsent[]
+  symptomJournals    SymptomJournal[]
+  careTeamStatus     CareTeamStatus?
 }
 
 // Consultation model - stores AI consultation history
@@ -43,7 +54,7 @@ model Consultation {
   triageResponse    String?
   gpResponse        String?
   specialistResponse String?
-  recommendation    String?
+  recommendation    Json?    @db.JsonB
 
   createdAt     DateTime @default(now())
 }
@@ -86,4 +97,23 @@ model PatientConsent {
   consentVersion String   @default("1.0")
   dataCategories Json     @db.JsonB
   createdAt      DateTime @default(now())
+}
+
+// SymptomJournal model - Phase 2 patient symptom tracking
+model SymptomJournal {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  severity  Int      // 1-5
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+// CareTeamStatus model - Phase 2 per-agent status messages for dashboard
+model CareTeamStatus {
+  id        String   @id @default(cuid())
+  patientId String   @unique
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  statuses  Json     @db.JsonB
+  updatedAt DateTime @updatedAt
 }
