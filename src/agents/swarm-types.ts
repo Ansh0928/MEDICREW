@@ -1,0 +1,75 @@
+// src/agents/swarm-types.ts
+import { AgentRole, UrgencyLevel } from "./types";
+
+export type DoctorRole = AgentRole;
+
+export interface SwarmHypothesis {
+  id: string;
+  name: string;
+  confidence: number; // 0-100
+  reasoning: string;
+}
+
+export interface SwarmClarification {
+  id: string;
+  doctorRole: DoctorRole;
+  question: string;
+  answer?: string;
+  status: "pending" | "answered";
+}
+
+export interface SwarmDebateMessage {
+  doctorRole: DoctorRole;
+  type: "agree" | "challenge" | "add_context";
+  content: string;
+  referencingHypothesis?: string;
+}
+
+export interface SwarmSynthesis {
+  urgency: UrgencyLevel;
+  rankedHypotheses: Array<{ name: string; confidence: number; doctorRole: DoctorRole }>;
+  nextSteps: string[];
+  questionsForDoctor: string[];
+  timeframe: string;
+  disclaimer: string;
+}
+
+export interface SwarmDoctorState {
+  status: "pending" | "running" | "waiting_for_patient" | "complete";
+  hypotheses: SwarmHypothesis[];
+  pendingQuestion?: string;
+}
+
+export interface SwarmState {
+  sessionId: string;
+  symptoms: string;
+  patientInfo: { age: string; gender: string; knownConditions?: string };
+  triage: {
+    urgency: UrgencyLevel;
+    relevantDoctors: DoctorRole[];
+    redFlags: string[];
+  } | null;
+  doctorSwarms: Partial<Record<DoctorRole, SwarmDoctorState>>;
+  clarifications: SwarmClarification[];
+  activeClarificationIds: string[];
+  debate: SwarmDebateMessage[];
+  synthesis: SwarmSynthesis | null;
+  currentPhase: "triage" | "swarm" | "awaiting_patient" | "debate" | "synthesis" | "complete";
+}
+
+export type SwarmEvent =
+  | { type: "triage_complete"; data: NonNullable<SwarmState["triage"]> }
+  | { type: "phase_changed"; phase: SwarmState["currentPhase"] }
+  | { type: "doctor_activated"; doctorRole: DoctorRole; doctorName: string }
+  | { type: "doctor_complete"; doctorRole: DoctorRole }
+  | { type: "hypothesis_found"; doctorRole: DoctorRole; hypothesisId: string; name: string; confidence: number }
+  | { type: "question_ready"; clarificationId: string; doctorRole: DoctorRole; question: string }
+  | { type: "doctor_token"; doctorRole: DoctorRole; token: string }
+  | { type: "debate_message"; doctorRole: DoctorRole; messageType: "agree" | "challenge" | "add_context"; content: string }
+  | { type: "synthesis_complete"; data: SwarmSynthesis }
+  | { type: "error"; message: string }
+  | { type: "done" };
+
+// In-memory store for patient answers (keyed by clarificationId)
+// Lives at module level — same serverless invocation as the SSE stream
+export const answerStore = new Map<string, string>();
