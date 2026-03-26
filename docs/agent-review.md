@@ -1,8 +1,30 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 37 — ✅ HEALTHY: 190/190 tests, 0 TS errors, clean build)**
-Previous: Run 36 (HEALTHY: 139/139 tests)
+**Last reviewed: 2026-03-27 (Run 38 — ✅ HEALTHY: 190/190 tests, uncommitted landing + rate-limit changes)**
+Previous: Run 37 (HEALTHY: 190/190 tests, 0 TS errors)
 **Reviewer:** Claude (automated)
+
+---
+
+## Run 38: Agent Flow Review — Healthy, Uncommitted Changes Pending
+
+### Summary
+- **190/190 tests passing**, 42 test files — agents untouched
+- **Uncommitted:** 11 landing page components restyled + `rate-limit.ts` lazy-init fix
+  - `rate-limit.ts`: moved `Ratelimit` init to lazy singleton (`getRatelimit()`) — fixes build-time env var crash
+  - Landing components: `Hero`, `HowItWorks`, `Footer`, `Header`, `Features`, `CTA`, `MeetTheTeam`, `Problem`, `TrustSection` all modified
+- **MiroFish 7-layer swarm:** intact, no changes since Run 37
+- **RAG layer:** intact, `medical_chunks` still empty (corpus script not run)
+
+### ⚠️ Action needed
+- [ ] **Commit uncommitted changes** — landing restyling + rate-limit lazy-init are ready:
+  ```bash
+  git add src/lib/rate-limit.ts src/app/layout.tsx src/app/page.tsx src/components/landing/
+  git commit -m "fix(rate-limit): lazy-init Ratelimit to avoid build-time env crash\nfeat(landing): restyle landing page components"
+  ```
+- [ ] **Auth strategy decision**: `x-patient-id` header stub still in all API routes — user confirmed NOT Supabase. Options: Clerk, NextAuth v5 + Neon, custom JWT
+- [ ] **Corpus script**: `DATABASE_URL=<prod> NOMIC_API_KEY=<key> bun run scripts/embed-corpus.ts`
+- [ ] **Wire `/api/consult`** to MiroFish swarm (currently calls old `orchestrator.ts`)
 
 ---
 
