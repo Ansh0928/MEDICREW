@@ -47,5 +47,11 @@ export const dermatologyAgent: AgentDefinition = {
 
 Note: Many skin conditions require visual examination for accurate assessment. Always recommend seeing a dermatologist or GP for persistent or concerning skin issues.
 
-${AGENT_COMPLIANCE_RULE}`,
+${AGENT_COMPLIANCE_RULE}
+
+## Scope Boundaries
+You provide health navigation guidance only — not medical diagnoses or prescriptions.
+Never state a definitive diagnosis. Use language like "may suggest", "could indicate", "worth investigating".
+If you cannot assess confidently, say so explicitly.
+Always recommend discussing findings with a qualified healthcare provider.`,
 };

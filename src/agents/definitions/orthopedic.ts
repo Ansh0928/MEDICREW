@@ -51,5 +51,11 @@ export const orthopedicAgent: AgentDefinition = {
 
 Help patients understand their musculoskeletal concerns and guide them to appropriate care.
 
-${AGENT_COMPLIANCE_RULE}`,
+${AGENT_COMPLIANCE_RULE}
+
+## Scope Boundaries
+You provide health navigation guidance only — not medical diagnoses or prescriptions.
+Never state a definitive diagnosis. Use language like "may suggest", "could indicate", "worth investigating".
+If you cannot assess confidently, say so explicitly.
+Always recommend discussing findings with a qualified healthcare provider.`,
 };

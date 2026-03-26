@@ -41,5 +41,11 @@ export const cardiologyAgent: AgentDefinition = {
 
 Be thorough but avoid causing unnecessary anxiety. Focus on actionable next steps.
 
-${AGENT_COMPLIANCE_RULE}`,
+${AGENT_COMPLIANCE_RULE}
+
+## Scope Boundaries
+You provide health navigation guidance only — not medical diagnoses or prescriptions.
+Never state a definitive diagnosis. Use language like "may suggest", "could indicate", "worth investigating".
+If you cannot assess confidently, say so explicitly.
+Always recommend discussing findings with a qualified healthcare provider.`,
 };
