@@ -115,20 +115,37 @@ async function changeEmailAndSubmit(emailValue: string) {
   await act(async () => {
     fireEvent.change(input, { target: { value: emailValue } });
   });
+  // Click the submit button (type="submit" inside the form)
+  const submitBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
   await act(async () => {
-    fireEvent.submit(input.closest("form")!);
+    if (submitBtn) fireEvent.click(submitBtn);
   });
 }
 
 async function fillAllDigits(digits: string = "123456") {
-  const codeInputs = screen
-    .getAllByRole("textbox")
-    .filter((el) => (el as HTMLInputElement).maxLength === 1);
-  for (let i = 0; i < 6; i++) {
+  // Fill indices 0-4, waiting for each to commit
+  for (let i = 0; i < 5; i++) {
     await act(async () => {
-      fireEvent.change(codeInputs[i], { target: { value: digits[i] } });
+      const inputs = screen
+        .getAllByRole("textbox")
+        .filter((el) => (el as HTMLInputElement).maxLength === 1);
+      fireEvent.change(inputs[i], { target: { value: digits[i] } });
+    });
+    // Wait for React to commit the state update before next digit
+    await waitFor(() => {
+      const inputs = screen
+        .getAllByRole("textbox")
+        .filter((el) => (el as HTMLInputElement).maxLength === 1);
+      expect((inputs[i] as HTMLInputElement).value).toBe(digits[i]);
     });
   }
+  // Fill index 5 — this triggers handleCodeComplete, which may reset the code
+  await act(async () => {
+    const inputs = screen
+      .getAllByRole("textbox")
+      .filter((el) => (el as HTMLInputElement).maxLength === 1);
+    fireEvent.change(inputs[5], { target: { value: digits[5] } });
+  });
 }
 
 // ─── Static render tests ─────────────────────────────────────────────────────
@@ -192,7 +209,9 @@ describe("SignInPage — step transitions", () => {
     renderPatient();
     await changeEmailAndSubmit("patient@demo.com");
     await fillAllDigits("999999");
-    expect(login).toHaveBeenCalledWith("patient@demo.com", "999999", "patient");
+    await waitFor(() =>
+      expect(login).toHaveBeenCalledWith("patient@demo.com", "999999", "patient")
+    );
   });
 
   it("shows auth error when login returns false", async () => {
@@ -221,7 +240,6 @@ describe("SignInPage — step transitions", () => {
     await changeEmailAndSubmit("patient@demo.com");
     await fillAllDigits("123456");
     await act(async () => { vi.advanceTimersByTime(2500); });
-    vi.useRealTimers();
 
     expect(screen.getByText(/you're in/i)).toBeTruthy();
     await act(async () => {
@@ -243,7 +261,6 @@ describe("SignInPage — step transitions", () => {
     await changeEmailAndSubmit("doctor@demo.com");
     await fillAllDigits("123456");
     await act(async () => { vi.advanceTimersByTime(2500); });
-    vi.useRealTimers();
 
     expect(screen.getByText(/you're in/i)).toBeTruthy();
     await act(async () => {
