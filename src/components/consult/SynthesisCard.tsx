@@ -7,9 +7,9 @@ const URGENCY_CONFIG: Record<
   { label: string; className: string }
 > = {
   emergency: {
-    label: "EMERGENCY — Call 000",
+    label: "🚨 EMERGENCY — Call 000 immediately",
     className:
-      "bg-red-600 text-white text-base px-4 py-2 rounded-full font-bold",
+      "block w-full text-center bg-red-600 text-white text-lg px-4 py-3 rounded-lg font-bold animate-pulse",
   },
   urgent: {
     label: "Urgent — See doctor today",
@@ -35,8 +35,13 @@ interface Props {
 
 export function SynthesisCard({ synthesis, onStartNew }: Props) {
   const config = URGENCY_CONFIG[synthesis.urgency];
+  const isEmergency = synthesis.urgency === "emergency";
   return (
-    <div className="border-2 rounded-xl p-6 space-y-4">
+    <div
+      className={`rounded-xl p-6 space-y-4 border-2 ${isEmergency ? "border-red-600 bg-red-950/20" : ""}`}
+      role={isEmergency ? "alert" : undefined}
+      aria-live={isEmergency ? "assertive" : undefined}
+    >
       <span className={config.className}>{config.label}</span>
 
       <div>

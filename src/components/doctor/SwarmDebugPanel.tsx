@@ -27,10 +27,10 @@ export function SwarmDebugPanel({ state }: { state: Partial<SwarmState> }) {
         );
       })}
 
-      {(state.debate?.length ?? 0) > 0 && (
+      {state.debate && state.debate.length > 0 && (
         <div className="border rounded-lg p-3 space-y-2">
           <div className="font-semibold">Team Debate</div>
-          {state.debate!.map((d, i) => (
+          {state.debate.map((d, i) => (
             <div key={i} className="text-xs">
               <span className="text-primary">{agentRegistry[d.doctorRole]?.name}</span>
               <span className="text-muted-foreground"> ({d.type}): </span>
