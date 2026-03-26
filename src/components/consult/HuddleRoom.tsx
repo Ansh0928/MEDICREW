@@ -254,6 +254,7 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
         try {
           const event: SwarmEvent = JSON.parse(line.slice(5).trim());
           handleEvent(event);
+          if (event.type === "done") return;
         } catch { /* ignore */ }
       }
     }
