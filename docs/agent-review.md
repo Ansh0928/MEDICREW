@@ -1,8 +1,24 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 35 — ✅ HEALTHY: 130/130 tests, 0 skipped, 0 TS errors)**
+**Last reviewed: 2026-03-26 (Run 35 — ✅ HEALTHY: Upstash Redis prod fixes merged, corpus script pending run)**
 Previous: Run 34 (HEALTHY: RAG layer merged to master, corpus script pending run)
 **Reviewer:** Claude (automated)
+
+---
+
+## Run 35: Upstash Redis Production Fixes
+
+### Summary
+- Commit `b089e76` — replaced all in-memory stores with Upstash Redis (Vercel-safe)
+- `rate-limit.ts`: sliding window rate limiter via `@upstash/ratelimit` — no longer breaks on cold Lambda starts
+- `swarm/answer/route.ts`: clarification answers written to Redis with 5-min TTL
+- `swarm-types.ts`: removed `answerStore` Map (was never cross-invocation safe)
+- 130/130 tests passing, 0 TS errors
+
+### Action needed
+- [ ] Run corpus script to populate medical_chunks: `DATABASE_URL=<prod> NOMIC_API_KEY=<key> bun run scripts/embed-corpus.ts` (~20 min)
+- [ ] After insert: create ivfflat index — `bunx prisma db execute --stdin <<< "CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);"`
+- [ ] Smoke test /consult after corpus loaded
 
 ---
 
