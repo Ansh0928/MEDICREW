@@ -82,12 +82,12 @@ Plans:
   1. The patient dashboard displays an active care plan with current monitoring status, next check-in scheduled, and open action items
   2. A patient can view a symptom trend chart showing severity over time across their logged journal entries
   3. The doctor portal monitoring queue displays urgency trend indicators, not just point-in-time status
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Symptom trend chart (time-series visualization of journal entries)
-- [ ] 04-02: Care plan UI on dashboard with monitoring status and action items
-- [ ] 04-03: Doctor monitoring queue urgency trend indicators
+- [ ] 04-01-PLAN.md — Symptom trend chart: recharts LineChart on profile page showing severity over time from journal entries
+- [ ] 04-02-PLAN.md — Care plan UI: CarePlanDetail component replacing dashboard placeholder with monitoring status, next check-in, action items
+- [ ] 04-03-PLAN.md — Doctor monitoring queue urgency trend indicators: improving/stable/worsening arrows from check-in history
 
 ## Progress
 
