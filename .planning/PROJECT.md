@@ -16,9 +16,13 @@ Patients feel continuously monitored and cared for by a real medical team — no
 - ✓ Patient consultation flow: symptom intake → triage → specialist routing → care recommendation — existing
 - ✓ Patient portal with auth, consultation history, notification inbox — existing
 - ✓ Doctor portal with login — existing
-- ✓ LangGraph orchestrator with named agents (Dr. Alex GP, etc.) — existing
-- ✓ Prisma data model (Patient, Consultation, Doctor, Notification) — existing
+- ✓ LangGraph orchestrator with named agents (Alex AI — GP, Sarah AI — Cardiology, etc.) — Phase 1
+- ✓ Prisma data model (Patient, Consultation, Doctor, Notification, PatientConsent) + PostgreSQL — Phase 1
 - ✓ Landing page with hero, how-it-works, meet-the-team sections — existing
+- ✓ Supabase PostgreSQL migration (ap-southeast-2) + RLS on all tables — Phase 1 (COMP-06, INFRA-01, INFRA-02)
+- ✓ LangGraph PostgresSaver checkpointing + Inngest background job infrastructure — Phase 1 (INFRA-03, INFRA-04)
+- ✓ AHPRA compliance: "Alex AI — GP" naming, AHPRA_DISCLAIMER, emergency rules engine (000 referral) — Phase 1 (COMP-01–03)
+- ✓ Privacy Act consent gate, data export (APP 12), soft-delete account deletion — Phase 1 (COMP-04, COMP-05)
 
 ### Active
 
@@ -74,4 +78,4 @@ Patients feel continuously monitored and cared for by a real medical team — no
 | Named doctors with personalities | Patients trust named, consistent doctors more than anonymous AI | — Pending |
 
 ---
-*Last updated: 2026-03-26 after initialization*
+*Last updated: 2026-03-26 — Phase 1 complete (Foundation + Compliance)*
