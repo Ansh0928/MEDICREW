@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runConsultation, streamConsultation } from "@/agents/orchestrator";
 import { detectEmergency } from "@/lib/emergency-rules";
+import { checkConsent } from "@/lib/consent-check";
 
 interface APIError extends Error {
   status?: number;
@@ -22,6 +23,19 @@ export async function POST(request: NextRequest) {
     const emergency = detectEmergency(symptoms);
     if (emergency.isEmergency) {
       return NextResponse.json(emergency.response, { status: 200 });
+    }
+
+    // Consent gate — must have valid consent before processing health data
+    // TODO: Extract patientId from session/auth context (Phase 2 will refine)
+    const patientId = request.headers.get("x-patient-id");
+    if (patientId) {
+      const hasConsent = await checkConsent(patientId);
+      if (!hasConsent) {
+        return NextResponse.json(
+          { error: "Consent required", redirectTo: "/consent" },
+          { status: 403 }
+        );
+      }
     }
 
     if (stream) {
