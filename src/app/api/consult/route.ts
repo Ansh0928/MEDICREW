@@ -2,10 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { runConsultation, streamConsultation } from "@/agents/orchestrator";
 import { detectEmergency } from "@/lib/emergency-rules";
 import { checkConsent } from "@/lib/consent-check";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { AgentMessage } from "@/agents/types";
 
 interface APIError extends Error {
   status?: number;
   statusText?: string;
+}
+
+// Build CareTeamStatus JSONB from agent messages
+function buildCareTeamStatuses(
+  messages: AgentMessage[],
+  symptoms: string
+): Record<string, { agentName: string; message: string; updatedAt: string }> {
+  const statuses: Record<string, { agentName: string; message: string; updatedAt: string }> = {};
+  const seen = new Set<string>();
+
+  for (const msg of messages) {
+    // Skip orchestrator/triage duplicates — only include named care-team agents
+    if (msg.role === "orchestrator" || seen.has(msg.role)) continue;
+    seen.add(msg.role);
+    statuses[msg.role] = {
+      agentName: msg.agentName,
+      message: `Reviewed your symptoms: ${symptoms.substring(0, 50)}...`,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  return statuses;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,12 +73,50 @@ export async function POST(request: NextRequest) {
       const readable = new ReadableStream({
         async start(controller) {
           try {
+            const allMessages: AgentMessage[] = [];
+            let finalResult: { urgencyLevel?: string; recommendation?: unknown } = {};
+
             for await (const event of streamConsultation(symptoms)) {
               const data = JSON.stringify(event) + "\n";
               controller.enqueue(encoder.encode(`data: ${data}\n`));
+
+              // Collect messages and result data for post-stream CareTeamStatus write
+              if (event.data.messages) {
+                allMessages.push(...(event.data.messages as AgentMessage[]));
+              }
+              if (event.data.urgencyLevel) {
+                finalResult.urgencyLevel = event.data.urgencyLevel as string;
+              }
+              if (event.data.recommendation) {
+                finalResult.recommendation = event.data.recommendation;
+              }
             }
+
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
+
+            // Write CareTeamStatus and Consultation after stream completes
+            // NOTE: CareTeamStatus table requires REPLICA IDENTITY FULL for Supabase Realtime
+            // Run: ALTER TABLE "CareTeamStatus" REPLICA IDENTITY FULL;
+            if (allMessages.length > 0) {
+              const statuses = buildCareTeamStatuses(allMessages, symptoms);
+              await prisma.careTeamStatus.upsert({
+                where: { patientId },
+                create: { patientId, statuses },
+                update: { statuses },
+              });
+            }
+
+            await prisma.consultation.create({
+              data: {
+                patientId,
+                symptoms,
+                urgencyLevel: finalResult.urgencyLevel ?? null,
+                recommendation: finalResult.recommendation !== undefined
+                  ? (finalResult.recommendation as Prisma.InputJsonValue)
+                  : Prisma.JsonNull,
+              },
+            });
           } catch (error) {
             const err = error as APIError;
             console.error("Streaming error:", err);
@@ -88,6 +151,30 @@ export async function POST(request: NextRequest) {
 
     // Non-streaming response
     const result = await runConsultation(symptoms);
+
+    // Write CareTeamStatus after non-streaming consultation completes
+    // NOTE: CareTeamStatus table requires REPLICA IDENTITY FULL for Supabase Realtime
+    // Run: ALTER TABLE "CareTeamStatus" REPLICA IDENTITY FULL;
+    if (result.messages && result.messages.length > 0) {
+      const statuses = buildCareTeamStatuses(result.messages, symptoms);
+      await prisma.careTeamStatus.upsert({
+        where: { patientId },
+        create: { patientId, statuses },
+        update: { statuses },
+      });
+    }
+
+    await prisma.consultation.create({
+      data: {
+        patientId,
+        symptoms,
+        urgencyLevel: result.urgencyLevel ?? null,
+        recommendation: result.recommendation !== undefined
+          ? (result.recommendation as unknown as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
+      },
+    });
+
     return NextResponse.json(result);
   } catch (error) {
     const err = error as APIError;
@@ -111,4 +198,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
