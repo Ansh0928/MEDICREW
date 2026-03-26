@@ -51,13 +51,13 @@
 
 - [x] **CHKN-01**: After each consultation, an Inngest job schedules a 48-hour follow-up check-in from the primary agent
 - [x] **CHKN-02**: Check-in message sent as in-app notification: "Hi [Name], this is Alex AI — GP. How are you feeling since your consultation on [date]?"
-- [ ] **CHKN-03**: Patient can respond to check-in (quick options: Better / Same / Worse + optional free text)
+- [x] **CHKN-03**: Patient can respond to check-in (quick options: Better / Same / Worse + optional free text)
 - [x] **CHKN-04**: Patient can opt out of proactive check-ins from their profile settings
 
 ### Escalation & Monitoring
 
-- [ ] **ESCL-01**: Deterministic escalation rules engine: if patient response contains emergency keywords, immediately send high-priority notification + 000 referral
-- [ ] **ESCL-02**: Care status escalation: if patient reports "Worse" on check-in, urgency tier increases and specialist agent is notified in patient's care status
+- [x] **ESCL-01**: Deterministic escalation rules engine: if patient response contains emergency keywords, immediately send high-priority notification + 000 referral
+- [x] **ESCL-02**: Care status escalation: if patient reports "Worse" on check-in, urgency tier increases and specialist agent is notified in patient's care status
 - [x] **ESCL-03**: Doctor portal shows a monitoring queue — all active patients with their last check-in status, urgency level, and last agent activity
 
 ### Notifications
@@ -128,10 +128,10 @@
 | PROF-03 | Phase 2 | Complete |
 | CHKN-01 | Phase 3 | Complete |
 | CHKN-02 | Phase 3 | Complete |
-| CHKN-03 | Phase 3 | Pending |
+| CHKN-03 | Phase 3 | Complete |
 | CHKN-04 | Phase 3 | Complete |
-| ESCL-01 | Phase 3 | Pending |
-| ESCL-02 | Phase 3 | Pending |
+| ESCL-01 | Phase 3 | Complete |
+| ESCL-02 | Phase 3 | Complete |
 | ESCL-03 | Phase 3 | Complete |
 | NOTF-01 | Phase 3 | Complete |
 | NOTF-02 | Phase 3 | Complete |
