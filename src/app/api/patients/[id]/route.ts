@@ -21,6 +21,7 @@ export async function GET(
                         doctor: true,
                     },
                 },
+                careTeamStatus: true,
             },
         });
 
