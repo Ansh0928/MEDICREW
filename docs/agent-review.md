@@ -1,7 +1,24 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-27 (Run 38 — ✅ HEALTHY: 190/190 tests, uncommitted landing + rate-limit changes)**
-Previous: Run 37 (HEALTHY: 190/190 tests, 0 TS errors)
+**Last reviewed: 2026-03-27 (Run 39 — ✅ HEALTHY: 229/229 tests, Clerk foundation merged)**
+Previous: Run 38 (HEALTHY: 190/190 tests)
+
+---
+
+## Run 39: Agent Review — All Healthy, Clerk Wired
+
+### Summary
+- **229/229 tests passing**, 44 test files (up from 190 — 39 new tests: agent definitions, doctors/monitoring routes)
+- **Clerk merged** (`5130a5d`): middleware, ClerkProvider, `getAuthenticatedPatient()`, `clerkUserId` on Patient
+- MiroFish 7-layer swarm intact, RAG layer intact, build clean
+- **41 commits ahead of origin/master** — not yet pushed to GitHub/Vercel
+
+### ⚠️ Action needed (pick up in fresh session)
+- [ ] `git push origin master` — deploy to Vercel
+- [ ] Replace `x-patient-id` header in 13 API routes with `getAuthenticatedPatient()` (see 00-context.md for full list)
+- [ ] Add Clerk webhook `src/app/api/auth/webhook/route.ts` — create Patient on `user.created`
+- [ ] Update login page to use Clerk `<SignIn>` component
+- [ ] Run corpus script: `DATABASE_URL=... NOMIC_API_KEY=... bun run scripts/embed-corpus.ts`
 **Reviewer:** Claude (automated)
 
 ---
