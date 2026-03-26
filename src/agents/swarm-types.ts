@@ -1,7 +1,11 @@
 // src/agents/swarm-types.ts
 import { AgentRole, UrgencyLevel } from "./types";
 
+// DoctorRole is an alias for AgentRole (spec requirement).
+// Note: AgentRole includes "triage" — callers must ensure only actual medical specialty roles are passed.
 export type DoctorRole = AgentRole;
+
+export type DebateMessageType = "agree" | "challenge" | "add_context";
 
 export interface SwarmHypothesis {
   id: string;
@@ -20,9 +24,9 @@ export interface SwarmClarification {
 
 export interface SwarmDebateMessage {
   doctorRole: DoctorRole;
-  type: "agree" | "challenge" | "add_context";
+  type: DebateMessageType;
   content: string;
-  referencingHypothesis?: string;
+  referencingHypothesis?: string; // SwarmHypothesis.id
 }
 
 export interface SwarmSynthesis {
@@ -65,11 +69,11 @@ export type SwarmEvent =
   | { type: "hypothesis_found"; doctorRole: DoctorRole; hypothesisId: string; name: string; confidence: number }
   | { type: "question_ready"; clarificationId: string; doctorRole: DoctorRole; question: string }
   | { type: "doctor_token"; doctorRole: DoctorRole; token: string }
-  | { type: "debate_message"; doctorRole: DoctorRole; messageType: "agree" | "challenge" | "add_context"; content: string }
+  | { type: "debate_message"; doctorRole: DoctorRole; messageType: DebateMessageType; content: string }
   | { type: "synthesis_complete"; data: SwarmSynthesis }
   | { type: "error"; message: string }
   | { type: "done" };
 
-// In-memory store for patient answers (keyed by clarificationId)
-// Lives at module level — same serverless invocation as the SSE stream
+// Phase 1: module-level Map works within a single serverless invocation (same SSE connection).
+// Phase 2: replace with Upstash Redis for cross-invocation session resume.
 export const answerStore = new Map<string, string>();
