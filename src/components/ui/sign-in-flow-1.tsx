@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { SignIn } from "@clerk/nextjs";
 
 type Uniforms = {
   [key: string]: {
@@ -497,103 +495,7 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
   const isDoctor = role === "doctor";
   const dotColor: number[] = isDoctor ? [6, 182, 212] : [14, 165, 233];
   const pageBg = isDoctor ? "bg-[#ecfeff]" : "bg-[#f0f9ff]";
-  const headingColor = isDoctor ? "#164e63" : "#0c4a6e";
-  const gradientFrom = isDoctor ? "from-[#06b6d4]" : "from-[#0ea5e9]";
-  const gradientTo = isDoctor ? "to-[#22d3ee]" : "to-[#38bdf8]";
-  const borderColor = isDoctor ? "border-cyan-100" : "border-sky-100";
-  const inputBg = isDoctor ? "bg-[#ecfeff]" : "bg-[#f0f9ff]";
   const topFadeFrom = isDoctor ? "from-[#ecfeff]" : "from-[#f0f9ff]";
-
-  const { login } = useAuth();
-  const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [step, setStep] = useState<"email" | "code" | "success">("email");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const [authError, setAuthError] = useState("");
-  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  // Fix 4: ref to hold the success-step timeout so we can clear it on unmount
-  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Fix 7: removed dead `showSuccessAnimation` state
-  const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
-  const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
-
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setStep("code");
-    }
-  };
-
-  useEffect(() => {
-    if (step === "code") {
-      setTimeout(() => {
-        codeInputRefs.current[0]?.focus();
-      }, 500);
-    }
-  }, [step]);
-
-  // Fix 4: cleanup the success timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-    };
-  }, []);
-
-  const handleCodeComplete = async (finalCode: string[]) => {
-    setAuthError("");
-    setReverseCanvasVisible(true);
-    setTimeout(() => setInitialCanvasVisible(false), 50);
-
-    const ok = await login(email, finalCode.join(""), role);
-    if (ok) {
-      // Fix 4: store ref so the timeout can be cleared on unmount
-      successTimeoutRef.current = setTimeout(() => {
-        setStep("success");
-      }, 2000);
-    } else {
-      setReverseCanvasVisible(false);
-      setInitialCanvasVisible(true);
-      setAuthError("Invalid credentials. Use the demo email shown above.");
-      setCode(["", "", "", "", "", ""]);
-      setTimeout(() => codeInputRefs.current[0]?.focus(), 100);
-    }
-  };
-
-  // Fix 4: handleCodeChange is no longer async; the returned Promise is caught
-  // with a no-op so it doesn't silently disappear.
-  const handleCodeChange = (index: number, value: string) => {
-    if (value.length <= 1) {
-      const newCode = [...code];
-      newCode[index] = value;
-      setCode(newCode);
-      if (value && index < 5) {
-        codeInputRefs.current[index + 1]?.focus();
-      }
-      if (index === 5 && value) {
-        const isComplete = newCode.every((digit) => digit.length === 1);
-        if (isComplete) {
-          handleCodeComplete(newCode).catch(() => {});
-        }
-      }
-    }
-  };
-
-  const handleKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      codeInputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleBackClick = () => {
-    setStep("email");
-    setCode(["", "", "", "", "", ""]);
-    setReverseCanvasVisible(false);
-    setInitialCanvasVisible(true);
-  };
 
   return (
     <div
@@ -603,28 +505,15 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
       )}
     >
       <div className="absolute inset-0 z-0">
-        {initialCanvasVisible && (
-          <div className="absolute inset-0">
-            <CanvasRevealEffect
-              animationSpeed={3}
-              containerClassName={pageBg}
-              colors={[dotColor]}
-              dotSize={6}
-              reverse={false}
-            />
-          </div>
-        )}
-        {reverseCanvasVisible && (
-          <div className="absolute inset-0">
-            <CanvasRevealEffect
-              animationSpeed={4}
-              containerClassName={pageBg}
-              colors={[dotColor]}
-              dotSize={6}
-              reverse={true}
-            />
-          </div>
-        )}
+        <div className="absolute inset-0">
+          <CanvasRevealEffect
+            animationSpeed={3}
+            containerClassName={pageBg}
+            colors={[dotColor]}
+            dotSize={6}
+            reverse={false}
+          />
+        </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.8)_0%,_transparent_100%)]" />
         <div
           className={`absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b ${topFadeFrom} to-transparent`}
@@ -633,248 +522,8 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
 
       <div className="relative z-10 flex flex-col flex-1">
         <MiniNavbar role={role} />
-        <div className="flex flex-1 flex-col lg:flex-row">
-          <div className="flex-1 flex flex-col justify-center items-center">
-            <div className="w-full mt-[150px] max-w-sm">
-              <AnimatePresence mode="wait">
-                {step === "email" ? (
-                  <motion.div
-                    key="email-step"
-                    initial={{ opacity: 0, x: -100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="space-y-6 text-center"
-                  >
-                    <div className="space-y-1">
-                      <h1
-                        className="text-[2.5rem] font-bold leading-[1.1] tracking-tight"
-                        style={{ color: headingColor }}
-                      >
-                        Welcome to MediCrew
-                      </h1>
-                      <p className="text-[1.8rem] text-slate-500 font-light">
-                        {isDoctor ? "Doctor Portal" : "Patient Portal"}
-                      </p>
-                    </div>
-                    <div className="space-y-4">
-                      {/* Fix 3: type="button" prevents this from submitting the form below */}
-                      <button
-                        type="button"
-                        className={`backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border ${borderColor} rounded-full py-3 px-4 transition-colors`}
-                      >
-                        <span className="text-lg">G</span>
-                        <span>Sign in with Google</span>
-                      </button>
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`h-px ${isDoctor ? "bg-cyan-100" : "bg-sky-100"} flex-1`}
-                        />
-                        <span className="text-slate-400 text-sm">or</span>
-                        <div
-                          className={`h-px ${isDoctor ? "bg-cyan-100" : "bg-sky-100"} flex-1`}
-                        />
-                      </div>
-                      <form onSubmit={handleEmailSubmit}>
-                        <div className="relative">
-                          <input
-                            type="email"
-                            placeholder="info@gmail.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={`w-full ${inputBg} text-slate-700 border ${borderColor} rounded-full py-3 px-4 focus:outline-none focus:border focus:border-sky-300 text-center`}
-                            required
-                          />
-                          <button
-                            type="submit"
-                            className={`absolute right-1.5 top-1.5 text-white w-9 h-9 flex items-center justify-center rounded-full bg-gradient-to-r ${gradientFrom} ${gradientTo} hover:opacity-90 transition-colors group overflow-hidden`}
-                          >
-                            <span className="relative w-full h-full block overflow-hidden">
-                              <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
-                                &rarr;
-                              </span>
-                              <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 -translate-x-full group-hover:translate-x-0">
-                                &rarr;
-                              </span>
-                            </span>
-                          </button>
-                        </div>
-                      </form>
-                      <p className="text-xs text-slate-400 text-center mt-2">
-                        Demo:{" "}
-                        {isDoctor ? "doctor@demo.com" : "patient@demo.com"}
-                      </p>
-                    </div>
-                    <p className="text-xs text-slate-400 pt-10">
-                      By signing in, you agree to our{" "}
-                      <Link
-                        href="#"
-                        className="underline text-slate-400 hover:text-slate-600 transition-colors"
-                      >
-                        Terms
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        href="#"
-                        className="underline text-slate-400 hover:text-slate-600 transition-colors"
-                      >
-                        Privacy Policy
-                      </Link>
-                      .
-                    </p>
-                  </motion.div>
-                ) : step === "code" ? (
-                  <motion.div
-                    key="code-step"
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 100 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="space-y-6 text-center"
-                  >
-                    <div className="space-y-1">
-                      <h1
-                        className="text-[2.5rem] font-bold leading-[1.1] tracking-tight"
-                        style={{ color: headingColor }}
-                      >
-                        We sent you a code
-                      </h1>
-                      <p className="text-[1.25rem] text-slate-400 font-light">
-                        Please enter it
-                      </p>
-                    </div>
-                    <div className="w-full">
-                      <div
-                        className={`relative rounded-full py-4 px-5 border ${borderColor} bg-white`}
-                      >
-                        <div className="flex items-center justify-center">
-                          {code.map((digit, i) => (
-                            <div key={i} className="flex items-center">
-                              <div className="relative">
-                                <input
-                                  ref={(el) => {
-                                    codeInputRefs.current[i] = el;
-                                  }}
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  maxLength={1}
-                                  value={digit}
-                                  onChange={(e) =>
-                                    handleCodeChange(i, e.target.value)
-                                  }
-                                  onKeyDown={(e) => handleKeyDown(i, e)}
-                                  className="w-8 text-center text-xl bg-transparent text-slate-800 border-none focus:outline-none focus:ring-0 appearance-none"
-                                  style={{ caretColor: "transparent" }}
-                                />
-                                {!digit && (
-                                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                                    <span className="text-xl text-slate-300">
-                                      0
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              {i < 5 && (
-                                <span
-                                  className={`text-xl ${isDoctor ? "text-cyan-100" : "text-sky-100"}`}
-                                >
-                                  |
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {authError && (
-                        <p className="text-red-500 text-xs text-center mt-2">
-                          {authError}
-                        </p>
-                      )}
-                      <motion.p className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-sm mt-2">
-                        Resend code
-                      </motion.p>
-                    </div>
-                    <div className="flex w-full gap-3">
-                      <motion.button
-                        onClick={handleBackClick}
-                        className="rounded-full bg-slate-900 text-white font-medium px-8 py-3 hover:bg-slate-800 transition-colors w-[30%]"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        Back
-                      </motion.button>
-                      <motion.button
-                        className={`flex-1 rounded-full font-medium py-3 border transition-all duration-300 ${
-                          code.every((d) => d !== "")
-                            ? `bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white border-transparent hover:opacity-90 cursor-pointer`
-                            : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                        }`}
-                        disabled={!code.every((d) => d !== "")}
-                      >
-                        Continue
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="success-step"
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut", delay: 0.3 }}
-                    className="space-y-6 text-center"
-                  >
-                    <div className="space-y-1">
-                      <h1
-                        className="text-[2.5rem] font-bold leading-[1.1] tracking-tight"
-                        style={{ color: headingColor }}
-                      >
-                        You&apos;re in!
-                      </h1>
-                      <p className="text-[1.25rem] text-slate-400 font-light">
-                        Welcome
-                      </p>
-                    </div>
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.5 }}
-                      className="py-10"
-                    >
-                      <div
-                        className={`mx-auto w-16 h-16 rounded-full bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-8 w-8 text-white"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                    </motion.div>
-                    <motion.button
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 1 }}
-                      onClick={() =>
-                        router.push(isDoctor ? "/doctor" : "/patient")
-                      }
-                      className="w-full rounded-full bg-slate-900 text-white font-medium py-3 hover:bg-slate-800 transition-colors"
-                    >
-                      Continue to Dashboard
-                    </motion.button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+        <div className="flex flex-1 flex-col justify-center items-center mt-[150px] pb-16">
+          <SignIn />
         </div>
       </div>
     </div>
