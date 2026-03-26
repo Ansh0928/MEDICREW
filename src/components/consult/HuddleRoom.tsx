@@ -93,6 +93,7 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
   const [connections, setConnections] = useState<HuddleConnection[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
+  const [followupAnswer, setFollowupAnswer] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [followupRouting, setFollowupRouting] = useState<{ type: "simple" | "complex"; roles: string[] } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -182,6 +183,10 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
         setFollowupRouting({ type: event.questionType, roles: event.activatedRoles });
         break;
 
+      case "followup_answer":
+        setFollowupAnswer(event.answer);
+        break;
+
       case "error":
         addChatMessage("System", event.message, "system");
         break;
@@ -232,6 +237,7 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
 
   const handleFollowUp = useCallback(async (question: string) => {
     setFollowupRouting(null);
+    setFollowupAnswer(null);
     const response = await fetch("/api/swarm/followup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -316,6 +322,13 @@ export function HuddleRoom({ symptoms, patientInfo }: HuddleRoomProps) {
         {followupRouting && (
           <div className="px-4 py-1">
             <RoutingChip questionType={followupRouting.type} activatedRoles={followupRouting.roles} />
+          </div>
+        )}
+
+        {followupAnswer && (
+          <div className="px-4 py-2 mx-4 mb-2 rounded-lg bg-blue-50 border border-blue-100">
+            <p className="text-xs font-medium text-blue-700 mb-0.5">Follow-up answer</p>
+            <p className="text-sm text-gray-700">{followupAnswer}</p>
           </div>
         )}
 

@@ -8,9 +8,6 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/__tests__/**/*.test.ts", "src/__tests__/**/*.test.tsx"],
-    environmentMatchGlobs: [
-      ["src/__tests__/components/**", "jsdom"],
-    ],
   },
   resolve: {
     alias: {
