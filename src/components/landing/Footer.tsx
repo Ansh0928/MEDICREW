@@ -4,10 +4,11 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-black border-t border-white/[0.05] px-6 py-10">
+    <footer className="border-t border-white/[0.05] px-6 py-10" style={{ background: "#060614" }}>
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-white/10 border border-white/15 flex items-center justify-center text-xs text-white/60">
+          <div className="w-6 h-6 rounded flex items-center justify-center text-xs text-white font-bold"
+            style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)" }}>
             +
           </div>
           <span className="font-[family-name:var(--font-mono)] text-sm text-white/50">
