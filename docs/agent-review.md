@@ -1,15 +1,15 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 12 — Phase 02-01 executed, swarm unaffected)**
-Previous: Run 11 (no changes)
+**Last reviewed: 2026-03-26 (Run 13 — ⚠️ SWARM DISCONNECTED from patient UI)**
+Previous: Run 12 (Phase 02-01 executed, uncommitted consult route flagged)
 **Previous review: 2026-03-26 (Run 6)**
 **Reviewer:** Claude (automated)
 
 ---
 
-## Overall Status: ✅ HEALTHY
+## Overall Status: ⚠️ DEGRADED
 
-The swarm architecture is fully implemented and passes all dependency checks. The 14 original issues are fixed. The system is ready for local testing and demo.
+The swarm engine is intact, but Phase 02-03 replaced `SwarmChat` in `src/app/consult/page.tsx` with the old orchestrator pipeline (`/api/consult`). The patient-facing consult page no longer reaches the swarm. **The MVP feature is unreachable from the UI.**
 
 ---
 
@@ -30,6 +30,49 @@ The old `/api/consult` route (orchestrator pipeline) has ~82 lines of uncommitte
 
 ### ✅ Scope Boundaries confirmed in all 6 specialist prompts
 All guardrails intact post Phase 02-01 execution.
+
+---
+
+## Run 13: Phase 02 Complete — Swarm Disconnection Found
+
+### ✅ Phase 02 fully executed (9 commits since Run 12)
+- `d4b7982` — CareTeamStatus writes from consult route + PATCH care-status API
+- `e8bdd3a` — Dashboard UI: CareTeamCard with Realtime, ConsultationHistoryList
+- `7cde4a3` — `streamConsultation` extended: agent identity metadata, token streaming, routing event
+- `8d6e6ee` — `AgentOverlay` component wired into consult page
+- `ccc2b33` — Phase 02-03 SUMMARY
+- `3e64429` — Phase 02-02 SUMMARY
+- `92f1d7a` — CareSummary component, journal + profile APIs
+- `ce33fd6` — Patient profile page, HealthProfileForm, SymptomJournalEntry
+- `90ef47a` — Phase 02-04 SUMMARY — Phase 02 complete
+
+### ⚠️ CRITICAL: SwarmChat displaced from consult page
+Phase 02-03 rewrote `src/app/consult/page.tsx` (291 lines). The page now:
+- Fetches from `/api/consult` (old orchestrator pipeline)
+- Renders `<AgentOverlay>` + `<CareSummary>` (old pipeline components)
+- **Does NOT import or render `<SwarmChat />`**
+
+`SwarmChat.tsx` still exists and still calls `/api/swarm/start`, but it is unreachable from any page. The 5-layer swarm MVP feature is dead from a patient perspective.
+
+### ✅ Swarm engine itself is intact
+`swarm.ts`, `swarm-types.ts`, `/api/swarm/start`, `/api/swarm/answer` — all unchanged. The engine runs fine if called directly.
+
+### ✅ All 6 specialist Scope Boundaries still present
+### ✅ Run 12 flag resolved: `src/app/api/consult/route.ts` committed in `d4b7982`
+
+---
+
+### Next Steps for any new Claude session
+
+**PRIORITY 1 — Reconnect swarm to patient UI:**
+The simplest fix is to restore `<SwarmChat />` in `src/app/consult/page.tsx`, either:
+- **Option A** (recommended): Replace the `/api/consult` fetch + AgentOverlay with `<SwarmChat />`. The swarm already handles the full consultation flow. AgentOverlay + CareSummary from Phase 02-03 can be removed or kept as doctor-portal views only.
+- **Option B**: Keep both paths and add a feature flag/toggle. Patient gets SwarmChat; doctor portal gets the old pipeline with AgentOverlay.
+
+File to edit: `src/app/consult/page.tsx` — import `SwarmChat` from `@/components/consult/SwarmChat` and render it instead of the current `/api/consult` flow.
+
+**PRIORITY 2 — Verify Phase 02 deliverables don't break swarm:**
+Check that new APIs (`/api/patient/consent`, `/api/patient/onboarding`, `/api/patient/profile`, `/api/patient/journal`) are additive and don't conflict with swarm routes.
 
 ---
 
