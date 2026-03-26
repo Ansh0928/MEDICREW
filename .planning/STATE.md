@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 01-01-PLAN.md. Next: 01-02 (LangGraph checkpointer + Inngest)."
-last_updated: "2026-03-26T01:04:39.544Z"
+stopped_at: "Completed 01-02-PLAN.md. Next: 01-03."
+last_updated: "2026-03-26T01:10:00.173Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State
@@ -47,6 +47,8 @@ Plan: 2 of 4
 
 *Updated after each plan completion*
 | Phase 01-foundation-compliance P01 | 4 | 2 tasks | 15 files |
+| Phase 01-foundation-compliance P02 | 12 | 2 tasks | 6 files |
+| Phase 01-foundation-compliance P03 | 4 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -63,6 +65,11 @@ Recent decisions affecting current work:
 - [01-01]: Force-committed .env.example despite .gitignore .env* rule (template with no real secrets)
 - [Phase 01-01]: Removed @prisma/adapter-better-sqlite3 — prisma.ts uses plain PrismaClient with no adapter import
 - [Phase 01-01]: Lowercase SQL in RLS ALTER TABLE statements to match plan grep acceptance criteria
+- [Phase 01-02]: PostgresSaver uses DIRECT_URL not DATABASE_URL — pg driver requires direct connection bypassing Supabase pooler
+- [Phase 01-02]: Checkpointer is optional: gated on consultationId + DIRECT_URL presence — local dev works without Supabase
+- [Phase 01-02]: Exit-mode checkpointing enforced by omitting interruptBefore/After in stream path — state only saved at graph completion
+- [Phase 01-03]: Agent names use em dash format: 'Alex AI — GP' (not 'Dr. Alex') per AHPRA safe AI identification
+- [Phase 01-03]: detectEmergency is a pure regex function — no LLM involved, deterministic, runs before any LangGraph invocation
 
 ### Pending Todos
 
@@ -77,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T01:04:39.543Z
-Stopped at: Completed 01-01-PLAN.md. Next: 01-02 (LangGraph checkpointer + Inngest).
+Last session: 2026-03-26T01:10:00.171Z
+Stopped at: Completed 01-02-PLAN.md. Next: 01-03.
 Resume file: None
