@@ -1,4 +1,4 @@
-import { ConsultationFlow } from "@/components/consult/ConsultationFlow";
+import { SwarmChat } from "@/components/consult/SwarmChat";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -22,7 +22,7 @@ export default function ConsultPage() {
         </header>
 
         {/* Main content */}
-        <ConsultationFlow />
+        <SwarmChat />
       </div>
     </main>
   );
