@@ -4,7 +4,9 @@ import { streamSwarm } from "@/agents/swarm";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { SwarmEvent } from "@/agents/swarm-types";
 
-export const maxDuration = 60;
+// 300s max — full consultation: triage + parallel doctors + debate + synthesis
+// Plus up to 2min clarification wait. Vercel Pro/Enterprise supports 300s.
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
@@ -26,6 +28,16 @@ export async function POST(request: NextRequest) {
     return new Response(JSON.stringify({ error: "symptoms must be under 2000 characters" }), { status: 400 });
   }
 
+  // Validate patientInfo
+  const age = patientInfo?.age;
+  const gender = patientInfo?.gender;
+  if (!age || typeof age !== "string" || age.trim() === "") {
+    return new Response(JSON.stringify({ error: "patientInfo.age is required" }), { status: 400 });
+  }
+  if (!gender || typeof gender !== "string" || gender.trim() === "") {
+    return new Response(JSON.stringify({ error: "patientInfo.gender is required" }), { status: 400 });
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -33,7 +45,7 @@ export async function POST(request: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
       try {
-        for await (const event of streamSwarm(symptoms, patientInfo ?? { age: "unknown", gender: "unknown" })) {
+        for await (const event of streamSwarm(symptoms, patientInfo)) {
           send(event);
         }
       } catch (err) {

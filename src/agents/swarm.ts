@@ -263,6 +263,10 @@ async function runSynthesis(
     .map((d) => `${d.doctorRole} (${d.type}): ${d.content}`)
     .join("\n");
 
+  // NOTE: The LLM prompt only asks for urgency/nextSteps/questionsForDoctor/timeframe.
+  // rankedHypotheses is intentionally pre-computed from allHypotheses (not LLM-generated).
+  // disclaimer is intentionally hardcoded (not LLM-generated — fixed compliance text).
+  // The merge { ...synthesis, ...parsed } applies LLM output on top of the pre-computed defaults.
   const response = await llm.invoke([
     new SystemMessage(`You are the MediCrew coordinator synthesizing a multidisciplinary team consultation.
 Respond ONLY with valid JSON:

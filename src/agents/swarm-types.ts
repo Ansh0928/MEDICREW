@@ -1,9 +1,8 @@
 // src/agents/swarm-types.ts
 import { AgentRole, UrgencyLevel } from "./types";
 
-// DoctorRole is an alias for AgentRole (spec requirement).
-// Note: AgentRole includes "triage" — callers must ensure only actual medical specialty roles are passed.
-export type DoctorRole = AgentRole;
+// Specialist doctor roles — excludes "triage" and "orchestrator" process roles
+export type DoctorRole = "gp" | "cardiology" | "mental_health" | "dermatology" | "orthopedic" | "gastro" | "physiotherapy";
 
 export type DebateMessageType = "agree" | "challenge" | "add_context";
 
