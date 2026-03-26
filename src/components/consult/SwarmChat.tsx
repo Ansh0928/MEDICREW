@@ -17,7 +17,7 @@ export function SwarmChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [liveFeed, setLiveFeed] = useState("");
   const [orbs, setOrbs] = useState<OrbState[]>([]);
-  const [clarifications, setClarifications] = useState<Array<{ clarificationId: string; doctorRole: DoctorRole; question: string }>>([]);
+  const [clarifications, setClarifications] = useState<Array<{ clarificationId: string; role: DoctorRole; question: string }>>([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,17 +44,14 @@ export function SwarmChat() {
         setLiveFeed(`Triage complete: ${event.data.urgency} urgency`);
         break;
       case "doctor_activated":
-        updateOrb(event.doctorRole, "active");
-        setLiveFeed(`${agentRegistry[event.doctorRole]?.name ?? event.doctorRole} is reviewing your symptoms...`);
+        updateOrb(event.role, "active");
+        setLiveFeed(`${agentRegistry[event.role]?.name ?? event.role} is reviewing your symptoms...`);
         break;
       case "doctor_complete":
-        updateOrb(event.doctorRole, "done");
-        break;
-      case "doctor_token":
-        // Token streaming is used for live feed updates via doctor_activated
+        updateOrb(event.role, "done");
         break;
       case "question_ready":
-        setClarifications((prev) => [...prev, { clarificationId: event.clarificationId, doctorRole: event.doctorRole, question: event.question }]);
+        setClarifications((prev) => [...prev, { clarificationId: event.clarificationId, role: event.role, question: event.question }]);
         setLiveFeed("Your care team has a question for you...");
         break;
       case "phase_changed":
@@ -207,7 +204,12 @@ export function SwarmChat() {
       {/* Clarification questions */}
       {clarifications.map((c) => (
         <div key={c.clarificationId} className="mb-4">
-          <ClarificationBubble {...c} onAnswer={handleAnswer} />
+          <ClarificationBubble
+            clarificationId={c.clarificationId}
+            doctorRole={c.role}
+            question={c.question}
+            onAnswer={handleAnswer}
+          />
         </div>
       ))}
 
