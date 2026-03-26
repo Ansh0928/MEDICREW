@@ -31,8 +31,9 @@ describe("INFRA-03: PostgresSaver checkpointer", () => {
 
   test("checkpointer module uses langgraph schema", async () => {
     const fs = await import("fs");
+    const path = await import("path");
     const source = fs.readFileSync(
-      new URL("../../lib/checkpointer.ts", import.meta.url).pathname,
+      path.resolve(process.cwd(), "src/lib/checkpointer.ts"),
       "utf-8"
     );
     expect(source).toContain('schema: "langgraph"');
