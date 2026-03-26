@@ -70,6 +70,24 @@ export const createFastModel = (): BaseChatModel => {
   });
 };
 
+// Create Groq model with JSON mode forced (for triage)
+export const createJsonModel = (): BaseChatModel => {
+  const provider = getLLMProvider();
+  if (provider === "ollama") {
+    return createOllamaModel(0.1);
+  }
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("GROQ_API_KEY environment variable is not set");
+  return new ChatGroq({
+    model: "llama-3.3-70b-versatile",
+    temperature: 0.1,
+    maxTokens: 512,
+    apiKey,
+    // @ts-expect-error — Groq SDK supports this, LangChain types lag
+    response_format: { type: "json_object" },
+  });
+};
+
 // Model configuration
 export const MODEL_CONFIG = {
   providers: ["groq", "ollama"] as const,
