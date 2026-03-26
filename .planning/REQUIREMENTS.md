@@ -62,9 +62,9 @@
 
 ### Notifications
 
-- [ ] **NOTF-01**: In-app notification system: care team updates, check-in requests, escalation alerts, new consultation summaries
-- [ ] **NOTF-02**: Email notifications via Resend: check-in follow-ups, escalation alerts, weekly care summary (opt-in)
-- [ ] **NOTF-03**: Unread notification badge on patient portal nav
+- [x] **NOTF-01**: In-app notification system: care team updates, check-in requests, escalation alerts, new consultation summaries
+- [x] **NOTF-02**: Email notifications via Resend: check-in follow-ups, escalation alerts, weekly care summary (opt-in)
+- [x] **NOTF-03**: Unread notification badge on patient portal nav
 
 ## v2 Requirements
 
@@ -133,9 +133,9 @@
 | ESCL-01 | Phase 3 | Pending |
 | ESCL-02 | Phase 3 | Pending |
 | ESCL-03 | Phase 3 | Complete |
-| NOTF-01 | Phase 3 | Pending |
-| NOTF-02 | Phase 3 | Pending |
-| NOTF-03 | Phase 3 | Pending |
+| NOTF-01 | Phase 3 | Complete |
+| NOTF-02 | Phase 3 | Complete |
+| NOTF-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 34 total (32 functional + DASH-02 and PROF-03 also deepened in Phase 4)

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 03-01-PLAN.md execution: fixed Inngest v4 API signature and Resend lazy-init build failures"
-last_updated: "2026-03-26T06:41:23.836Z"
+stopped_at: "Completed 03-03-PLAN.md. Phase 03-proactive-care-loop plan 3/4 done."
+last_updated: "2026-03-26T07:20:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 16
+  completed_plans: 15
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 3 (Proactive Care Loop) — EXECUTING
-Plan: 1 of 4
+Plan: 3 of 4 complete (03-03 done, 03-04 next)
 
 ## Performance Metrics
 
@@ -85,6 +85,10 @@ Recent decisions affecting current work:
 - [Phase 02-04]: API route pattern: x-patient-id header auth gate, early return 401, then prisma operation for all patient API routes
 - [Phase 03-proactive-care-loop]: MonitoringQueue uses card grid layout (not HTML table) — responsive 4-column grid collapses on mobile
 - [Phase 03-proactive-care-loop]: effectiveUrgency computed at query time in API — not stored — avoids stale urgency in DB
+- [Phase 03-03]: sendCheckInEmail and sendEscalationEmail both skip gracefully with console.warn when RESEND_API_KEY is missing
+- [Phase 03-03]: checkInMessage hoisted to resolve-check-in-message Inngest step so it is reusable by both notification and email steps
+- [Phase 03-03]: AHPRA disclaimer included in all Resend email HTML — health information only, not a medical diagnosis
+- [Phase 03-03]: Weekly care summary email deferred to Phase 4 (requires separate cron job and opt-in UX)
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T06:41:23.834Z
-Stopped at: Completed 03-01-PLAN.md execution: fixed Inngest v4 API signature and Resend lazy-init build failures
+Last session: 2026-03-26T07:20:00.000Z
+Stopped at: Completed 03-03-PLAN.md. In-app notification inbox + Resend email integration done.
 Resume file: None
