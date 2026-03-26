@@ -10,6 +10,7 @@ import {
   TriageOutputSchema,
 } from "./types";
 import { agentRegistry, getRelevantSpecialists } from "./definitions";
+import { getCheckpointer } from "@/lib/checkpointer";
 
 // Define the state annotation for LangGraph
 const ConsultationAnnotation = Annotation.Root({
@@ -293,7 +294,8 @@ function routeAfterGP(state: ConsultationGraphState): string {
 }
 
 // Build the consultation graph
-export function createConsultationGraph() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createConsultationGraph(checkpointer?: any) {
   const graph = new StateGraph(ConsultationAnnotation)
     .addNode("triage", triageNode)
     .addNode("gp", gpNode)
@@ -311,15 +313,25 @@ export function createConsultationGraph() {
     .addEdge("specialist", "recommend")
     .addEdge("recommend", END);
 
-  return graph.compile();
+  return checkpointer ? graph.compile({ checkpointer }) : graph.compile();
 }
 
 // Main consultation function
 export async function runConsultation(
   symptoms: string,
-  sessionId?: string
+  sessionId?: string,
+  consultationId?: string
 ): Promise<ConsultationState> {
-  const graph = createConsultationGraph();
+  let graph;
+  let invokeConfig: { configurable?: { thread_id: string } } | undefined;
+
+  if (consultationId && process.env.DIRECT_URL) {
+    const cp = await getCheckpointer();
+    graph = createConsultationGraph(cp);
+    invokeConfig = { configurable: { thread_id: `consultation-${consultationId}` } };
+  } else {
+    graph = createConsultationGraph();
+  }
 
   const initialState = {
     symptoms,
@@ -332,17 +344,28 @@ export async function runConsultation(
     currentStep: "triage",
   };
 
-  const result = await graph.invoke(initialState);
+  const result = await graph.invoke(initialState, invokeConfig);
 
   return result as ConsultationState;
 }
 
 // Stream consultation for real-time updates
+// consultationId enables PostgresSaver checkpointing (exit-mode — no interruptBefore/After)
 export async function* streamConsultation(
   symptoms: string,
-  sessionId?: string
+  sessionId?: string,
+  consultationId?: string
 ): AsyncGenerator<{ step: string; data: Partial<ConsultationState> }> {
-  const graph = createConsultationGraph();
+  let graph;
+  let streamConfig: { configurable?: { thread_id: string } } | undefined;
+
+  if (consultationId && process.env.DIRECT_URL) {
+    const cp = await getCheckpointer();
+    graph = createConsultationGraph(cp);
+    streamConfig = { configurable: { thread_id: `consultation-${consultationId}` } };
+  } else {
+    graph = createConsultationGraph();
+  }
 
   const initialState = {
     symptoms,
@@ -355,7 +378,7 @@ export async function* streamConsultation(
     currentStep: "triage",
   };
 
-  for await (const event of await graph.stream(initialState)) {
+  for await (const event of await graph.stream(initialState, streamConfig)) {
     const [nodeName, nodeOutput] = Object.entries(event)[0];
     yield {
       step: nodeName,
