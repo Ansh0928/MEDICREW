@@ -32,10 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Supabase PostgreSQL migration + vitest test infrastructure + RLS policies
-- [ ] 01-02-PLAN.md — LangGraph PostgresSaver checkpointer + Inngest background job setup
-- [ ] 01-03-PLAN.md — AHPRA compliance layer: agent renaming, disclaimers, emergency rules engine
-- [ ] 01-04-PLAN.md — Privacy consent flow, data export, and account deletion
+- [x] 01-01-PLAN.md — Supabase PostgreSQL migration + vitest test infrastructure + RLS policies
+- [x] 01-02-PLAN.md — LangGraph PostgresSaver checkpointer + Inngest background job setup
+- [x] 01-03-PLAN.md — AHPRA compliance layer: agent renaming, disclaimers, emergency rules engine
+- [x] 01-04-PLAN.md — Privacy consent flow, data export, and account deletion
 
 ### Phase 2: Core Patient Experience
 **Goal**: Patients feel continuously monitored by a named, consistent AI care team from the moment they finish onboarding
@@ -47,13 +47,13 @@ Plans:
   3. During a consultation, the patient can see which AI agent is currently speaking (name, avatar, specialty badge) while text streams progressively in real time
   4. After a consultation ends, the patient receives a structured Care Summary listing urgency, findings, next steps, and a disclaimer
   5. The patient health profile page shows their known conditions, medications, and a symptom journal where they can log daily severity with free text
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: Patient onboarding flow — medical history form, consent step, care team introduction
-- [ ] 02-02: Care team dashboard with Supabase Realtime status indicators and consultation history
-- [ ] 02-03: Streaming consultation UI with agent identity (SSE + agent name/avatar overlay)
-- [ ] 02-04: Care Summary component and patient health profile page with symptom journal
+- [ ] 02-01-PLAN.md — Patient onboarding: Prisma schema migration, consent API, Supabase client helpers, multi-step onboarding page
+- [ ] 02-02-PLAN.md — Care team dashboard: Supabase Realtime status indicators, consultation history, care plan card
+- [ ] 02-03-PLAN.md — Streaming consultation UI: SSE agent identity metadata, AgentOverlay, routing events
+- [ ] 02-04-PLAN.md — Care Summary component, patient health profile page, symptom journal
 
 ### Phase 3: Proactive Care Loop
 **Goal**: The system initiates contact with patients after consultations, detects worsening patterns, and routes escalations — making Medicrew a care platform, not just a chat tool
