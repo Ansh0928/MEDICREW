@@ -12,6 +12,17 @@ import {
 import { agentRegistry, getRelevantSpecialists } from "./definitions";
 import { getCheckpointer } from "@/lib/checkpointer";
 
+// Extended stream event with agent identity metadata and token-level streaming
+export interface StreamEvent {
+  step: string;
+  data: Partial<ConsultationState>;
+  agentName?: string;
+  agentRole?: string;
+  specialty?: string;
+  eventType?: 'node_output' | 'token_delta' | 'routing' | 'complete';
+  delta?: string; // Token-level text chunk for progressive streaming
+}
+
 // Define the state annotation for LangGraph
 const ConsultationAnnotation = Annotation.Root({
   symptoms: Annotation<string>,
@@ -349,13 +360,19 @@ export async function runConsultation(
   return result as ConsultationState;
 }
 
-// Stream consultation for real-time updates
+// Stream consultation for real-time updates with agent identity metadata and token-level streaming.
+// Uses graph.streamEvents() (LangGraph v2 API) to emit:
+//   - token_delta events with per-token delta text (CONS-02: progressive streaming)
+//   - node_output events with full node output and agent identity (CONS-01: who is speaking)
+//   - routing event after triage with relevant specialists (CONS-03: routing display)
 // consultationId enables PostgresSaver checkpointing (exit-mode — no interruptBefore/After)
+// patientContext is prepended to symptoms for profile-aware consultations (PROF-02)
 export async function* streamConsultation(
   symptoms: string,
   sessionId?: string,
-  consultationId?: string
-): AsyncGenerator<{ step: string; data: Partial<ConsultationState> }> {
+  consultationId?: string,
+  patientContext?: string
+): AsyncGenerator<StreamEvent> {
   let graph;
   let streamConfig: { configurable?: { thread_id: string } } | undefined;
 
@@ -367,8 +384,13 @@ export async function* streamConsultation(
     graph = createConsultationGraph();
   }
 
+  // Prepend patient profile context for profile-aware consultations (PROF-02)
+  const enrichedSymptoms = patientContext
+    ? `${patientContext}\n\nCurrent symptoms: ${symptoms}`
+    : symptoms;
+
   const initialState = {
-    symptoms,
+    symptoms: enrichedSymptoms,
     additionalInfo: [],
     messages: [],
     redFlags: [],
@@ -378,11 +400,61 @@ export async function* streamConsultation(
     currentStep: "triage",
   };
 
-  for await (const event of await graph.stream(initialState, streamConfig)) {
-    const [nodeName, nodeOutput] = Object.entries(event)[0];
-    yield {
-      step: nodeName,
-      data: nodeOutput as Partial<ConsultationState>,
-    };
+  // Use streamEvents (v2) to get token-level deltas from on_llm_stream events
+  // and full node output from on_chain_end events
+  for await (const event of graph.streamEvents(initialState, { version: 'v2', ...streamConfig })) {
+    if (event.event === 'on_llm_stream') {
+      // Token-level delta from whichever agent node is currently running
+      const chunk = event.data?.chunk;
+      const tokenText = typeof chunk?.content === 'string' ? chunk.content : '';
+      if (tokenText) {
+        const nodeName = event.metadata?.langgraph_node as string | undefined;
+        const agent = nodeName ? agentRegistry[nodeName as AgentRole] : undefined;
+        yield {
+          step: nodeName || 'unknown',
+          data: {},
+          agentName: agent?.name,
+          agentRole: agent?.role,
+          specialty: agent?.specialties?.[0],
+          eventType: 'token_delta',
+          delta: tokenText,
+        };
+      }
+    } else if (event.event === 'on_chain_end' && event.metadata?.langgraph_node) {
+      // Full node output — emit as node_output with complete data and agent identity
+      const nodeName = event.metadata.langgraph_node as string;
+      // Skip internal LangGraph wrapper nodes
+      if (['__start__', '__end__', 'LangGraph'].includes(nodeName)) continue;
+
+      const agent = agentRegistry[nodeName as AgentRole];
+      const nodeOutput = event.data?.output;
+
+      // Only yield node_output if there's meaningful output data
+      if (nodeOutput && typeof nodeOutput === 'object' && Object.keys(nodeOutput).length > 0) {
+        yield {
+          step: nodeName,
+          data: nodeOutput as Partial<ConsultationState>,
+          agentName: agent?.name,
+          agentRole: agent?.role,
+          specialty: agent?.specialties?.[0],
+          eventType: 'node_output',
+        };
+      }
+
+      // After triage, emit routing event with relevant specialists (CONS-03)
+      if (nodeName === 'triage') {
+        const triageData = nodeOutput as Partial<ConsultationState>;
+        if (triageData?.relevantSpecialties && triageData.relevantSpecialties.length > 0) {
+          yield {
+            step: 'routing',
+            data: { relevantSpecialties: triageData.relevantSpecialties },
+            eventType: 'routing',
+            agentName: 'MediCrew Coordinator',
+            agentRole: 'orchestrator',
+            specialty: 'Routing',
+          };
+        }
+      }
+    }
   }
 }

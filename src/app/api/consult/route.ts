@@ -76,7 +76,17 @@ export async function POST(request: NextRequest) {
             const allMessages: AgentMessage[] = [];
             let finalResult: { urgencyLevel?: string; recommendation?: unknown } = {};
 
-            for await (const event of streamConsultation(symptoms)) {
+            // Fetch patient profile for context injection (PROF-02)
+            const patient = await prisma.patient.findUnique({
+              where: { id: patientId },
+              select: { knownConditions: true, medications: true, age: true, gender: true, allergies: true },
+            });
+
+            const patientContext = patient
+              ? `Patient profile: Age ${patient.age ?? 'unknown'}, ${patient.gender ?? 'unknown'}. Known conditions: ${patient.knownConditions ?? 'none'}. Medications: ${(patient.medications as string[] | null ?? []).join(', ') || 'none'}. Allergies: ${(patient.allergies as string[] | null ?? []).join(', ') || 'none'}.`
+              : '';
+
+            for await (const event of streamConsultation(symptoms, undefined, undefined, patientContext)) {
               const data = JSON.stringify(event) + "\n";
               controller.enqueue(encoder.encode(`data: ${data}\n`));
 
