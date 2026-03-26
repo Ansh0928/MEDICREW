@@ -24,7 +24,7 @@ Patients feel continuously monitored and cared for by a real medical team — no
 - ✓ AHPRA compliance: "Alex AI — GP" naming, AHPRA_DISCLAIMER, emergency rules engine (000 referral) — Phase 1 (COMP-01–03)
 - ✓ Privacy Act consent gate, data export (APP 12), soft-delete account deletion — Phase 1 (COMP-04, COMP-05)
 
-### Active (Phase 2 Complete — Validated in Phase 2: Core Patient Experience)
+### Active (Phase 3 Complete — Validated in Phase 3: Proactive Care Loop)
 
 - ✓ Patient onboarding: collect medical history, known conditions, medications, emergency contacts — Phase 2 (ONBD-01, ONBD-02, ONBD-03)
 - ✓ Named care team visible on patient dashboard (Alex AI — GP, Sarah AI — Cardiology, etc. with emoji + specialties) — Phase 2 (DASH-01, DASH-02)
@@ -34,17 +34,17 @@ Patients feel continuously monitored and cared for by a real medical team — no
 - ✓ AHPRA-compliant CareSummary: structured recommendation, disclaimer on every summary — Phase 2 (CONS-04)
 - ✓ Patient health profile: conditions, medications, allergies, emergency contact, GP details — Phase 2 (PROF-01, PROF-02)
 - ✓ Symptom journal: severity 1-5, notes, 30-entry history — Phase 2 (PROF-03)
-- [ ] Proactive check-in system: agents send async "How are you feeling?" follow-up messages after consultations
-- [ ] Care team status indicators: "Dr. Sarah is reviewing your case", "Dr. Alex checked your symptoms today"
-- [ ] Monitoring dashboard: symptoms trend over time, active care plan, red flag alerts
-- [ ] Streaming consultation UI: real-time agent responses with agent identity visible (who is speaking)
-- [ ] Escalation system: agents detect worsening patterns and escalate urgency with patient notification
-- [ ] Patient health profile: vitals history, medication tracker, symptom journal
+- ✓ Inngest 48h check-in job: durable sleep, opt-out toggle, in-app notification from primary agent — Phase 3 (CHKN-01, CHKN-02, CHKN-03, CHKN-04)
+- ✓ Escalation rules engine: Better/Same/Worse + free text, emergency override, urgency tiers, CareTeamStatus update — Phase 3 (ESCL-01, ESCL-02, ESCL-03)
+- ✓ Notification inbox UI: categorized check-in cards, unread badge, Better/Same/Worse interactive response — Phase 3 (NOTF-01, NOTF-02)
+- ✓ Resend email: escalation alerts + check-in follow-ups with AHPRA disclaimer — Phase 3 (NOTF-03)
+- ✓ Doctor monitoring queue: urgency-sorted Prisma-backed queue, MonitoringQueue component on doctor portal — Phase 3 (ESCL-03)
+
+### Remaining (Phase 4: Retention + Polish)
+
 - [ ] AI Evidence integration: agent answers backed by medical literature citations (PubMed/guidelines)
-- [ ] Australian compliance layer: AHPRA scope-of-practice disclaimers, emergency referral (000), Privacy Act 1988
-- [ ] PostgreSQL/Supabase migration: replace SQLite for production-ready persistence
 - [ ] Real agent memory: agents remember prior consultations and personalize responses
-- [ ] Push/email notifications: patient notified when care team has an update
+- [ ] Retention features: appointment reminders, progress tracking, health trends
 
 ### Out of Scope
 
@@ -84,4 +84,4 @@ Patients feel continuously monitored and cared for by a real medical team — no
 | Named doctors with personalities | Patients trust named, consistent doctors more than anonymous AI | — Pending |
 
 ---
-*Last updated: 2026-03-26 — Phase 1 complete (Foundation + Compliance)*
+*Last updated: 2026-03-26 — Phase 3 complete (Proactive Care Loop — 10/10 requirements verified)*
