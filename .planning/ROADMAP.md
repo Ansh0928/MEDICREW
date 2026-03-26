@@ -65,13 +65,13 @@ Plans:
   3. Emergency keywords in a check-in response trigger an immediate high-priority in-app notification and 000 referral (deterministic, same rules engine as Phase 1)
   4. The doctor portal monitoring queue shows all active patients with last check-in status, urgency level, and last agent activity
   5. A patient can see an unread notification badge on the portal nav, read all notifications in-app, and receive escalation alerts via email through Resend
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: Inngest check-in job — 48h Vercel Cron trigger, CheckIn graph, opt-out setting
-- [ ] 03-02: Escalation rules engine — worsening pattern detection, urgency tier escalation, Supabase Realtime push
-- [ ] 03-03: In-app notification system — notification inbox, unread badge, Resend email integration
-- [ ] 03-04: Doctor monitoring queue in doctor portal
+- [ ] 03-01-PLAN.md — Inngest check-in job: CheckIn Prisma model, 48h delay function, consultation trigger, opt-out setting
+- [ ] 03-02-PLAN.md — Escalation rules engine: worsening pattern detection, check-in response API, urgency tier escalation
+- [ ] 03-03-PLAN.md — In-app notification system: NotificationInbox, CheckInResponseCard, unread badge, Resend email integration
+- [ ] 03-04-PLAN.md — Doctor monitoring queue: monitoring API, MonitoringQueue component, doctor portal integration
 
 ### Phase 4: Retention + Polish
 **Goal**: Patients have visual evidence of their monitoring over time and a clear view of their active care plan, creating a retention loop
