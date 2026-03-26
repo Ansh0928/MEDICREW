@@ -40,6 +40,38 @@ export function SwarmChat() {
     });
   };
 
+  const handleEvent = (event: SwarmEvent) => {
+    switch (event.type) {
+      case "triage_complete":
+        setLiveFeed(`Triage complete: ${event.data.urgency} urgency`);
+        break;
+      case "doctor_activated":
+        updateOrb(event.doctorRole, "active");
+        setLiveFeed(`${agentRegistry[event.doctorRole]?.name ?? event.doctorRole} is reviewing your symptoms...`);
+        break;
+      case "doctor_complete":
+        updateOrb(event.doctorRole, "done");
+        break;
+      case "doctor_token":
+        tokenBufferRef.current[event.doctorRole] = (tokenBufferRef.current[event.doctorRole] ?? "") + event.token;
+        break;
+      case "question_ready":
+        setClarifications((prev) => [...prev, { clarificationId: event.clarificationId, doctorRole: event.doctorRole, question: event.question }]);
+        setLiveFeed("Your care team has a question for you...");
+        break;
+      case "phase_changed":
+        if (event.phase === "debate") setLiveFeed("Your care team is discussing...");
+        if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
+        break;
+      case "synthesis_complete":
+        setSynthesis(event.data);
+        break;
+      case "error":
+        setError(event.message);
+        break;
+    }
+  };
+
   const startConsultation = async () => {
     if (!symptoms.trim() || isLoading) return;
     setIsLoading(true);
@@ -77,38 +109,6 @@ export function SwarmChat() {
     } finally {
       setIsLoading(false);
       setLiveFeed("");
-    }
-  };
-
-  const handleEvent = (event: SwarmEvent) => {
-    switch (event.type) {
-      case "triage_complete":
-        setLiveFeed(`Triage complete: ${event.data.urgency} urgency`);
-        break;
-      case "doctor_activated":
-        updateOrb(event.doctorRole, "active");
-        setLiveFeed(`${agentRegistry[event.doctorRole]?.name ?? event.doctorRole} is reviewing your symptoms...`);
-        break;
-      case "doctor_complete":
-        updateOrb(event.doctorRole, "done");
-        break;
-      case "doctor_token":
-        tokenBufferRef.current[event.doctorRole] = (tokenBufferRef.current[event.doctorRole] ?? "") + event.token;
-        break;
-      case "question_ready":
-        setClarifications((prev) => [...prev, { clarificationId: event.clarificationId, doctorRole: event.doctorRole, question: event.question }]);
-        setLiveFeed("Your care team has a question for you...");
-        break;
-      case "phase_changed":
-        if (event.phase === "debate") setLiveFeed("Your care team is discussing...");
-        if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
-        break;
-      case "synthesis_complete":
-        setSynthesis(event.data);
-        break;
-      case "error":
-        setError(event.message);
-        break;
     }
   };
 

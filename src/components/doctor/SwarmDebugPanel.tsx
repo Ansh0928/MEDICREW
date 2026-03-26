@@ -11,7 +11,7 @@ export function SwarmDebugPanel({ state }: { state: Partial<SwarmState> }) {
         const agent = agentRegistry[role as keyof typeof agentRegistry];
         return (
           <div key={role} className="border rounded-lg p-3 space-y-2">
-            <div className="font-semibold">{(agent as any)?.emoji} {agent?.name}</div>
+            <div className="font-semibold">{agent?.emoji} {agent?.name}</div>
             {swarm?.hypotheses.map((h) => (
               <div key={h.id} className="space-y-1">
                 <div className="flex justify-between text-xs">
