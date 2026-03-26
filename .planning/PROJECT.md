@@ -24,10 +24,16 @@ Patients feel continuously monitored and cared for by a real medical team — no
 - ✓ AHPRA compliance: "Alex AI — GP" naming, AHPRA_DISCLAIMER, emergency rules engine (000 referral) — Phase 1 (COMP-01–03)
 - ✓ Privacy Act consent gate, data export (APP 12), soft-delete account deletion — Phase 1 (COMP-04, COMP-05)
 
-### Active
+### Active (Phase 2 Complete — Validated in Phase 2: Core Patient Experience)
 
-- [ ] Patient onboarding: collect medical history, known conditions, medications, emergency contacts
-- [ ] Named care team visible on patient dashboard (Dr. Alex, Dr. Sarah, etc. with avatars + specialties)
+- ✓ Patient onboarding: collect medical history, known conditions, medications, emergency contacts — Phase 2 (ONBD-01, ONBD-02, ONBD-03)
+- ✓ Named care team visible on patient dashboard (Alex AI — GP, Sarah AI — Cardiology, etc. with emoji + specialties) — Phase 2 (DASH-01, DASH-02)
+- ✓ Care team status indicators: "Dr. Alex checked your symptoms today" via CareTeamStatus + Supabase Realtime — Phase 2 (DASH-01, DASH-04)
+- ✓ Consultation history display on patient dashboard — Phase 2 (DASH-03)
+- ✓ Streaming consultation UI: real-time agent responses with AgentOverlay (who is speaking) — Phase 2 (CONS-01, CONS-02, CONS-03)
+- ✓ AHPRA-compliant CareSummary: structured recommendation, disclaimer on every summary — Phase 2 (CONS-04)
+- ✓ Patient health profile: conditions, medications, allergies, emergency contact, GP details — Phase 2 (PROF-01, PROF-02)
+- ✓ Symptom journal: severity 1-5, notes, 30-entry history — Phase 2 (PROF-03)
 - [ ] Proactive check-in system: agents send async "How are you feeling?" follow-up messages after consultations
 - [ ] Care team status indicators: "Dr. Sarah is reviewing your case", "Dr. Alex checked your symptoms today"
 - [ ] Monitoring dashboard: symptoms trend over time, active care plan, red flag alerts
