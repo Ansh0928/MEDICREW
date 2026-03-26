@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Users, FileText, Send, Clock, ChevronRight, AlertCircle, User, LogOut } from "lucide-react";
+import { SwarmDebugPanel } from "@/components/doctor/SwarmDebugPanel";
 
 interface Patient {
     id: string;
@@ -405,6 +406,10 @@ export default function DoctorDashboard() {
                             )}
                         </AnimatePresence>
                     </div>
+                </div>
+                {/* Swarm Debug Panel — Phase 2 will pipe live swarm state here */}
+                <div className="mt-8">
+                    <SwarmDebugPanel state={{}} />
                 </div>
             </main>
         </div>
