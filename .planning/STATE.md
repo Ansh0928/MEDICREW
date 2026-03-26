@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-04-PLAN.md. Phase 03-proactive-care-loop plan 4/4 done.
-last_updated: "2026-03-26T06:50:24.789Z"
+stopped_at: Completed 04-03-PLAN.md. Phase 04-retention-polish plan 3 done.
+last_updated: "2026-03-26T06:57:52.914Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 12
+  completed_phases: 4
+  total_plans: 15
+  completed_plans: 15
 ---
 
 # Project State
@@ -55,6 +55,9 @@ Plan: 3 of 4 complete (03-03 done, 03-04 next)
 | Phase 03-proactive-care-loop P04 | 5 | 2 tasks | 3 files |
 | Phase 03-proactive-care-loop P03 | 15 | 2 tasks | 7 files |
 | Phase 03-proactive-care-loop P04 | 3 | 2 tasks | 3 files |
+| Phase 04-retention-polish P01 | 2 | 2 tasks | 4 files |
+| Phase 04-retention-polish P03 | 1 | 2 tasks | 2 files |
+| Phase 04-retention-polish P02 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -98,6 +101,13 @@ Recent decisions affecting current work:
 - [Phase 03-proactive-care-loop]: Emergency detection in check-in responses delegates to existing detectEmergency from Phase 1
 - [Phase 03-proactive-care-loop]: MonitoringQueue uses card grid layout (not HTML table) — responsive 4-column grid collapses on mobile
 - [Phase 03-proactive-care-loop]: effectiveUrgency computed at query time in API — not stored — avoids stale urgency in DB
+- [Phase 04-retention-polish]: Trends endpoint returns asc order for chart rendering; SymptomTrendChart is self-fetching via patientId prop; AHPRA disclaimer required on all health data visualisations
+- [Phase 04-retention-polish]: checkIns query expanded from take:1 to take:5 for multi-check-in trend analysis
+- [Phase 04-retention-polish]: Patients with fewer than 2 responded check-ins return insufficient_data — no false trend signals
+- [Phase 04-retention-polish]: TREND_INDICATOR map stores LucideIcon references — extracted to TrendIcon const inside render loop for JSX compatibility
+- [Phase 04-retention-polish]: monitoringStatus derived at query time: active if pending check-in OR consultation within 7 days — not stored in DB
+- [Phase 04-retention-polish]: CarePlanDetail uses en-AU locale with Australia/Sydney timezone for next check-in date display
+- [Phase 04-retention-polish]: actionItems extracted from recommendation.nextSteps array — API returns flat string array, component renders as checklist
 
 ### Pending Todos
 
@@ -112,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T06:43:34.997Z
-Stopped at: Completed 03-04-PLAN.md. Phase 03-proactive-care-loop plan 4/4 done.
+Last session: 2026-03-26T06:57:52.913Z
+Stopped at: Completed 04-03-PLAN.md. Phase 04-retention-polish plan 3 done.
 Resume file: None
