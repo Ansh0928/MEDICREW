@@ -12,7 +12,7 @@ export async function GET() {
       knownConditions: true,
       checkIns: {
         orderBy: { createdAt: "desc" },
-        take: 1,
+        take: 5,
         select: {
           id: true,
           status: true,
@@ -53,6 +53,25 @@ export async function GET() {
         effectiveUrgency = "urgent";
       }
 
+      // Compute urgency trend from last 5 check-ins (responded only)
+      const responseScore: Record<string, number> = { better: -1, same: 0, worse: 1 };
+      const respondedCheckIns = p.checkIns.filter((c) => c.response !== null);
+      let urgencyTrend: "improving" | "stable" | "worsening" | "insufficient_data";
+      if (respondedCheckIns.length < 2) {
+        urgencyTrend = "insufficient_data";
+      } else {
+        const avgScore =
+          respondedCheckIns.reduce((sum, c) => sum + (responseScore[c.response!] ?? 0), 0) /
+          respondedCheckIns.length;
+        if (avgScore <= -0.3) {
+          urgencyTrend = "improving";
+        } else if (avgScore >= 0.3) {
+          urgencyTrend = "worsening";
+        } else {
+          urgencyTrend = "stable";
+        }
+      }
+
       // Find last agent activity from CareTeamStatus
       const statuses =
         (p.careTeamStatus?.statuses as Record<
@@ -85,6 +104,7 @@ export async function GET() {
             }
           : null,
         effectiveUrgency,
+        urgencyTrend,
         lastAgentActivity: lastAgentActivity
           ? {
               agentName: lastAgentActivity.agentName,
