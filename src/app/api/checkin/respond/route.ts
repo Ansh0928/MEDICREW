@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { evaluateCheckInResponse, CheckInResponse } from "@/lib/escalation-rules";
+import { sendEscalationEmail } from "@/lib/email/resend";
 
 export async function POST(request: NextRequest) {
   const patientId = request.headers.get("x-patient-id");
@@ -95,6 +96,20 @@ export async function POST(request: NextRequest) {
         create: { patientId, statuses: updatedStatuses },
         update: { statuses: updatedStatuses },
       });
+    }
+
+    // Send escalation email via Resend
+    const patientData = await prisma.patient.findUnique({
+      where: { id: patientId },
+      select: { email: true, name: true },
+    });
+    if (patientData?.email) {
+      await sendEscalationEmail(
+        patientData.email,
+        patientData.name,
+        title,
+        message
+      );
     }
   }
 

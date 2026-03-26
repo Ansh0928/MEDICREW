@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle, LogOut, Users, HeartPulse } from "lucide-react";
 import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
+import { NotificationInbox } from "@/components/notifications/NotificationInbox";
 
 interface AgentStatus {
   agentName: string;
@@ -66,6 +67,7 @@ export default function PatientPortal() {
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [checkIns, setCheckIns] = useState<Array<{ id: string; notificationId: string | null; status: string }>>([]);
 
   // Check auth and load patient on mount
   useEffect(() => {
@@ -104,6 +106,13 @@ export default function PatientPortal() {
           gender: fullPatient.gender || "",
           knownConditions: fullPatient.knownConditions || "",
         });
+
+        // Load check-ins for interactive check-in response cards
+        const checkInRes = await fetch(`/api/checkin?patientId=${found.id}`);
+        if (checkInRes.ok) {
+          const checkInData = await checkInRes.json();
+          setCheckIns(checkInData);
+        }
       }
     } catch {
       console.error("Failed to load patient");
@@ -417,51 +426,12 @@ export default function PatientPortal() {
               >
                 <Card className="p-6">
                   <h2 className="text-xl font-semibold mb-4">Notifications</h2>
-                  {!patient || patient.notifications.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No notifications yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {patient.notifications.map((notification) => (
-                        <Card
-                          key={notification.id}
-                          className={`p-4 ${notification.read ? "bg-muted/30" : "bg-blue-50 dark:bg-blue-950/30 border-blue-200"}`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium">{notification.title}</h4>
-                                {!notification.read && (
-                                  <Badge variant="default" className="text-xs">New</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {notification.message}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                                <Clock className="w-3 h-3" />
-                                {new Date(notification.createdAt).toLocaleDateString()}
-                                {notification.doctor && (
-                                  <span>From: {notification.doctor.name}</span>
-                                )}
-                              </div>
-                            </div>
-                            {!notification.read && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => markAsRead(notification.id)}
-                              >
-                                Mark Read
-                              </Button>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+                  <NotificationInbox
+                    notifications={patient?.notifications ?? []}
+                    checkIns={checkIns}
+                    onMarkRead={markAsRead}
+                    onRefresh={() => patient && loadPatient(patient.email)}
+                  />
                 </Card>
               </motion.div>
             )}

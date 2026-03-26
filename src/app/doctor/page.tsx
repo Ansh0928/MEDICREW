@@ -9,8 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, FileText, Send, Clock, ChevronRight, AlertCircle, User, LogOut } from "lucide-react";
+import { ArrowLeft, Users, FileText, Send, Clock, ChevronRight, AlertCircle, User, LogOut, Activity } from "lucide-react";
 import { SwarmDebugPanel } from "@/components/doctor/SwarmDebugPanel";
+import { MonitoringQueue } from "@/components/doctor/MonitoringQueue";
 
 interface Patient {
     id: string;
@@ -62,6 +63,7 @@ export default function DoctorDashboard() {
     });
     const [sending, setSending] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<"patients" | "monitoring">("patients");
 
     // Check auth on mount
     useEffect(() => {
@@ -188,7 +190,38 @@ export default function DoctorDashboard() {
             </header>
 
             <main className="container mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Tab navigation */}
+                <div className="flex gap-2 mb-6">
+                    <Button
+                        variant={activeTab === "patients" ? "default" : "outline"}
+                        onClick={() => setActiveTab("patients")}
+                    >
+                        <Users className="w-4 h-4 mr-2" />
+                        Patients
+                    </Button>
+                    <Button
+                        variant={activeTab === "monitoring" ? "default" : "outline"}
+                        onClick={() => setActiveTab("monitoring")}
+                    >
+                        <Activity className="w-4 h-4 mr-2" />
+                        Monitoring Queue
+                    </Button>
+                </div>
+
+                {/* Monitoring Queue Tab */}
+                {activeTab === "monitoring" && (
+                    <motion.div key="monitoring" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                        <Card className="p-6">
+                            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-emerald-600" />
+                                Patient Monitoring Queue
+                            </h2>
+                            <MonitoringQueue />
+                        </Card>
+                    </motion.div>
+                )}
+
+                {activeTab === "patients" && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Patient List */}
                     <div className="lg:col-span-1">
                         <Card className="p-4">
@@ -406,7 +439,7 @@ export default function DoctorDashboard() {
                             )}
                         </AnimatePresence>
                     </div>
-                </div>
+                </div>}
                 {/* Swarm Debug Panel — Phase 2 will pipe live swarm state here */}
                 <div className="mt-8">
                     <SwarmDebugPanel state={{}} />

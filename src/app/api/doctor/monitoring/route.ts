@@ -1,0 +1,111 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET() {
+  // Fetch all active patients (not soft-deleted) with their latest check-in, last consultation, and care team status
+  const patients = await prisma.patient.findMany({
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      knownConditions: true,
+      checkIns: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          status: true,
+          response: true,
+          respondedAt: true,
+          createdAt: true,
+        },
+      },
+      consultations: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          urgencyLevel: true,
+          symptoms: true,
+          createdAt: true,
+        },
+      },
+      careTeamStatus: {
+        select: {
+          statuses: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+
+  // Transform and sort: escalated patients first, then by last activity
+  const monitoringData = patients
+    .map((p) => {
+      const lastCheckIn = p.checkIns[0] ?? null;
+      const lastConsultation = p.consultations[0] ?? null;
+      const urgencyLevel = lastConsultation?.urgencyLevel ?? "routine";
+
+      // Determine effective urgency: if last check-in response was "worse", treat as "urgent"
+      let effectiveUrgency = urgencyLevel;
+      if (lastCheckIn?.response === "worse") {
+        effectiveUrgency = "urgent";
+      }
+
+      // Find last agent activity from CareTeamStatus
+      const statuses =
+        (p.careTeamStatus?.statuses as Record<
+          string,
+          { agentName: string; message: string; updatedAt: string }
+        >) ?? {};
+      const lastAgentActivity =
+        Object.values(statuses).sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        )[0] ?? null;
+
+      return {
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        knownConditions: p.knownConditions,
+        lastCheckIn: lastCheckIn
+          ? {
+              status: lastCheckIn.status,
+              response: lastCheckIn.response,
+              respondedAt: lastCheckIn.respondedAt,
+              createdAt: lastCheckIn.createdAt,
+            }
+          : null,
+        lastConsultation: lastConsultation
+          ? {
+              urgencyLevel: lastConsultation.urgencyLevel,
+              symptoms: lastConsultation.symptoms?.substring(0, 80),
+              createdAt: lastConsultation.createdAt,
+            }
+          : null,
+        effectiveUrgency,
+        lastAgentActivity: lastAgentActivity
+          ? {
+              agentName: lastAgentActivity.agentName,
+              message: lastAgentActivity.message,
+              updatedAt: lastAgentActivity.updatedAt,
+            }
+          : null,
+      };
+    })
+    .sort((a, b) => {
+      // Sort order: emergency > urgent > routine > self_care > no-data
+      const urgencyOrder: Record<string, number> = {
+        emergency: 0,
+        urgent: 1,
+        routine: 2,
+        self_care: 3,
+      };
+      const aOrder = urgencyOrder[a.effectiveUrgency] ?? 4;
+      const bOrder = urgencyOrder[b.effectiveUrgency] ?? 4;
+      return aOrder - bOrder;
+    });
+
+  return NextResponse.json(monitoringData);
+}
