@@ -1,8 +1,30 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 35 — ✅ HEALTHY: Upstash Redis prod fixes merged, corpus script pending run)**
-Previous: Run 34 (HEALTHY: RAG layer merged to master, corpus script pending run)
+**Last reviewed: 2026-03-26 (Run 36 — ✅ HEALTHY: 139/139 tests, 0 TS errors, clean build)**
+Previous: Run 35 (HEALTHY: Upstash Redis prod fixes merged)
 **Reviewer:** Claude (automated)
+
+---
+
+## Run 36: Agent Flow Review — All Systems Healthy
+
+### Summary
+- **139/139 tests passing** (up from 130 — 9 new input validation tests added, commit `9dead41`)
+- **Build:** clean, 0 TypeScript errors
+- **MiroFish 7-layer swarm:** L1 triage → L2-L5 residents (4 per lead) → L6 MDT → L7 synthesis — all intact
+- **RAG layer:** wired in `streamSwarm`, silent fallback in place — healthy
+- **Old orchestrator** (`src/agents/orchestrator.ts`, `doctorConsultation.ts`): still referenced by `/api/consult/route.ts` and `/api/portal/case-consult` — not broken, not removed
+
+### ⚠️ Known issues (not regressions — pre-existing)
+1. **`/api/consult`** still calls old `runConsultation`/`streamConsultation` from `orchestrator.ts` — not the MiroFish swarm
+2. **Auth is stub-only**: all patient API routes use `x-patient-id` header — confirmed NOT Supabase (project uses Neon directly). Auth strategy TBD with user.
+3. **`medical_chunks` table empty**: corpus script not yet run — RAG silently falls back
+
+### Action needed (for any new session)
+- [ ] **Auth strategy**: decide on auth provider (Neon + custom JWT? Clerk? NextAuth?) — user confirmed NOT Supabase
+- [ ] **Run corpus script**: `DATABASE_URL=<prod> NOMIC_API_KEY=<key> bun run scripts/embed-corpus.ts` (~20 min), then create ivfflat index
+- [ ] **Wire `/api/consult`** to MiroFish swarm (replace orchestrator.ts calls with `streamSwarm`) — or archive old route
+- [ ] Smoke test `/consult` after corpus loaded
 
 ---
 
