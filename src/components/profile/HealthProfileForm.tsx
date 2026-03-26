@@ -74,14 +74,10 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
     setSaving(true);
     setSaveMessage(null);
     try {
-      const patientId =
-        typeof window !== "undefined" ? localStorage.getItem("patientId") : null;
-
       const res = await fetch("/api/patient/profile", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          ...(patientId ? { "x-patient-id": patientId } : {}),
         },
         body: JSON.stringify({
           knownConditions: knownConditions || null,

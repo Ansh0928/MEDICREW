@@ -59,14 +59,10 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
     setSubmitError(null);
 
     try {
-      const patientId =
-        typeof window !== "undefined" ? localStorage.getItem("patientId") : null;
-
       const res = await fetch("/api/patient/journal", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(patientId ? { "x-patient-id": patientId } : {}),
         },
         body: JSON.stringify({ severity, notes: notes.trim() || null }),
       });

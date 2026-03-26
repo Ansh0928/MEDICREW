@@ -28,10 +28,6 @@ interface CarePlanData {
   } | null;
 }
 
-interface CarePlanDetailProps {
-  patientId: string;
-}
-
 function formatRelativeTime(isoString: string): string {
   const date = new Date(isoString);
   const now = new Date();
@@ -74,16 +70,14 @@ function getResponseBadgeVariant(
   return "secondary";
 }
 
-export function CarePlanDetail({ patientId }: CarePlanDetailProps) {
+export function CarePlanDetail() {
   const [carePlan, setCarePlan] = useState<CarePlanData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCarePlan = async () => {
       try {
-        const res = await fetch("/api/patient/care-plan", {
-          headers: { "x-patient-id": patientId },
-        });
+        const res = await fetch("/api/patient/care-plan");
         if (res.ok) {
           const data = await res.json();
           setCarePlan(data);
@@ -96,7 +90,7 @@ export function CarePlanDetail({ patientId }: CarePlanDetailProps) {
     };
 
     fetchCarePlan();
-  }, [patientId]);
+  }, []);
 
   if (loading) {
     return (

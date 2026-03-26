@@ -41,13 +41,10 @@ export function CheckInResponseCard({
     setSubmitError(null);
 
     try {
-      const patientId =
-        typeof window !== "undefined" ? localStorage.getItem("patientId") : null;
       const res = await fetch("/api/checkin/respond", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(patientId ? { "x-patient-id": patientId } : {}),
         },
         body: JSON.stringify({ checkInId, response, freeText }),
       });

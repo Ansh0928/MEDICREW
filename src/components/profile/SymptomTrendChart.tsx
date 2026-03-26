@@ -18,9 +18,6 @@ interface TrendDataPoint {
   notes: string | null;
 }
 
-interface SymptomTrendChartProps {
-  patientId: string;
-}
 
 const severityLabels: Record<number, string> = {
   1: "Minimal",
@@ -69,19 +66,15 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
-export function SymptomTrendChart({ patientId }: SymptomTrendChartProps) {
+export function SymptomTrendChart() {
   const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!patientId) return;
-
     const fetchTrends = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/patient/journal/trends", {
-          headers: { "x-patient-id": patientId },
-        });
+        const res = await fetch("/api/patient/journal/trends");
         if (res.ok) {
           const data: TrendDataPoint[] = await res.json();
           setTrendData(data);
@@ -92,7 +85,7 @@ export function SymptomTrendChart({ patientId }: SymptomTrendChartProps) {
     };
 
     fetchTrends();
-  }, [patientId]);
+  }, []);
 
   return (
     <Card>

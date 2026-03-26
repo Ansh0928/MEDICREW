@@ -23,24 +23,17 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const patientId = localStorage.getItem("patientId");
-    if (!patientId) {
-      router.push("/login/patient");
-      return;
-    }
-    loadData(patientId);
-  }, [router]);
+    loadData();
+  }, []);
 
-  const loadData = async (patientId: string) => {
+  const loadData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const headers = { "x-patient-id": patientId };
-
       const [profileRes, journalRes] = await Promise.all([
-        fetch("/api/patient/profile", { headers }),
-        fetch("/api/patient/journal", { headers }),
+        fetch("/api/patient/profile"),
+        fetch("/api/patient/journal"),
       ]);
 
       if (!profileRes.ok) {
@@ -132,7 +125,7 @@ export default function ProfilePage() {
 
           {/* Symptom trend chart — full width below the two-column grid */}
           <section className="mt-6">
-            <SymptomTrendChart patientId={profile.id} />
+            <SymptomTrendChart />
           </section>
         </div>
       </main>

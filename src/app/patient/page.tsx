@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle, LogOut, Users, HeartPulse } from "lucide-react";
+import { ArrowLeft, Bell, FileText, User, AlertCircle, LogOut, Users, HeartPulse } from "lucide-react";
 import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
 import { CarePlanDetail } from "@/components/dashboard/CarePlanDetail";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
@@ -25,14 +24,11 @@ interface Patient {
   id: string;
   name: string;
   email: string;
-  age: number | null;
   gender: string | null;
   knownConditions: string | null;
   consultations: Consultation[];
   notifications: Notification[];
-  careTeamStatus?: {
-    statuses: Record<string, AgentStatus>;
-  } | null;
+  careTeamStatus?: { statuses: Record<string, AgentStatus> } | null;
 }
 
 interface Consultation {
@@ -55,96 +51,80 @@ interface Notification {
 
 export default function PatientPortal() {
   const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const [patient, setPatient] = useState<Patient | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<"care-team" | "care-plan" | "history" | "profile" | "notifications">("care-team");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    age: "",
-    gender: "",
-    knownConditions: "",
-  });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"care-team" | "care-plan" | "history" | "notifications">("care-team");
   const [checkIns, setCheckIns] = useState<Array<{ id: string; notificationId: string | null; status: string }>>([]);
 
-  // Check auth and load patient on mount
   useEffect(() => {
-    const savedEmail = localStorage.getItem("patientEmail");
-    if (!savedEmail) {
+    if (!isLoaded) return;
+    if (!user) {
       router.push("/login/patient");
       return;
     }
-    setIsAuthenticated(true);
-    loadPatient(savedEmail);
-  }, [router]);
+    loadDashboard();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("patientEmail");
-    localStorage.removeItem("patientName");
-    localStorage.removeItem("patientId");
-    router.push("/login/patient");
-  };
-
-  const loadPatient = async (email: string) => {
-    try {
-      // First get patient by email using the list endpoint
-      const res = await fetch("/api/patients");
-      const patients = await res.json();
-      const found = patients.find((p: Patient) => p.email === email);
-
-      if (found) {
-        // Get full patient details
-        const detailRes = await fetch(`/api/patients/${found.id}`);
-        const fullPatient = await detailRes.json();
-        setPatient(fullPatient);
-        setFormData({
-          name: fullPatient.name,
-          email: fullPatient.email,
-          age: fullPatient.age?.toString() || "",
-          gender: fullPatient.gender || "",
-          knownConditions: fullPatient.knownConditions || "",
-        });
-
-        // Load check-ins for interactive check-in response cards
-        const checkInRes = await fetch(`/api/checkin?patientId=${found.id}`);
-        if (checkInRes.ok) {
-          const checkInData = await checkInRes.json();
-          setCheckIns(checkInData);
-        }
-      }
-    } catch {
-      console.error("Failed to load patient");
-    }
-  };
-
-  const handleSaveProfile = async () => {
+  const loadDashboard = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const res = await fetch("/api/patients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const [profileRes, consultationsRes, careTeamRes] = await Promise.all([
+        fetch("/api/patient/profile"),
+        fetch("/api/patient/consultations"),
+        fetch("/api/patient/care-team-status"),
+      ]);
+
+      if (profileRes.status === 401) {
+        router.push("/login/patient");
+        return;
+      }
+      if (profileRes.status === 404) {
+        // Patient record not yet created (webhook pending)
+        router.push("/onboarding");
+        return;
+      }
+      if (!profileRes.ok) {
+        throw new Error("Failed to load profile");
+      }
+
+      const profile = await profileRes.json();
+
+      const [notificationsRes, checkInsRes] = await Promise.all([
+        fetch(`/api/notifications?patientId=${profile.id}`),
+        fetch(`/api/checkin?patientId=${profile.id}`),
+      ]);
+
+      const consultationsData = consultationsRes.ok ? await consultationsRes.json() : { consultations: [] };
+      const careTeamData = careTeamRes.ok ? await careTeamRes.json() : null;
+      const notifications = notificationsRes.ok ? await notificationsRes.json() : [];
+      const checkInsData = checkInsRes.ok ? await checkInsRes.json() : [];
+
+      setPatient({
+        id: profile.id,
+        name: profile.name,
+        email: user?.emailAddresses[0]?.emailAddress ?? "",
+        gender: profile.gender ?? null,
+        knownConditions: profile.knownConditions ?? null,
+        consultations: consultationsData.consultations ?? [],
+        notifications: Array.isArray(notifications) ? notifications : [],
+        careTeamStatus: careTeamData,
       });
-
-      if (!res.ok) throw new Error("Failed to save");
-
-      const savedPatient = await res.json();
-      localStorage.setItem("patientEmail", savedPatient.email);
-
-      // Reload with full data
-      await loadPatient(savedPatient.email);
-      setSuccess("Profile saved successfully!");
-      setTimeout(() => setSuccess(null), 3000);
+      setCheckIns(Array.isArray(checkInsData) ? checkInsData : []);
     } catch {
-      setError("Failed to save profile");
+      setError("Failed to load your dashboard. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/");
   };
 
   const markAsRead = async (notificationId: string) => {
@@ -154,23 +134,32 @@ export default function PatientPortal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notificationId }),
       });
-
-      // Reload patient data
-      if (patient) {
-        loadPatient(patient.email);
-      }
+      await loadDashboard();
     } catch {
       console.error("Failed to mark as read");
     }
   };
 
-  const unreadCount = patient?.notifications.filter(n => !n.read).length || 0;
+  const unreadCount = patient?.notifications.filter((n) => !n.read).length ?? 0;
 
-  // Show loading while checking auth
-  if (!isAuthenticated) {
+  if (!isLoaded || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
         <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+          <p className="text-sm text-red-600">{error}</p>
+          <Button variant="outline" size="sm" onClick={loadDashboard}>
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -195,6 +184,12 @@ export default function PatientPortal() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/patient/profile">
+              <Button variant="outline" size="sm">
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Button>
+            </Link>
             <Link href="/consult">
               <Button>New Consultation</Button>
             </Link>
@@ -237,13 +232,6 @@ export default function PatientPortal() {
               )}
             </Button>
             <Button
-              variant={activeTab === "profile" ? "default" : "outline"}
-              onClick={() => setActiveTab("profile")}
-            >
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
-            <Button
               variant={activeTab === "notifications" ? "default" : "outline"}
               onClick={() => setActiveTab("notifications")}
             >
@@ -258,8 +246,6 @@ export default function PatientPortal() {
           </div>
 
           <AnimatePresence mode="wait">
-
-            {/* Care Team Tab — live status via Supabase Realtime */}
             {activeTab === "care-team" && (
               <motion.div
                 key="care-team"
@@ -280,7 +266,6 @@ export default function PatientPortal() {
               </motion.div>
             )}
 
-            {/* Care Plan Tab — DASH-02 real care plan view */}
             {activeTab === "care-plan" && (
               <motion.div
                 key="care-plan"
@@ -289,7 +274,7 @@ export default function PatientPortal() {
                 exit={{ opacity: 0, y: -20 }}
               >
                 {patient ? (
-                  <CarePlanDetail patientId={patient.id} />
+                  <CarePlanDetail />
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <p>Loading your care plan...</p>
@@ -298,7 +283,6 @@ export default function PatientPortal() {
               </motion.div>
             )}
 
-            {/* History Tab */}
             {activeTab === "history" && (
               <motion.div
                 key="history"
@@ -309,7 +293,7 @@ export default function PatientPortal() {
                 <Card className="p-6">
                   <h2 className="text-xl font-semibold mb-4">Consultation History</h2>
                   <ConsultationHistoryList
-                    consultations={patient?.consultations.map(c => ({
+                    consultations={patient?.consultations.map((c) => ({
                       id: c.id,
                       symptoms: c.symptoms,
                       urgencyLevel: c.urgencyLevel,
@@ -321,96 +305,6 @@ export default function PatientPortal() {
               </motion.div>
             )}
 
-            {/* Profile Tab */}
-            {activeTab === "profile" && (
-              <motion.div
-                key="profile"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Your Profile</h2>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder="John Smith"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="john@example.com"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="age">Age</Label>
-                        <Input
-                          id="age"
-                          type="number"
-                          value={formData.age}
-                          onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                          placeholder="30"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="gender">Gender</Label>
-                        <select
-                          id="gender"
-                          value={formData.gender}
-                          onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        >
-                          <option value="">Select...</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="conditions">Known Medical Conditions</Label>
-                      <Input
-                        id="conditions"
-                        value={formData.knownConditions}
-                        onChange={(e) => setFormData({ ...formData, knownConditions: e.target.value })}
-                        placeholder="e.g., Diabetes, High blood pressure"
-                      />
-                    </div>
-
-                    {error && (
-                      <div className="p-3 bg-red-50 text-red-600 rounded-md flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4" />
-                        {error}
-                      </div>
-                    )}
-
-                    {success && (
-                      <div className="p-3 bg-green-50 text-green-600 rounded-md">
-                        {success}
-                      </div>
-                    )}
-
-                    <Button onClick={handleSaveProfile} disabled={loading}>
-                      {loading ? "Saving..." : "Save Profile"}
-                    </Button>
-                  </div>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* Notifications Tab */}
             {activeTab === "notifications" && (
               <motion.div
                 key="notifications"
@@ -424,12 +318,11 @@ export default function PatientPortal() {
                     notifications={patient?.notifications ?? []}
                     checkIns={checkIns}
                     onMarkRead={markAsRead}
-                    onRefresh={() => patient && loadPatient(patient.email)}
+                    onRefresh={loadDashboard}
                   />
                 </Card>
               </motion.div>
             )}
-
           </AnimatePresence>
         </div>
       </main>

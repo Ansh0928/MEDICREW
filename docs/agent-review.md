@@ -1,7 +1,151 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-27 (Run 39 — ✅ HEALTHY: 229/229 tests, Clerk foundation merged)**
-Previous: Run 38 (HEALTHY: 190/190 tests)
+**Last reviewed: 2026-03-27 (Run 40 — Deep agent code audit)**
+Previous: Run 39 (HEALTHY: 229/229 tests, Clerk foundation merged)
+
+---
+
+## Run 40 Findings — Agent Architecture Audit
+
+### TL;DR
+Two parallel consultation systems exist: **LangGraph Orchestrator** (`/api/consult`) and **Swarm v2** (`/api/swarm/*`). The orchestrator is mostly solid. The swarm has **3 critical bugs** that make it non-functional and **1 compliance violation**.
+
+---
+
+### CRITICAL — Fix Before Any User Traffic
+
+#### C1. Swarm missing emergency detection ⚠️ COMPLIANCE VIOLATION
+**File:** `src/app/api/swarm/start/route.ts`
+
+`/api/consult` calls `detectEmergency(symptoms)` before any LLM. `/api/swarm/start` does **not**. This breaks the hard rule: "Emergency detection: deterministic before LLM."
+
+**Fix (10 min):** At top of POST handler after body parse:
+```typescript
+import { detectEmergency } from "@/lib/emergency-rules";
+const emergency = detectEmergency(symptoms);
+if (emergency.isEmergency) {
+  return new Response(JSON.stringify(emergency.response), {
+    status: 200, headers: { "Content-Type": "application/json" },
+  });
+}
+```
+
+#### C2. Swarm has no auth — consultations are lost
+**File:** `src/app/api/swarm/start/route.ts`
+
+No `getAuthenticatedPatient()` call. No consultation written to DB. No CareTeamStatus update. No Inngest `consultation/completed` → no 48h check-in ever scheduled for swarm users.
+
+**Fix options:**
+- **Recommended:** Deprecate `/api/swarm/*` as patient-facing endpoints. Route all patients through `/api/consult?stream=true` (which internally uses the swarm library). The swarm becomes internal-only.
+- **Alternative:** Add auth + DB writes to `/api/swarm/start` (same pattern as `/api/consult` streaming path).
+
+#### C3. Redis clarification answers silently discarded
+**Files:** `src/app/api/swarm/answer/route.ts`, `src/agents/swarm.ts`
+
+`/api/swarm/answer` writes to `swarm:answer:{clarificationId}` in Redis. `streamSwarm()` **never reads from Redis** — no `redis.get()` call exists in `swarm.ts`. The `SwarmClarification` type and `question_ready` SwarmEvent are scaffolded but never emitted or consumed. Patient answers are silently dropped.
+
+**Fix (30 min — clean up):** Delete `/api/swarm/answer/route.ts`, remove `question_ready` from `SwarmEvent` union, remove `SwarmClarification` interface, update affected tests. Implement properly only when the full clarification loop is built.
+
+---
+
+### HIGH — Broken Functionality
+
+#### H1. Follow-up "complex" routing does nothing
+**File:** `src/app/api/swarm/followup/route.ts`
+
+Classifier correctly identifies complex questions and returns `relevantResidentRoles`. The route ignores them — always answers with `createFastModel()`. Complex questions (new symptoms, contradicts recommendation) get the same shallow single-agent answer as simple factual questions.
+
+**Fix:** For `questionType === "complex"`, call `buildResidentPrompt()` + `runResident()` for each relevant resident role before synthesising. Functions already exist in `swarm.ts`.
+
+#### H2. SSE streaming buffered — client freezes during parallel doctor phase
+**File:** `src/agents/swarm.ts` — `streamSwarm()`
+
+Events are pushed to an array and flushed only after each phase's `await` resolves:
+```typescript
+await Promise.all(relevantDoctors.map((role) => runLeadSwarm(role, state, emit, ...)));
+yield* flush(); // all events arrive at once after 30-60s silence
+```
+
+**Fix:** Replace array buffer with a concurrent async queue that yields inline. Non-trivial refactor — requires restructuring how `emit` interacts with the generator.
+
+---
+
+### MEDIUM — Quality Issues
+
+#### M1. Non-streaming `/api/consult` injects no patient context
+Streaming path builds `patientContext` and passes it to `streamConsultation()`. Non-streaming `runConsultation(symptoms)` has no patient context — triage doesn't know the patient's age, conditions, or medications.
+
+**Fix (20 min):** Extract patient context build to a shared helper, call in both paths.
+
+#### M2. Specialist consultations run sequentially in orchestrator
+**File:** `src/agents/orchestrator.ts` — `specialistNode()`
+
+`for...of` loop despite comment "parallel conceptually". Two specialists run serially.
+
+**Fix (15 min):** Replace with `Promise.all(specialistsToConsult.slice(0,2).map(...))`.
+
+#### M3. CareTeamStatus shows generic template, not agent's actual response
+**File:** `src/app/api/consult/route.ts` — `buildCareTeamStatuses()`
+
+```typescript
+message: `Reviewed your symptoms: ${symptoms.substring(0, 50)}...` // ignores msg.content
+```
+
+**Fix (10 min):** Use `msg.content.substring(0, 200)` instead.
+
+---
+
+### LOW — Dead Code
+
+#### L1. `doctorConsultation.ts` has no API route
+`src/agents/doctorConsultation.ts` is a complete LangGraph flow with no route calling it. Doctor portal uses `/api/portal/symptom-check` instead.
+
+**Action:** Wire to `/api/portal/consult-stream` or delete.
+
+#### L2. `question_ready` SwarmEvent type is orphaned
+Never emitted. Relates to C3. Clean up with that ticket.
+
+---
+
+### What Works Well ✅
+
+- Emergency detection in `/api/consult` correctly before any LLM
+- All 9 agents have `AGENT_COMPLIANCE_RULE` and correct scope boundaries
+- Agent names use "AI — Specialty" format, no bare "Dr."
+- Triage JSON fallbacks handle parse failures gracefully
+- RAG integration: retrieval before fan-out, errors silently bypassed
+- Inngest 48h check-in correctly wired to `/api/consult` (both paths)
+- LangGraph orchestrator graph routing logic is correct
+- Swarm L1→L7 architecture is well-structured
+
+---
+
+### Prioritised Fix Order
+
+| # | Issue | Severity | Effort |
+|---|-------|----------|--------|
+| C1 | Emergency detection missing from swarm | CRITICAL (compliance) | 10 min |
+| C3 | Remove dead clarification scaffolding | CRITICAL | 30 min |
+| C2 | Swarm auth / DB write (or deprecate) | CRITICAL | 1-2h |
+| H1 | Follow-up complex routing ignored | HIGH | 1h |
+| H2 | SSE buffered (client freezes) | HIGH | 2-3h |
+| M1 | Non-streaming missing patient context | MEDIUM | 20 min |
+| M2 | Sequential specialists in orchestrator | MEDIUM | 15 min |
+| M3 | Generic CareTeamStatus message | MEDIUM | 10 min |
+| L1 | Dead doctorConsultation.ts | LOW | 5 min |
+| L2 | Orphaned question_ready event | LOW | 5 min |
+
+---
+
+### Next Steps for a New Session
+
+1. Read this file, then open `src/app/api/swarm/start/route.ts` and `src/agents/swarm.ts`
+2. **First task:** Add `detectEmergency()` to `/api/swarm/start` (C1 — 10 min, zero risk)
+3. **Second task:** Remove dead clarification scaffolding (C3 — `swarm/answer/route.ts`, `question_ready` event, `SwarmClarification` type)
+4. **Third task:** Decide C2 strategy (deprecate swarm endpoints or add auth) — ask user before touching
+5. **Quick wins after:** M2 (parallel specialists), M3 (CareTeamStatus message), M1 (non-streaming context)
+
+---
 
 ---
 
