@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { evaluateCheckInResponse, CheckInResponse } from "@/lib/escalation-rules";
 import { sendEscalationEmail } from "@/lib/email/resend";
+import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
-  const patientId = request.headers.get("x-patient-id");
-  if (!patientId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
+  const { patient: authPatient, error: authError } = await getAuthenticatedPatient();
+  if (authError) return authError;
+  const patientId = authPatient.id;
 
   const body = await request.json();
   const { checkInId, response, freeText = "" } = body;

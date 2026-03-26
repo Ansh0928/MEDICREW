@@ -1,0 +1,11 @@
+{"type":"server-started","port":52681,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:52681","screen_dir":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/architecture.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/architecture-v2.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/live-agents.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/live-agents-v2.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/consultation-pro.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/consultation-v2.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/huddle.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/huddle-v2.html"}
+{"type":"screen-added","file":"/Users/tasmanstar/Desktop/projects/medicrew/.superpowers/brainstorm/83061-1774506749/medicrew-app.html"}
+{"type":"server-stopped","reason":"idle timeout"}

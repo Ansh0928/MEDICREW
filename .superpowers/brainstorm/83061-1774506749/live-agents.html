@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCrew — Live Agents</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f4f8;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+h1 { text-align:center; font-size:20px; font-weight:800; color:#0f172a; margin-bottom:4px; }
+.subtitle { text-align:center; font-size:12px; color:#64748b; margin-bottom:28px; }
+
+/* ─── Layout ─── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* ─── Main content area ─── */
+.main-area {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.patient-msg {
+  background: #f1f5f9;
+  border-radius: 14px 14px 14px 2px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.processing-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.result-preview {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1.5px solid #a7f3d0;
+  border-radius: 14px;
+  padding: 18px;
+  opacity: 0.4;
+}
+.result-placeholder {
+  font-size: 13px;
+  color: #6ee7b7;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ─── Side panel ─── */
+.side-panel {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-title { font-size: 13px; font-weight: 700; color: white; }
+.panel-subtitle { font-size: 11px; color: #64748b; }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #10b981;
+  animation: pulse 1.2s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(1.4); }
+}
+
+.panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 680px;
+}
+
+/* ─── Agent cards ─── */
+.agent-card {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.agent-card.active {
+  border-color: #a7f3d0;
+  box-shadow: 0 2px 12px rgba(16,185,129,0.12);
+}
+.agent-card.thinking {
+  border-color: #fde68a;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.1);
+}
+.agent-card.done {
+  border-color: #e0e7ff;
+}
+
+.agent-header {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafafa;
+}
+
+.bitmoji-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+/* ─── SVG Bitmoji characters ─── */
+.bitmoji-face {
+  width: 48px;
+  height: 48px;
+}
+
+/* Thought bubble */
+.thought-bubble {
+  position: absolute;
+  top: -18px;
+  right: -14px;
+  font-size: 14px;
+  animation: float 1.8s ease-in-out infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.thinking .thought-bubble { opacity: 1; }
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Speaking bubble */
+.speak-dots {
+  position: absolute;
+  bottom: -4px;
+  right: -16px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 3px 7px;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.active .speak-dots { opacity: 1; }
+
+.speak-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: bounce 0.8s ease-in-out infinite;
+}
+.speak-dot:nth-child(2) { animation-delay: 0.15s; }
+.speak-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); opacity:0.4; }
+  50% { transform: translateY(-4px); opacity:1; }
+}
+
+/* Done checkmark */
+.done-check {
+  position: absolute;
+  bottom: -2px;
+  right: -6px;
+  background: #10b981;
+  color: white;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border: 2px solid white;
+}
+.done .done-check { opacity: 1; }
+
+.agent-info { flex: 1; min-width: 0; }
+.agent-name { font-size: 12px; font-weight: 700; color: #0f172a; }
+.agent-role { font-size: 10px; color: #94a3b8; }
+.agent-status-text {
+  font-size: 10px;
+  margin-top: 2px;
+  font-weight: 600;
+}
+.active .agent-status-text { color: #059669; }
+.thinking .agent-status-text { color: #d97706; }
+.done .agent-status-text { color: #6366f1; }
+
+.agent-body {
+  padding: 10px 12px;
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.5;
+  border-top: 1px solid #f1f5f9;
+  background: white;
+}
+
+.typing-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Confidence bar */
+.conf-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.conf-bar-bg {
+  flex: 1; height: 4px; background: #f1f5f9; border-radius: 4px; overflow: hidden;
+}
+.conf-bar-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 1.5s ease;
+}
+.conf-label-sm { font-size: 10px; font-weight: 700; white-space: nowrap; }
+
+/* Debate messages */
+.debate-msg {
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 7px 10px;
+  border-radius: 8px;
+  margin-top: 6px;
+}
+.debate-challenge { background: #fff1f2; color: #881337; border-left: 3px solid #fda4af; }
+.debate-agree { background: #f0fdf4; color: #14532d; border-left: 3px solid #86efac; }
+.debate-add { background: #f8fafc; color: #334155; border-left: 3px solid #e2e8f0; }
+
+/* Lead doctor */
+.lead-card {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 2px solid #6ee7b7 !important;
+}
+.lead-header { background: #ecfdf5 !important; }
+
+/* Phase label */
+.phase-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.phase-divider::before, .phase-divider::after {
+  content: '';
+  flex: 1; height: 1px; background: #f1f5f9;
+}
+
+/* Simulated animation states */
+</style>
+</head>
+<body>
+
+<h1>MediCrew — Agents Working Live</h1>
+<p class="subtitle">What the patient sees on the right side panel while consultation runs</p>
+
+<div class="layout">
+
+  <!-- Main content area -->
+  <div class="main-area">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#94a3b8;">Your symptoms</div>
+    <div class="patient-msg">
+      <span style="font-size:24px;">🧑</span>
+      <div>
+        "I'm <strong>23 years old</strong> with lower back pain from cycling. Started 3 days ago, no medication yet — just been resting."
+      </div>
+    </div>
+
+    <div class="processing-label">⚡ Your medical team is consulting…</div>
+
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center;padding:12px 0;">
+      <!-- Mini doctor row -->
+      <div style="text-align:center;">
+        <div style="font-size:32px;">👩‍⚕️</div>
+        <div style="font-size:10px;font-weight:700;color:#059669;margin-top:4px;">Emma</div>
+        <div style="font-size:9px;color:#94a3b8;">Lead</div>
+      </div>
+      <div style="font-size:18px;color:#e2e8f0;">+</div>
+      <div style="text-align:center;opacity:0.7;">
+        <div style="font-size:28px;">🧑‍⚕️</div>
+        <div style="font-size:10px;font-weight:700;color:#d97706;margin-top:4px;">Kai</div>
+        <div style="font-size:9px;color:#94a3b8;">Conservative</div>
+      </div>
+      <div style="text-align:center;opacity:0.7;">
+        <div style="font-size:28px;">👨‍⚕️</div>
+        <div style="font-size:10px;font-weight:700;color:#3b82f6;margin-top:4px;">Priya</div>
+        <div style="font-size:9px;color:#94a3b8;">Pharma</div>
+      </div>
+      <div style="text-align:center;opacity:0.7;">
+        <div style="font-size:28px;">👩‍🔬</div>
+        <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-top:4px;">Zoe</div>
+        <div style="font-size:9px;color:#94a3b8;">Investigative</div>
+      </div>
+      <div style="text-align:center;opacity:0.7;">
+        <div style="font-size:28px;">🧑‍⚕️</div>
+        <div style="font-size:10px;font-weight:700;color:#ef4444;margin-top:4px;">Sam</div>
+        <div style="font-size:9px;color:#94a3b8;">Red-flag</div>
+      </div>
+      <div style="font-size:18px;color:#e2e8f0;">+</div>
+      <div style="text-align:center;opacity:0.5;">
+        <div style="font-size:28px;">🧔‍♂️</div>
+        <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-top:4px;">Alex</div>
+        <div style="font-size:9px;color:#cbd5e1;">GP standby</div>
+      </div>
+    </div>
+
+    <div style="flex:1;"></div>
+
+    <div class="result-preview">
+      <div class="result-placeholder">Your personalised recommendation will appear here once the team finishes consulting…</div>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="side-panel">
+    <div class="panel-header">
+      <div class="live-dot"></div>
+      <div>
+        <div class="panel-title">Your Medical Team</div>
+        <div class="panel-subtitle">7 agents · consulting now</div>
+      </div>
+    </div>
+
+    <div class="panel-scroll" id="feed">
+
+      <!-- Triage — Done -->
+      <div class="phase-divider">Triage</div>
+      <div class="agent-card done">
+        <div class="agent-header">
+          <div class="bitmoji-wrap">
+            <!-- Triage doctor SVG -->
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="#a78bfa"/>
+              <circle cx="24" cy="19" r="10" fill="#fde68a"/>
+              <ellipse cx="24" cy="35" rx="12" ry="7" fill="#7c3aed"/>
+              <!-- hair -->
+              <ellipse cx="24" cy="11" rx="9" ry="5" fill="#1e1b4b"/>
+              <!-- eyes closed / happy -->
+              <path d="M19 20 Q20 18 21 20" stroke="#1e1b4b" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M27 20 Q28 18 29 20" stroke="#1e1b4b" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- smile -->
+              <path d="M20 23 Q24 27 28 23" stroke="#1e1b4b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <!-- stethoscope hint -->
+              <circle cx="24" cy="33" r="2" fill="#c4b5fd"/>
+            </svg>
+            <div class="done-check">✓</div>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Triage AI</div>
+            <div class="agent-role">Assessment</div>
+            <div class="agent-status-text">✓ Complete</div>
+          </div>
+        </div>
+        <div class="agent-body">
+          Routine case. <strong>Emma AI — Physiotherapy</strong> assigned as lead. Alex AI on standby.
+        </div>
+      </div>
+
+      <!-- Emma — Active (Lead) -->
+      <div class="phase-divider">Lead Specialist</div>
+      <div class="agent-card active lead-card">
+        <div class="agent-header lead-header">
+          <div class="bitmoji-wrap">
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background circle -->
+              <circle cx="24" cy="24" r="22" fill="#ecfdf5"/>
+              <!-- Body / scrubs -->
+              <ellipse cx="24" cy="38" rx="13" ry="8" fill="#10b981"/>
+              <!-- Head -->
+              <circle cx="24" cy="18" r="11" fill="#fcd9b6"/>
+              <!-- Hair - long -->
+              <ellipse cx="24" cy="9" rx="10" ry="6" fill="#92400e"/>
+              <rect x="14" y="10" width="4" height="14" rx="2" fill="#92400e"/>
+              <rect x="30" y="10" width="4" height="14" rx="2" fill="#92400e"/>
+              <!-- Eyes - looking -->
+              <circle cx="20" cy="18" r="2.5" fill="white"/>
+              <circle cx="28" cy="18" r="2.5" fill="white"/>
+              <circle cx="21" cy="18" r="1.2" fill="#374151"/>
+              <circle cx="29" cy="18" r="1.2" fill="#374151"/>
+              <!-- Smile -->
+              <path d="M20 23 Q24 27 28 23" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+              <!-- White coat collar -->
+              <path d="M16 36 L20 30 L24 33 L28 30 L32 36" fill="white" opacity="0.8"/>
+              <!-- Stethoscope -->
+              <path d="M19 34 Q16 38 20 40" stroke="#374151" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <circle cx="20" cy="40" r="2" fill="#374151"/>
+            </svg>
+            <div class="speak-dots">
+              <div class="speak-dot"></div>
+              <div class="speak-dot"></div>
+              <div class="speak-dot"></div>
+            </div>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Emma AI 👑</div>
+            <div class="agent-role">Physiotherapy · Lead</div>
+            <div class="agent-status-text">Reviewing team findings…</div>
+          </div>
+        </div>
+        <div class="agent-body">
+          <div class="typing-line">
+            <span>⚡</span> <span>Activating resident team, overseeing consultation…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Residents -->
+      <div class="phase-divider">Residents — Working</div>
+
+      <!-- Kai — Thinking -->
+      <div class="agent-card thinking">
+        <div class="agent-header">
+          <div class="bitmoji-wrap">
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="#f0fdf4"/>
+              <ellipse cx="24" cy="38" rx="13" ry="8" fill="#6ee7b7"/>
+              <circle cx="24" cy="18" r="11" fill="#fde68a"/>
+              <!-- Hair short -->
+              <ellipse cx="24" cy="9" rx="10" ry="5" fill="#1c1917"/>
+              <!-- Thinking eyes - one squinted -->
+              <circle cx="20" cy="18" r="2.2" fill="white"/>
+              <path d="M27 17 Q28 15 29 17" stroke="#374151" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="21" cy="18" r="1" fill="#374151"/>
+              <!-- Hand on chin gesture -->
+              <path d="M22 25 Q24 26 26 25" stroke="#d97706" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="thought-bubble">💭</div>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Resident Kai</div>
+            <div class="agent-role">Conservative approach</div>
+            <div class="agent-status-text">🤔 Thinking…</div>
+          </div>
+        </div>
+        <div class="agent-body">
+          <div class="typing-line">Analysing conservative treatment options…</div>
+          <div class="conf-row">
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:78%;background:#10b981;"></div></div>
+            <div class="conf-label-sm" style="color:#059669;">78%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Priya — Active (speaking) -->
+      <div class="agent-card active">
+        <div class="agent-header">
+          <div class="bitmoji-wrap">
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="#eff6ff"/>
+              <ellipse cx="24" cy="38" rx="13" ry="8" fill="#3b82f6"/>
+              <circle cx="24" cy="18" r="11" fill="#fed7aa"/>
+              <!-- Hair - bun -->
+              <circle cx="24" cy="8" r="6" fill="#1e1b4b"/>
+              <circle cx="24" cy="8" r="4" fill="#312e81"/>
+              <!-- Eyes open wide -->
+              <circle cx="20" cy="18" r="2.5" fill="white"/>
+              <circle cx="28" cy="18" r="2.5" fill="white"/>
+              <circle cx="20.5" cy="18" r="1.3" fill="#1e40af"/>
+              <circle cx="28.5" cy="18" r="1.3" fill="#1e40af"/>
+              <!-- Speaking mouth open -->
+              <ellipse cx="24" cy="24" rx="3" ry="2" fill="#dc2626" opacity="0.8"/>
+              <!-- Lab coat -->
+              <path d="M16 36 L20 29 L24 32 L28 29 L32 36" fill="white" opacity="0.9"/>
+              <!-- Pill icon -->
+              <rect x="21" y="34" width="6" height="3" rx="1.5" fill="#93c5fd"/>
+            </svg>
+            <div class="speak-dots">
+              <div class="speak-dot" style="background:#3b82f6;"></div>
+              <div class="speak-dot" style="background:#3b82f6;"></div>
+              <div class="speak-dot" style="background:#3b82f6;"></div>
+            </div>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Resident Priya</div>
+            <div class="agent-role">Pharmacological</div>
+            <div class="agent-status-text">💬 Speaking up…</div>
+          </div>
+        </div>
+        <div class="agent-body">
+          "Ibuprofen 400mg with food if pain ≥4/10. Anti-inflammatory, safe for this age group."
+          <div class="debate-challenge">⚡ Challenging Kai — "Rest alone risks deconditioning. Active recovery has better evidence."</div>
+          <div class="conf-row">
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:65%;background:#3b82f6;"></div></div>
+            <div class="conf-label-sm" style="color:#1d4ed8;">65%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoe — Done -->
+      <div class="agent-card done">
+        <div class="agent-header">
+          <div class="bitmoji-wrap">
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="#fffbeb"/>
+              <ellipse cx="24" cy="38" rx="13" ry="8" fill="#f59e0b"/>
+              <circle cx="24" cy="18" r="11" fill="#fde68a"/>
+              <!-- Hair - ponytail -->
+              <ellipse cx="24" cy="9" rx="10" ry="5" fill="#92400e"/>
+              <ellipse cx="33" cy="12" rx="3" ry="6" fill="#92400e"/>
+              <!-- Smart eyes with glasses -->
+              <rect x="16" y="15" width="7" height="5" rx="2.5" fill="none" stroke="#374151" stroke-width="1.2"/>
+              <rect x="25" y="15" width="7" height="5" rx="2.5" fill="none" stroke="#374151" stroke-width="1.2"/>
+              <line x1="23" y1="17.5" x2="25" y2="17.5" stroke="#374151" stroke-width="1.2"/>
+              <circle cx="19.5" cy="17.5" r="1.5" fill="#374151"/>
+              <circle cx="28.5" cy="17.5" r="1.5" fill="#374151"/>
+              <!-- Confident smile -->
+              <path d="M20 23 Q24 28 28 23" stroke="#92400e" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="done-check">✓</div>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Resident Zoe</div>
+            <div class="agent-role">Investigative</div>
+            <div class="agent-status-text">✓ Finding ready</div>
+          </div>
+        </div>
+        <div class="agent-body">
+          "Saddle height + handlebar reach — likely root cause. Bike fit assessment first line."
+          <div class="debate-agree">✓ Agrees with Kai — "Bike fit + movement before meds."</div>
+          <div class="conf-row">
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:82%;background:#f59e0b;"></div></div>
+            <div class="conf-label-sm" style="color:#b45309;">82%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sam — Done -->
+      <div class="agent-card done">
+        <div class="agent-header">
+          <div class="bitmoji-wrap">
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="#fef2f2"/>
+              <ellipse cx="24" cy="38" rx="13" ry="8" fill="#ef4444"/>
+              <circle cx="24" cy="18" r="11" fill="#fcd9b6"/>
+              <!-- Hair - short curly -->
+              <ellipse cx="24" cy="9" rx="10" ry="5" fill="#1c1917"/>
+              <circle cx="16" cy="12" r="4" fill="#1c1917"/>
+              <circle cx="32" cy="12" r="4" fill="#1c1917"/>
+              <!-- Eyes -->
+              <circle cx="20" cy="18" r="2.5" fill="white"/>
+              <circle cx="28" cy="18" r="2.5" fill="white"/>
+              <circle cx="20.8" cy="18" r="1.3" fill="#1c1917"/>
+              <circle cx="28.8" cy="18" r="1.3" fill="#1c1917"/>
+              <!-- Neutral professional mouth -->
+              <line x1="21" y1="23" x2="27" y2="23" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- Red cross badge -->
+              <circle cx="31" cy="32" r="5" fill="#dc2626"/>
+              <line x1="31" y1="29" x2="31" y2="35" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="28" y1="32" x2="34" y2="32" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <div class="done-check">✓</div>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Resident Sam</div>
+            <div class="agent-role">Red-flag Check</div>
+            <div class="agent-status-text">✓ All clear</div>
+          </div>
+        </div>
+        <div class="agent-body">
+          No radiculopathy. No bowel/bladder flags. No fracture risk. Safe to proceed conservatively.
+          <div class="conf-row">
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:96%;background:#10b981;"></div></div>
+            <div class="conf-label-sm" style="color:#059669;">96% clear</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alex — Standby -->
+      <div class="phase-divider">MDT Standby</div>
+      <div class="agent-card" style="opacity:0.65;">
+        <div class="agent-header">
+          <div class="bitmoji-wrap">
+            <svg class="bitmoji-face" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="#faf5ff"/>
+              <ellipse cx="24" cy="38" rx="13" ry="8" fill="#7c3aed"/>
+              <circle cx="24" cy="18" r="11" fill="#fed7aa"/>
+              <!-- Hair - beard -->
+              <ellipse cx="24" cy="9" rx="10" ry="5" fill="#374151"/>
+              <ellipse cx="24" cy="24" rx="8" ry="4" fill="#4b5563"/>
+              <!-- Eyes calm -->
+              <circle cx="20" cy="17" r="2.2" fill="white"/>
+              <circle cx="28" cy="17" r="2.2" fill="white"/>
+              <circle cx="20.5" cy="17" r="1.1" fill="#374151"/>
+              <circle cx="28.5" cy="17" r="1.1" fill="#374151"/>
+              <!-- Neutral mouth through beard -->
+              <path d="M21 22 Q24 24 27 22" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+              <!-- White coat -->
+              <path d="M15 36 L19 29 L24 32 L29 29 L33 36" fill="white" opacity="0.85"/>
+            </svg>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">Alex AI</div>
+            <div class="agent-role">General Practice · Standby</div>
+            <div class="agent-status-text" style="color:#94a3b8;">⏳ Waiting to contribute…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div style="max-width:1000px;margin:16px auto 0;text-align:center;font-size:11px;color:#94a3b8;padding-bottom:32px;">
+  Agents shown in their live states: Done ✓ · Thinking 💭 · Speaking (animated dots) · Standby
+</div>
+
+</body>
+</html>

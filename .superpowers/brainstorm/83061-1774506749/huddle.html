@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCrew — Huddle</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d12; --surface: #13131a; --surface2: #1a1a24;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --text: #f1f5f9; --text2: #94a3b8; --text3: #475569;
+  --green: #10b981; --blue: #6366f1; --amber: #f59e0b;
+  --red: #ef4444; --cyan: #06b6d4;
+}
+
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+.nav { display:flex; align-items:center; height:50px; padding:0 20px; border-bottom:1px solid var(--border); background:var(--surface); gap:10px; flex-shrink:0; }
+.logo { font-size:14px; font-weight:800; display:flex; align-items:center; gap:7px; }
+.logo-dot { width:24px; height:24px; background:linear-gradient(135deg,#10b981,#6366f1); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; }
+.nav-sp { flex:1; }
+.live-badge { display:flex; align-items:center; gap:5px; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.2); border-radius:20px; padding:4px 11px; font-size:11px; font-weight:600; color:var(--green); }
+.pdot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 1.3s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.7);} }
+
+.layout { display:grid; grid-template-columns:1fr 300px; flex:1; overflow:hidden; }
+
+/* ── Huddle ── */
+.huddle { position:relative; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at center,#12121c 0%,#0d0d12 70%); overflow:hidden; }
+.huddle::before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px); background-size:40px 40px; }
+.center-glow { position:absolute; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle,rgba(16,185,129,.07) 0%,transparent 70%); pointer-events:none; }
+
+.agent-node { position:absolute; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.av-ring { position:relative; width:58px; height:58px; }
+.av-img { width:58px; height:58px; border-radius:50%; overflow:hidden; border:2.5px solid var(--border2); background:var(--surface2); transition:border-color .3s,box-shadow .3s,transform .3s; }
+.av-img img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.agent-node.speaking .av-img  { border-color:var(--green); box-shadow:0 0 0 4px rgba(16,185,129,.2),0 0 20px rgba(16,185,129,.15); transform:scale(1.1); }
+.agent-node.thinking .av-img  { border-color:var(--amber); box-shadow:0 0 0 3px rgba(245,158,11,.15); }
+.agent-node.done .av-img      { border-color:rgba(16,185,129,.4); }
+.agent-node.standby .av-img   { opacity:.3; }
+.agent-node.challenge .av-img { border-color:var(--red); box-shadow:0 0 0 4px rgba(239,68,68,.18); transform:scale(1.1); }
+.agent-node.agree .av-img     { border-color:var(--cyan); box-shadow:0 0 0 4px rgba(6,182,212,.15); transform:scale(1.1); }
+
+.status-dot { position:absolute; bottom:1px; right:1px; width:14px; height:14px; border-radius:50%; border:2px solid var(--bg); display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:900; }
+.sd-lead    { background:var(--green); color:white; }
+.sd-done    { background:var(--green); color:white; }
+.sd-think   { background:var(--amber); font-size:10px; animation:floatBob 1.8s ease-in-out infinite; }
+.sd-standby { background:var(--border2); }
+@keyframes floatBob { 0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);} }
+
+.wave-ring { position:absolute; inset:-4px; border-radius:50%; border:1.5px solid transparent; opacity:0; }
+.agent-node.speaking  .wave-ring { border-color:var(--green); animation:waveExpand 1.5s ease-out infinite; }
+.agent-node.challenge .wave-ring { border-color:var(--red);   animation:waveExpand 1.5s ease-out infinite; }
+.agent-node.agree     .wave-ring { border-color:var(--cyan);  animation:waveExpand 1.5s ease-out infinite; }
+.wave-ring.r2 { animation-delay:.5s !important; }
+@keyframes waveExpand { 0%{transform:scale(1);opacity:.6;} 100%{transform:scale(1.65);opacity:0;} }
+
+.ag-name { font-size:11px; font-weight:700; color:var(--text); text-align:center; white-space:nowrap; }
+.ag-role { font-size:9px; color:var(--text3); text-align:center; }
+
+/* Speech bubble */
+.speech-bubble { position:absolute; background:var(--surface2); border:1px solid var(--border2); border-radius:12px; padding:9px 12px; font-size:11px; line-height:1.5; color:var(--text2); min-width:140px; max-width:200px; pointer-events:none; opacity:0; transform:scale(.88) translateY(6px); transition:opacity .35s ease,transform .35s ease; z-index:10; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+.speech-bubble.visible { opacity:1; transform:scale(1) translateY(0); }
+.bub-tag { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:8px; margin-bottom:4px; }
+.bt-speak     { background:rgba(16,185,129,.15); color:#6ee7b7; }
+.bt-challenge { background:rgba(239,68,68,.15);  color:#fca5a5; }
+.bt-agree     { background:rgba(6,182,212,.15);   color:#67e8f9; }
+.bt-lead      { background:rgba(16,185,129,.2);   color:var(--green); }
+.bub-text { color:var(--text2); }
+.bub-text b { color:var(--text); }
+
+/* ── Right panel ── */
+.panel { border-left:1px solid var(--border); background:var(--surface); display:flex; flex-direction:column; overflow:hidden; }
+.panel-head { padding:14px 16px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.ph-title { font-size:12px; font-weight:700; }
+.ph-sub { font-size:10px; color:var(--text3); margin-top:2px; }
+
+.patient-card { margin:12px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px; }
+.pc-label { font-size:9px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--text3); margin-bottom:7px; }
+.pc-msg { font-size:12px; color:var(--text2); line-height:1.5; }
+
+.speaker-card { margin:0 12px 12px; background:rgba(16,185,129,.05); border:1px solid rgba(16,185,129,.15); border-radius:12px; padding:12px; min-height:90px; transition:all .3s; }
+.sc-label { font-size:9px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--green); margin-bottom:7px; display:flex; align-items:center; gap:5px; }
+.sc-name  { font-size:12px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.sc-msg   { font-size:11.5px; color:var(--text2); line-height:1.55; }
+
+.t-dots { display:inline-flex; gap:3px; align-items:center; margin-top:4px; }
+.td { width:5px; height:5px; border-radius:50%; background:var(--green); animation:sb .65s ease-in-out infinite; }
+.td:nth-child(2){animation-delay:.13s;} .td:nth-child(3){animation-delay:.26s;}
+@keyframes sb { 0%,100%{transform:translateY(0);opacity:.5;}50%{transform:translateY(-4px);opacity:1;} }
+
+.prog-wrap { padding:12px; border-top:1px solid var(--border); margin-top:auto; }
+.prog-top { display:flex; justify-content:space-between; font-size:10px; color:var(--text3); margin-bottom:7px; }
+.prog-bg { height:3px; background:#1f1f2e; border-radius:3px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#10b981,#6366f1); transition:width 1s ease; }
+.prog-steps { display:flex; justify-content:space-between; margin-top:8px; }
+.ps { font-size:9px; color:var(--text3); }
+.ps.done   { color:var(--green); }
+.ps.active { color:white; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="logo"><div class="logo-dot">🏥</div>MediCrew</div>
+  <div class="nav-sp"></div>
+  <div class="live-badge"><div class="pdot"></div>Team Consulting</div>
+</div>
+
+<div class="layout">
+  <div class="huddle" id="huddle">
+    <div class="center-glow"></div>
+    <svg id="connSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;"></svg>
+
+    <div class="agent-node" id="node-triage">
+      <div class="av-ring">
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=TriageBot" alt="Triage"/></div>
+        <div class="status-dot sd-done">✓</div>
+      </div>
+      <div class="ag-name">Triage</div><div class="ag-role">Assessment</div>
+      <div class="speech-bubble" id="bubble-triage"></div>
+    </div>
+
+    <div class="agent-node" id="node-emma">
+      <div class="av-ring">
+        <div class="wave-ring"></div><div class="wave-ring r2"></div>
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=EmmaPhysio" alt="Emma"/></div>
+        <div class="status-dot sd-lead">★</div>
+      </div>
+      <div class="ag-name">Emma AI</div><div class="ag-role">Lead · Physio</div>
+      <div class="speech-bubble" id="bubble-emma"></div>
+    </div>
+
+    <div class="agent-node" id="node-kai">
+      <div class="av-ring">
+        <div class="wave-ring"></div><div class="wave-ring r2"></div>
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResKai" alt="Kai"/></div>
+        <div class="status-dot sd-think">💭</div>
+      </div>
+      <div class="ag-name">Res. Kai</div><div class="ag-role">Conservative</div>
+      <div class="speech-bubble" id="bubble-kai"></div>
+    </div>
+
+    <div class="agent-node" id="node-priya">
+      <div class="av-ring">
+        <div class="wave-ring"></div><div class="wave-ring r2"></div>
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResPriya" alt="Priya"/></div>
+        <div class="status-dot sd-think">💭</div>
+      </div>
+      <div class="ag-name">Res. Priya</div><div class="ag-role">Pharmacological</div>
+      <div class="speech-bubble" id="bubble-priya"></div>
+    </div>
+
+    <div class="agent-node" id="node-zoe">
+      <div class="av-ring">
+        <div class="wave-ring"></div><div class="wave-ring r2"></div>
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResZoe" alt="Zoe"/></div>
+        <div class="status-dot sd-think">💭</div>
+      </div>
+      <div class="ag-name">Res. Zoe</div><div class="ag-role">Investigative</div>
+      <div class="speech-bubble" id="bubble-zoe"></div>
+    </div>
+
+    <div class="agent-node" id="node-sam">
+      <div class="av-ring">
+        <div class="wave-ring"></div><div class="wave-ring r2"></div>
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResSam" alt="Sam"/></div>
+        <div class="status-dot sd-think">💭</div>
+      </div>
+      <div class="ag-name">Res. Sam</div><div class="ag-role">Red-flag</div>
+      <div class="speech-bubble" id="bubble-sam"></div>
+    </div>
+
+    <div class="agent-node standby" id="node-alex">
+      <div class="av-ring">
+        <div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=AlexGP" alt="Alex"/></div>
+        <div class="status-dot sd-standby"></div>
+      </div>
+      <div class="ag-name">Alex AI</div><div class="ag-role">GP · Standby</div>
+      <div class="speech-bubble" id="bubble-alex"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="ph-title">Consultation</div>
+      <div class="ph-sub">Jordan, 23 · Back pain · Routine</div>
+    </div>
+    <div class="patient-card">
+      <div class="pc-label">Patient says</div>
+      <div class="pc-msg" id="pcMsg"></div>
+    </div>
+    <div class="speaker-card" id="speakerCard">
+      <div class="sc-label"><div class="pdot"></div><span id="speakerLabel">Waiting for team…</span></div>
+      <div class="sc-name" id="speakerName"></div>
+      <div class="sc-msg" id="speakerMsg">
+        <div class="t-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div>
+      </div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-top"><span>Progress</span><span id="progPct" style="font-weight:700;color:var(--green);">0%</span></div>
+      <div class="prog-bg"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="prog-steps">
+        <div class="ps" id="ps0">Triage</div>
+        <div class="ps" id="ps1">Specialist</div>
+        <div class="ps" id="ps2">Residents</div>
+        <div class="ps" id="ps3">Debate</div>
+        <div class="ps" id="ps4">Review</div>
+        <div class="ps" id="ps5">Results</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Safe DOM helpers — no innerHTML
+function setText(el, txt) { el.textContent = txt; }
+
+function makeBubble(tagText, tagCls, bodyParts) {
+  const bub = document.createDocumentFragment();
+  const tag = document.createElement('span');
+  tag.className = 'bub-tag ' + tagCls;
+  tag.textContent = tagText;
+  bub.appendChild(tag);
+  const br = document.createElement('br');
+  bub.appendChild(br);
+  bodyParts.forEach(function(p) {
+    if (typeof p === 'string') {
+      bub.appendChild(document.createTextNode(p));
+    } else if (p.bold) {
+      const b = document.createElement('b');
+      b.textContent = p.bold;
+      bub.appendChild(b);
+    }
+  });
+  return bub;
+}
+
+function setBubble(id, tagText, tagCls, bodyParts) {
+  const el = document.getElementById('bubble-' + id);
+  while (el.firstChild) el.removeChild(el.firstChild);
+  el.appendChild(makeBubble(tagText, tagCls, bodyParts));
+}
+
+function showBubble(id) { document.getElementById('bubble-' + id).classList.add('visible'); }
+function hideBubble(id) { document.getElementById('bubble-' + id).classList.remove('visible'); }
+
+function setState(id, state) {
+  document.getElementById('node-' + id).className = 'agent-node ' + state;
+}
+
+function setSpeaker(label, name, msgParts) {
+  setText(document.getElementById('speakerLabel'), label);
+  setText(document.getElementById('speakerName'), name);
+  const el = document.getElementById('speakerMsg');
+  while (el.firstChild) el.removeChild(el.firstChild);
+  msgParts.forEach(function(p) {
+    if (typeof p === 'string') {
+      el.appendChild(document.createTextNode(p));
+    } else if (p.bold) {
+      const b = document.createElement('b');
+      b.style.color = 'var(--text)';
+      b.textContent = p.bold;
+      el.appendChild(b);
+    }
+  });
+}
+
+function setProgress(step, pct) {
+  document.getElementById('progFill').style.width = pct + '%';
+  setText(document.getElementById('progPct'), pct + '%');
+  for (var i = 0; i < 6; i++) {
+    var el = document.getElementById('ps' + i);
+    el.className = 'ps' + (i < step ? ' done' : i === step ? ' active' : '');
+  }
+}
+
+var agents = ['triage','emma','kai','priya','zoe','sam','alex'];
+function hideAll() {
+  agents.forEach(function(id) { setState(id,''); hideBubble(id); });
+  var svg = document.getElementById('connSvg');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+}
+
+function getCenter(id) {
+  var node = document.getElementById('node-' + id);
+  var r = node.getBoundingClientRect();
+  var hr = document.getElementById('huddle').getBoundingClientRect();
+  return { x: r.left - hr.left + r.width / 2, y: r.top - hr.top + r.height / 2 };
+}
+
+function drawLine(from, to, color) {
+  var svg = document.getElementById('connSvg');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  var a = getCenter(from), b = getCenter(to);
+  var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+  line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+  line.setAttribute('stroke', color);
+  line.setAttribute('stroke-width', '1.5');
+  line.setAttribute('stroke-dasharray', '4 4');
+  line.setAttribute('opacity', '0.55');
+  svg.appendChild(line);
+}
+
+// Position nodes
+function positionAgents() {
+  var huddle = document.getElementById('huddle');
+  var w = huddle.offsetWidth, h = huddle.offsetHeight;
+  var cx = w / 2, cy = h / 2;
+  var r = Math.min(w, h) * 0.34;
+
+  var center = document.getElementById('node-emma');
+  center.style.left = (cx - 29) + 'px';
+  center.style.top  = (cy - 50) + 'px';
+
+  var outer = ['triage','kai','priya','zoe','sam','alex'];
+  var offset = -Math.PI / 2;
+  outer.forEach(function(id, i) {
+    var angle = offset + (i / outer.length) * Math.PI * 2;
+    var x = cx + Math.cos(angle) * r;
+    var y = cy + Math.sin(angle) * r;
+    var node = document.getElementById('node-' + id);
+    node.style.left = (x - 29) + 'px';
+    node.style.top  = (y - 50) + 'px';
+    var bub = document.getElementById('bubble-' + id);
+    bub.style.cssText = '';
+    if (Math.cos(angle) > 0.3)       { bub.style.left = '68px'; bub.style.top = '0px'; }
+    else if (Math.cos(angle) < -0.3) { bub.style.right = '68px'; bub.style.left = 'auto'; bub.style.top = '0px'; }
+    else if (Math.sin(angle) < 0)    { bub.style.bottom = '76px'; bub.style.left = '-50px'; }
+    else                              { bub.style.top = '76px'; bub.style.left = '-50px'; }
+  });
+  var eb = document.getElementById('bubble-emma');
+  eb.style.bottom = '80px'; eb.style.left = '-60px';
+}
+
+positionAgents();
+window.addEventListener('resize', positionAgents);
+
+// Populate patient message safely
+(function() {
+  var el = document.getElementById('pcMsg');
+  el.appendChild(document.createTextNode('"'));
+  var b1 = document.createElement('b'); b1.textContent = 'Lower back pain'; el.appendChild(b1);
+  el.appendChild(document.createTextNode(' from cycling, 3 days. No medicines, just resting."'));
+})();
+
+// Script steps
+var script = [
+  {
+    dur: 2800,
+    run: function() {
+      hideAll();
+      setState('triage','speaking');
+      setBubble('triage','Triage','bt-speak',['Urgency: ',{bold:'Routine'},'. Routing to Physio.']);
+      showBubble('triage');
+      setSpeaker('Triage running…','Triage AI',['Checking urgency level and routing to the right specialist.']);
+      setProgress(0, 15);
+    }
+  },
+  {
+    dur: 2800,
+    run: function() {
+      hideAll();
+      setState('emma','speaking');
+      setBubble('emma','Lead','bt-lead',['Taking this case. Residents — ',{bold:'assess in parallel.'}]);
+      showBubble('emma');
+      setSpeaker('Lead specialist activated','Emma AI — Physiotherapy',['Cycling lower back is my scope. Activating resident team now.']);
+      setProgress(1, 28);
+    }
+  },
+  {
+    dur: 2800,
+    run: function() {
+      hideAll();
+      ['kai','priya','zoe','sam'].forEach(function(id) { setState(id,'thinking'); });
+      setState('emma','done');
+      setSpeaker('Residents working…','4 residents active',['All running parallel assessments simultaneously…']);
+      setProgress(2, 42);
+    }
+  },
+  {
+    dur: 3000,
+    run: function() {
+      hideAll();
+      setState('sam','speaking'); setState('emma','done');
+      setBubble('sam','Red-flag','bt-speak',['No nerve signs, no fracture risk. ',{bold:'All clear.'}]);
+      showBubble('sam');
+      setSpeaker('Resident Sam speaking','Resident Sam · Red-flag Check',['No radiculopathy, no serious flags. Safe to proceed conservatively. 96% clear.']);
+      setProgress(2, 50);
+    }
+  },
+  {
+    dur: 3000,
+    run: function() {
+      hideAll();
+      setState('zoe','speaking'); setState('sam','done'); setState('emma','done');
+      setBubble('zoe','Investigative','bt-speak',[{bold:'Bike fit'},' — saddle + handlebar. Root cause.']);
+      showBubble('zoe');
+      setSpeaker('Resident Zoe speaking','Resident Zoe · Investigative',['Cycling back pain at this age is almost always postural. Bike fit should be first line.']);
+      setProgress(2, 58);
+    }
+  },
+  {
+    dur: 3000,
+    run: function() {
+      hideAll();
+      setState('kai','speaking'); setState('sam','done'); setState('zoe','done'); setState('emma','done');
+      setBubble('kai','Conservative','bt-speak',['Hot pack + stretches. ',{bold:'No meds'},' at day 3.']);
+      showBubble('kai');
+      setSpeaker('Resident Kai speaking','Resident Kai · Conservative',['Agree on bike fit. Hot pack 20min×3 daily. Hip flexor stretches. Too early for medication.']);
+      setProgress(2, 65);
+    }
+  },
+  {
+    dur: 3500,
+    run: function() {
+      hideAll();
+      setState('priya','challenge');
+      ['kai','sam','zoe','emma'].forEach(function(id) { setState(id,'done'); });
+      drawLine('priya','kai','#ef4444');
+      setBubble('priya','⚡ Challenge → Kai','bt-challenge',['"Rest risks deconditioning. ',{bold:'Active recovery'},' has better evidence."']);
+      showBubble('priya');
+      setSpeaker('⚡ Priya challenges Kai','Resident Priya · Pharmacological',['"Pure rest isn\'t optimal. Early movement + ibuprofen 400mg if pain ≥4/10."']);
+      setProgress(3, 72);
+    }
+  },
+  {
+    dur: 3000,
+    run: function() {
+      hideAll();
+      setState('zoe','agree');
+      ['kai','sam','priya','emma'].forEach(function(id) { setState(id,'done'); });
+      drawLine('zoe','kai','#06b6d4');
+      setBubble('zoe','✓ Agree → Kai','bt-agree',['Bike fit first. Meds on ',{bold:'day 5'},' — not now.']);
+      showBubble('zoe');
+      setSpeaker('✓ Zoe backs Kai','Resident Zoe · Investigative',['"Fix root cause first. Meds are a day-5 escalation, not day-3."']);
+      setProgress(3, 78);
+    }
+  },
+  {
+    dur: 3800,
+    run: function() {
+      hideAll();
+      setState('emma','speaking');
+      ['kai','sam','zoe','priya'].forEach(function(id) { setState(id,'done'); });
+      setBubble('emma','Lead · Rectifying','bt-lead',['Active movement ✓. ',{bold:'Meds day 5'},', not now.']);
+      showBubble('emma');
+      setSpeaker('Emma reviewing debate','Emma AI — Lead',['Priya\'s movement point is valid but day-3 meds are premature. Bike fit + active recovery + heat. Escalate day 5.']);
+      setProgress(4, 88);
+    }
+  },
+  {
+    dur: 3000,
+    run: function() {
+      hideAll();
+      setState('alex','speaking');
+      ['emma','kai','sam','zoe','priya'].forEach(function(id) { setState(id,'done'); });
+      setBubble('alex','GP · MDT','bt-speak',['Agree. If no change in ',{bold:'7 days'},' — GP review.']);
+      showBubble('alex');
+      setSpeaker('Alex AI signing off','Alex AI — General Practice',['Agree with Emma\'s approach. GP review if no improvement in 7 days.']);
+      setProgress(4, 95);
+    }
+  },
+  {
+    dur: 9999999,
+    run: function() {
+      hideAll();
+      agents.forEach(function(id) { setState(id,'done'); });
+      setSpeaker('✅ Results ready','Emma AI — Lead',['Bike fit + active recovery + heat pack. Ibuprofen if needed day 5. Book physio if no change in 7 days.']);
+      setProgress(5, 100);
+      for (var i = 0; i < 6; i++) { document.getElementById('ps' + i).className = 'ps done'; }
+    }
+  }
+];
+
+var step = 0;
+function runStep() {
+  if (step >= script.length) return;
+  var s = script[step];
+  s.run();
+  step++;
+  if (s.dur < 9999999) setTimeout(runStep, s.dur);
+}
+
+setTimeout(runStep, 1000);
+</script>
+</body>
+</html>

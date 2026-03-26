@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function PATCH(request: NextRequest) {
-  const patientId = request.headers.get("x-patient-id");
-  if (!patientId) {
-    return NextResponse.json({ error: "Auth required" }, { status: 401 });
-  }
+  const { patient, error } = await getAuthenticatedPatient();
+  if (error) return error;
+  const patientId = patient.id;
 
   const { agentRole, agentName, message } = await request.json();
 

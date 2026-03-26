@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
-  const patientId = request.headers.get("x-patient-id");
-  if (!patientId) {
-    return NextResponse.json({ error: "Auth required" }, { status: 401 });
-  }
+  const { patient, error } = await getAuthenticatedPatient();
+  if (error) return error;
+  const patientId = patient.id;
 
   let body: unknown;
   try {
@@ -40,11 +40,10 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(entry, { status: 201 });
 }
 
-export async function GET(request: NextRequest) {
-  const patientId = request.headers.get("x-patient-id");
-  if (!patientId) {
-    return NextResponse.json({ error: "Auth required" }, { status: 401 });
-  }
+export async function GET(_request: NextRequest) {
+  const { patient: authPatient, error: authError } = await getAuthenticatedPatient();
+  if (authError) return authError;
+  const patientId = authPatient.id;
 
   const entries = await prisma.symptomJournal.findMany({
     where: { patientId },

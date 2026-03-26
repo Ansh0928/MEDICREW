@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCrew</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f9f9f9;
+  --white: #ffffff;
+  --border: #e8e8e8;
+  --border2: #d4d4d4;
+  --text: #1a1a1a;
+  --text2: #5a5a6a;
+  --text3: #9a9aaa;
+  --accent: #2d1b3d;
+  --accent2: #3d2550;
+  --accent-light: rgba(45,27,61,0.07);
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --green-border: #bbf7d0;
+  --blue: #4f46e5;
+  --amber: #d97706;
+  --red: #dc2626;
+  --cyan: #0891b2;
+  --sidebar-w: 200px;
+  --sessions-w: 240px;
+}
+
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; overflow:hidden; font-size:13px; }
+
+/* ── Left Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  padding: 16px 0;
+}
+
+.sidebar-logo {
+  display: flex; align-items: center; gap: 9px;
+  padding: 0 16px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--accent), #6d28d9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.logo-text { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.4px; }
+
+.new-consult-btn {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 12px 14px;
+  background: var(--accent);
+  color: white;
+  border: none; cursor: pointer;
+  padding: 9px 14px; border-radius: 9px;
+  font-size: 12px; font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  transition: background .2s;
+}
+.new-consult-btn:hover { background: var(--accent2); }
+
+.nav-section { padding: 0 8px; margin-bottom: 4px; }
+.nav-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text3); padding: 6px 8px 4px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 8px; border-radius: 8px;
+  color: var(--text2); cursor: pointer;
+  font-size: 12px; font-weight: 500;
+  transition: background .15s, color .15s;
+  margin-bottom: 1px;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+.nav-icon { font-size: 14px; width: 18px; text-align: center; }
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-footer { padding: 12px 12px 0; border-top: 1px solid var(--border); }
+.user-row { display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 8px; cursor: pointer; }
+.user-row:hover { background: var(--bg); }
+.user-av { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: var(--border); flex-shrink: 0; }
+.user-av img { width: 100%; height: 100%; object-fit: cover; }
+.user-info { min-width: 0; }
+.user-name { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 10px; color: var(--text3); }
+
+/* ── Sessions column ── */
+.sessions-col {
+  width: var(--sessions-w);
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sessions-head {
+  padding: 14px 14px 0;
+  flex-shrink: 0;
+}
+.sessions-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin: 0 -14px; padding: 0 14px; }
+.tab {
+  font-size: 12px; font-weight: 600; color: var(--text3);
+  padding: 7px 12px; cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color .15s;
+  margin-bottom: -1px;
+}
+.tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+.sessions-list { flex: 1; overflow-y: auto; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+.sessions-list::-webkit-scrollbar { width: 3px; }
+.sessions-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.date-label { font-size: 10px; font-weight: 700; color: var(--text3); padding: 8px 6px 4px; letter-spacing: .5px; }
+
+.session-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 8px; border-radius: 8px;
+  cursor: pointer; transition: background .15s;
+}
+.session-item:hover { background: var(--bg); }
+.session-item.active { background: var(--accent-light); }
+
+.session-av { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: var(--border); flex-shrink: 0; }
+.session-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.session-info { flex: 1; min-width: 0; }
+.session-name { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.session-time { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.session-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);} }
+
+/* ── Main area ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--white); }
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.patient-name { font-size: 16px; font-weight: 800; color: var(--text); }
+.topbar-meta { display: flex; align-items: center; gap: 8px; flex: 1; }
+.meta-chip { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+.meta-sep { color: var(--border2); }
+
+.routine-badge { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; }
+.urgent-badge  { background: #fff7ed; border: 1px solid #fed7aa; color: #ea580c; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.btn-ghost { background: none; border: 1px solid var(--border2); border-radius: 8px; padding: 6px 14px; font-size: 11px; font-weight: 600; color: var(--text2); cursor: pointer; font-family:'Inter',sans-serif; transition: all .15s; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--green); border: none; border-radius: 8px; padding: 7px 16px; font-size: 11px; font-weight: 700; color: white; cursor: pointer; font-family:'Inter',sans-serif; display:flex; align-items:center; gap:6px; transition: background .15s; }
+.btn-primary:hover { background: #15803d; }
+
+/* Content tabs */
+.content-tabs {
+  display: flex; align-items: center; gap: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ctab { font-size: 12px; font-weight: 600; color: var(--text3); padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s; }
+.ctab.active { color: var(--text); border-bottom-color: var(--accent); }
+.ctab-spacer { flex: 1; }
+.prog-inline { display: flex; align-items: center; gap: 6px; }
+.pi-step { font-size: 10px; color: var(--text3); }
+.pi-step.done { color: var(--green); font-weight: 600; }
+.pi-step.active { color: var(--accent); font-weight: 700; }
+.pi-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border2); }
+
+/* ── Workspace ── */
+.workspace { flex: 1; display: grid; grid-template-columns: 1fr 300px; overflow: hidden; }
+
+/* ── Huddle area ── */
+.huddle-area {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  background: #fafafa;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+.huddle-area::before {
+  content:''; position:absolute; inset:0;
+  background-image: radial-gradient(circle, rgba(0,0,0,.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.center-glow { position:absolute; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle,rgba(45,27,61,.06) 0%,transparent 70%); pointer-events:none; transition:background .6s; }
+.center-glow.reactivate { background:radial-gradient(circle,rgba(79,70,229,.1) 0%,transparent 70%); }
+.center-glow.simple-ans { background:radial-gradient(circle,rgba(22,163,74,.1) 0%,transparent 70%); }
+
+/* Phase banner */
+.phase-banner { position:absolute; top:14px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:700; padding:4px 14px; border-radius:20px; letter-spacing:.5px; z-index:20; opacity:0; transition:opacity .4s; white-space:nowrap; }
+.phase-banner.visible { opacity:1; }
+.pb-consulting { background:rgba(22,163,74,.1); border:1px solid rgba(22,163,74,.2); color:var(--green); }
+.pb-results    { background:rgba(45,27,61,.08); border:1px solid rgba(45,27,61,.15); color:var(--accent); }
+.pb-simple     { background:rgba(22,163,74,.1); border:1px solid rgba(22,163,74,.2); color:var(--green); }
+.pb-reactivate { background:rgba(217,119,6,.1); border:1px solid rgba(217,119,6,.2); color:var(--amber); }
+
+/* Agent nodes */
+.agent-node { position:absolute; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.agent-node.faded { opacity:.2; transition:opacity .4s; }
+.av-ring { position:relative; width:54px; height:54px; }
+.av-img { width:54px; height:54px; border-radius:50%; overflow:hidden; border:2.5px solid var(--border2); background:var(--bg); transition:border-color .3s,box-shadow .3s,transform .3s; }
+.av-img img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.agent-node.speaking   .av-img { border-color:var(--green); box-shadow:0 0 0 4px rgba(22,163,74,.15); transform:scale(1.1); }
+.agent-node.thinking   .av-img { border-color:var(--amber); box-shadow:0 0 0 3px rgba(217,119,6,.12); }
+.agent-node.done       .av-img { border-color:rgba(22,163,74,.4); }
+.agent-node.standby    .av-img { opacity:.3; }
+.agent-node.challenge  .av-img { border-color:var(--red); box-shadow:0 0 0 4px rgba(220,38,38,.12); transform:scale(1.1); }
+.agent-node.agree      .av-img { border-color:var(--cyan); box-shadow:0 0 0 4px rgba(8,145,178,.12); transform:scale(1.1); }
+.agent-node.answering  .av-img { border-color:var(--green); box-shadow:0 0 0 5px rgba(22,163,74,.18); transform:scale(1.12); }
+.agent-node.reactivated .av-img { border-color:var(--blue); box-shadow:0 0 0 4px rgba(79,70,229,.15); transform:scale(1.1); }
+
+.status-dot { position:absolute; bottom:1px; right:1px; width:14px; height:14px; border-radius:50%; border:2px solid var(--white); display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:900; }
+.sd-lead    { background:var(--green); color:white; }
+.sd-done    { background:var(--green); color:white; }
+.sd-think   { background:var(--amber); font-size:10px; animation:floatBob 1.8s ease-in-out infinite; }
+.sd-standby { background:var(--border2); }
+@keyframes floatBob { 0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);} }
+
+.wave-ring { position:absolute; inset:-4px; border-radius:50%; border:1.5px solid transparent; opacity:0; }
+.agent-node.speaking    .wave-ring { border-color:var(--green); animation:waveExpand 1.5s ease-out infinite; }
+.agent-node.challenge   .wave-ring { border-color:var(--red);   animation:waveExpand 1.5s ease-out infinite; }
+.agent-node.agree       .wave-ring { border-color:var(--cyan);  animation:waveExpand 1.5s ease-out infinite; }
+.agent-node.answering   .wave-ring { border-color:var(--green); animation:waveExpand 1.2s ease-out infinite; }
+.agent-node.reactivated .wave-ring { border-color:var(--blue);  animation:waveExpand 1.5s ease-out infinite; }
+.wave-ring.r2 { animation-delay:.5s !important; }
+@keyframes waveExpand { 0%{transform:scale(1);opacity:.5;} 100%{transform:scale(1.65);opacity:0;} }
+
+.ag-name { font-size:10px; font-weight:700; color:var(--text); text-align:center; white-space:nowrap; }
+.ag-role { font-size:9px; color:var(--text3); text-align:center; }
+
+.speech-bubble { position:absolute; background:var(--white); border:1px solid var(--border2); border-radius:10px; padding:8px 11px; font-size:10.5px; line-height:1.5; color:var(--text2); min-width:130px; max-width:190px; pointer-events:none; opacity:0; transform:scale(.9) translateY(5px); transition:opacity .3s ease,transform .3s ease; z-index:10; box-shadow:0 4px 16px rgba(0,0,0,.1); }
+.speech-bubble.visible { opacity:1; transform:scale(1) translateY(0); }
+.bub-tag { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:6px; margin-bottom:3px; }
+.bt-speak     { background:rgba(22,163,74,.1);  color:var(--green); }
+.bt-challenge { background:rgba(220,38,38,.1);  color:var(--red); }
+.bt-agree     { background:rgba(8,145,178,.1);  color:var(--cyan); }
+.bt-lead      { background:rgba(45,27,61,.08);  color:var(--accent); }
+.bt-answer    { background:rgba(22,163,74,.1);  color:var(--green); }
+.bt-reactivate{ background:rgba(79,70,229,.1);  color:var(--blue); }
+
+/* ── Right chat panel ── */
+.chat-panel {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--white);
+}
+
+.chat-head { padding:12px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.chat-head-title { font-size:11px; font-weight:700; color:var(--text); }
+.chat-head-sub { font-size:10px; color:var(--text3); margin-top:1px; }
+
+.chat-feed { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.chat-feed::-webkit-scrollbar { width:3px; }
+.chat-feed::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* Messages */
+.msg { display:flex; gap:7px; align-items:flex-end; }
+.msg.from-patient { flex-direction:row-reverse; }
+.msg-av { width:24px; height:24px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--border); }
+.msg-av img { width:100%; height:100%; object-fit:cover; }
+.msg-body { max-width:85%; }
+.msg-sender { font-size:9px; font-weight:700; color:var(--text3); margin-bottom:2px; }
+.from-patient .msg-sender { text-align:right; color:var(--accent); }
+.msg-text { font-size:11.5px; line-height:1.5; padding:8px 11px; border-radius:12px; }
+.from-doctor  .msg-text { background:var(--bg); border:1px solid var(--border); color:var(--text2); border-radius:3px 12px 12px 12px; }
+.from-patient .msg-text { background:var(--accent-light); border:1px solid rgba(45,27,61,.12); color:var(--accent); border-radius:12px 3px 12px 12px; }
+
+.sys-wrap { display:flex; justify-content:center; }
+.sys-msg { font-size:10px; color:var(--text3); text-align:center; padding:3px 12px; background:var(--bg); border:1px solid var(--border); border-radius:20px; }
+.routing-chip { display:flex; align-items:center; justify-content:center; gap:5px; font-size:10px; font-weight:600; padding:4px 12px; border-radius:20px; }
+.rc-simple  { background:rgba(22,163,74,.07); border:1px solid rgba(22,163,74,.15); color:var(--green); }
+.rc-complex { background:rgba(217,119,6,.07); border:1px solid rgba(217,119,6,.15); color:var(--amber); }
+
+/* Bottom input */
+.input-bar { padding:12px; border-top:1px solid var(--border); flex-shrink:0; }
+.input-inner { display:flex; gap:8px; align-items:center; background:var(--bg); border:1px solid var(--border2); border-radius:10px; padding:8px 12px; transition:border-color .15s; }
+.input-inner:focus-within { border-color: var(--accent); }
+.input-icon { color:var(--text3); font-size:13px; flex-shrink:0; }
+.input-field { flex:1; background:none; border:none; outline:none; font-size:12px; color:var(--text); font-family:'Inter',sans-serif; }
+.input-field::placeholder { color:var(--text3); }
+.send-btn { width:26px; height:26px; border-radius:7px; background:var(--accent); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; color:white; flex-shrink:0; transition:background .15s; }
+.send-btn:hover { background:var(--accent2); }
+</style>
+</head>
+<body>
+
+<!-- Left sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">🏥</div>
+    <div class="logo-text">MediCrew</div>
+  </div>
+
+  <button class="new-consult-btn">＋ New consultation</button>
+
+  <div class="nav-section">
+    <div class="nav-item active"><span class="nav-icon">🩺</span>Consultations</div>
+    <div class="nav-item"><span class="nav-icon">📋</span>My Patients</div>
+    <div class="nav-item"><span class="nav-icon">✅</span>Tasks</div>
+    <div class="nav-item"><span class="nav-icon">💬</span>Messages</div>
+  </div>
+
+  <div class="nav-section" style="margin-top:10px;">
+    <div class="nav-label">Library</div>
+    <div class="nav-item"><span class="nav-icon">📁</span>Templates</div>
+    <div class="nav-item"><span class="nav-icon">📊</span>Reports</div>
+  </div>
+
+  <div class="nav-section" style="margin-top:10px;">
+    <div class="nav-label">Workspace</div>
+    <div class="nav-item"><span class="nav-icon">👥</span>Team</div>
+    <div class="nav-item"><span class="nav-icon">⚙️</span>Settings</div>
+  </div>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-av"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=DrSarahDoctor" alt=""/></div>
+      <div class="user-info">
+        <div class="user-name">Dr. Sarah Chen</div>
+        <div class="user-role">GP · MediCrew</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sessions column -->
+<div class="sessions-col">
+  <div class="sessions-head">
+    <div class="sessions-title">Consultations</div>
+    <div class="tabs">
+      <div class="tab">Upcoming</div>
+      <div class="tab active">Recent</div>
+    </div>
+  </div>
+  <div class="sessions-list">
+    <div class="date-label">Today — 26 Mar 2026</div>
+
+    <div class="session-item active">
+      <div class="session-av"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=Jordan23" alt=""/></div>
+      <div class="session-info">
+        <div class="session-name">Jordan, 23</div>
+        <div class="session-time">5:04 PM · Back pain</div>
+      </div>
+      <div class="session-dot"></div>
+    </div>
+
+    <div class="session-item">
+      <div class="session-av"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=PatientMaria45" alt=""/></div>
+      <div class="session-info">
+        <div class="session-name">Maria, 45</div>
+        <div class="session-time">3:30 PM · Headache</div>
+      </div>
+    </div>
+
+    <div class="session-item">
+      <div class="session-av"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=PatientDave60" alt=""/></div>
+      <div class="session-info">
+        <div class="session-name">David, 60</div>
+        <div class="session-time">1:15 PM · Chest tightness</div>
+      </div>
+    </div>
+
+    <div class="date-label" style="margin-top:8px;">Yesterday</div>
+
+    <div class="session-item">
+      <div class="session-av"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=PatientLena28" alt=""/></div>
+      <div class="session-info">
+        <div class="session-name">Lena, 28</div>
+        <div class="session-time">4:00 PM · Skin rash</div>
+      </div>
+    </div>
+
+    <div class="session-item">
+      <div class="session-av"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=PatientTom35" alt=""/></div>
+      <div class="session-info">
+        <div class="session-name">Tom, 35</div>
+        <div class="session-time">11:00 AM · Knee pain</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main area -->
+<div class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div>
+      <div class="patient-name">Jordan, 23</div>
+    </div>
+    <div class="topbar-meta">
+      <span class="meta-chip">📅 26/03/2026 5:04 PM</span>
+      <span class="meta-sep">·</span>
+      <span class="meta-chip">🔙 Lower back pain</span>
+      <span class="meta-sep">·</span>
+      <span class="routine-badge">✅ Routine</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-ghost">📄 Summary</button>
+      <button class="btn-ghost">📅 Book</button>
+      <button class="btn-primary">⚕️ Start consult</button>
+    </div>
+  </div>
+
+  <!-- Content tabs + progress -->
+  <div class="content-tabs">
+    <div class="ctab active">Team Huddle</div>
+    <div class="ctab">Patient Profile</div>
+    <div class="ctab">Notes</div>
+    <div class="ctab-spacer"></div>
+    <div class="prog-inline" id="progressInline">
+      <div class="pi-step done" id="pi0">Triage</div><div class="pi-dot"></div>
+      <div class="pi-step done" id="pi1">Specialist</div><div class="pi-dot"></div>
+      <div class="pi-step active" id="pi2">Residents</div><div class="pi-dot"></div>
+      <div class="pi-step" id="pi3">Debate</div><div class="pi-dot"></div>
+      <div class="pi-step" id="pi4">Review</div><div class="pi-dot"></div>
+      <div class="pi-step" id="pi5">Results</div>
+    </div>
+    <div style="width:14px;"></div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+
+    <!-- Huddle -->
+    <div class="huddle-area" id="huddle">
+      <div class="center-glow" id="centerGlow"></div>
+      <svg id="connSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;"></svg>
+      <div class="phase-banner pb-consulting" id="phaseBanner">⚡ Team consulting…</div>
+
+      <div class="agent-node" id="node-triage">
+        <div class="av-ring"><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=TriageBot" alt=""/></div><div class="status-dot sd-done">✓</div></div>
+        <div class="ag-name">Triage</div><div class="ag-role">Assessment</div>
+        <div class="speech-bubble" id="bubble-triage"></div>
+      </div>
+      <div class="agent-node" id="node-emma">
+        <div class="av-ring"><div class="wave-ring"></div><div class="wave-ring r2"></div><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=EmmaPhysio" alt=""/></div><div class="status-dot sd-lead">★</div></div>
+        <div class="ag-name">Emma AI</div><div class="ag-role">Lead · Physio</div>
+        <div class="speech-bubble" id="bubble-emma"></div>
+      </div>
+      <div class="agent-node" id="node-kai">
+        <div class="av-ring"><div class="wave-ring"></div><div class="wave-ring r2"></div><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResKai" alt=""/></div><div class="status-dot sd-think">💭</div></div>
+        <div class="ag-name">Res. Kai</div><div class="ag-role">Conservative</div>
+        <div class="speech-bubble" id="bubble-kai"></div>
+      </div>
+      <div class="agent-node" id="node-priya">
+        <div class="av-ring"><div class="wave-ring"></div><div class="wave-ring r2"></div><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResPriya" alt=""/></div><div class="status-dot sd-think">💭</div></div>
+        <div class="ag-name">Res. Priya</div><div class="ag-role">Pharmacological</div>
+        <div class="speech-bubble" id="bubble-priya"></div>
+      </div>
+      <div class="agent-node" id="node-zoe">
+        <div class="av-ring"><div class="wave-ring"></div><div class="wave-ring r2"></div><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResZoe" alt=""/></div><div class="status-dot sd-think">💭</div></div>
+        <div class="ag-name">Res. Zoe</div><div class="ag-role">Investigative</div>
+        <div class="speech-bubble" id="bubble-zoe"></div>
+      </div>
+      <div class="agent-node" id="node-sam">
+        <div class="av-ring"><div class="wave-ring"></div><div class="wave-ring r2"></div><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=ResSam" alt=""/></div><div class="status-dot sd-think">💭</div></div>
+        <div class="ag-name">Res. Sam</div><div class="ag-role">Red-flag</div>
+        <div class="speech-bubble" id="bubble-sam"></div>
+      </div>
+      <div class="agent-node standby" id="node-alex">
+        <div class="av-ring"><div class="av-img"><img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=AlexGP" alt=""/></div><div class="status-dot sd-standby"></div></div>
+        <div class="ag-name">Alex AI</div><div class="ag-role">GP · Standby</div>
+        <div class="speech-bubble" id="bubble-alex"></div>
+      </div>
+    </div>
+
+    <!-- Chat panel -->
+    <div class="chat-panel">
+      <div class="chat-head">
+        <div class="chat-head-title" id="chatTitle">Live consultation feed</div>
+        <div class="chat-head-sub">7 agents working</div>
+      </div>
+      <div class="chat-feed" id="chatFeed"></div>
+      <div class="input-bar">
+        <div class="input-inner">
+          <span class="input-icon">💬</span>
+          <input class="input-field" id="inputField" placeholder="Ask your team a question…" readonly/>
+          <button class="send-btn">↑</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var allAgents=['triage','emma','kai','priya','zoe','sam','alex'];
+
+function clearEl(el){while(el.firstChild)el.removeChild(el.firstChild);}
+function txt(t){return document.createTextNode(t);}
+function bold(t,col){var b=document.createElement('b');b.style.color=col||'var(--text)';b.textContent=t;return b;}
+
+function makeBubble(tagText,tagCls,parts){
+  var f=document.createDocumentFragment();
+  var tag=document.createElement('span');tag.className='bub-tag '+tagCls;tag.textContent=tagText;
+  f.appendChild(tag);f.appendChild(document.createElement('br'));
+  parts.forEach(function(p){f.appendChild(typeof p==='string'?txt(p):bold(p.b,p.c));});
+  return f;
+}
+function setBubble(id,tagText,tagCls,parts){var el=document.getElementById('bubble-'+id);clearEl(el);el.appendChild(makeBubble(tagText,tagCls,parts));}
+function showBubble(id){document.getElementById('bubble-'+id).classList.add('visible');}
+function hideBubble(id){document.getElementById('bubble-'+id).classList.remove('visible');}
+function setState(id,s){document.getElementById('node-'+id).className='agent-node '+s;}
+function fadeAll(){allAgents.forEach(function(id){document.getElementById('node-'+id).classList.add('faded');});}
+function unfadeAll(){allAgents.forEach(function(id){document.getElementById('node-'+id).classList.remove('faded');});}
+function hideAll(){allAgents.forEach(function(id){setState(id,'');hideBubble(id);});clearEl(document.getElementById('connSvg'));}
+
+function drawLine(from,to,color){
+  var svg=document.getElementById('connSvg');clearEl(svg);
+  var a=getCenter(from),b=getCenter(to);
+  var line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);
+  line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+  line.setAttribute('stroke',color);line.setAttribute('stroke-width','1.5');
+  line.setAttribute('stroke-dasharray','4 4');line.setAttribute('opacity','0.5');
+  svg.appendChild(line);
+}
+function getCenter(id){
+  var node=document.getElementById('node-'+id);
+  var r=node.getBoundingClientRect();var hr=document.getElementById('huddle').getBoundingClientRect();
+  return{x:r.left-hr.left+r.width/2,y:r.top-hr.top+r.height/2};
+}
+
+function setProgress(step){
+  var labels=['Triage','Specialist','Residents','Debate','Review','Results'];
+  labels.forEach(function(_,i){
+    var el=document.getElementById('pi'+i);
+    el.className='pi-step'+(i<step?' done':i===step?' active':'');
+  });
+}
+
+function setBanner(text,cls){
+  var b=document.getElementById('phaseBanner');
+  b.className='phase-banner '+cls+' visible';b.textContent=text;
+}
+
+function addSys(text){
+  var wrap=document.createElement('div');wrap.className='sys-wrap';
+  var s=document.createElement('div');s.className='sys-msg';s.textContent=text;
+  wrap.appendChild(s);document.getElementById('chatFeed').appendChild(wrap);scroll();
+}
+function addRouting(text,cls){
+  var wrap=document.createElement('div');wrap.className='sys-wrap';
+  var c=document.createElement('div');c.className='routing-chip '+cls;c.textContent=text;
+  wrap.appendChild(c);document.getElementById('chatFeed').appendChild(wrap);scroll();
+}
+function addMsg(fromPatient,seed,sender,parts){
+  var row=document.createElement('div');row.className='msg '+(fromPatient?'from-patient':'from-doctor');
+  var av=document.createElement('div');av.className='msg-av';
+  var img=document.createElement('img');img.src='https://api.dicebear.com/8.x/notionists-neutral/svg?seed='+seed;img.alt='';
+  av.appendChild(img);row.appendChild(av);
+  var body=document.createElement('div');body.className='msg-body';
+  var sn=document.createElement('div');sn.className='msg-sender';sn.textContent=sender;body.appendChild(sn);
+  var mt=document.createElement('div');mt.className='msg-text';
+  parts.forEach(function(p){mt.appendChild(typeof p==='string'?txt(p):bold(p.b,p.c));});
+  body.appendChild(mt);row.appendChild(body);
+  document.getElementById('chatFeed').appendChild(row);scroll();
+}
+function scroll(){var c=document.getElementById('chatFeed');c.scrollTop=c.scrollHeight;}
+
+function positionAgents(){
+  var h=document.getElementById('huddle');
+  var w=h.offsetWidth,ht=h.offsetHeight,cx=w/2,cy=ht/2,r=Math.min(w,ht)*0.33;
+  var ce=document.getElementById('node-emma');ce.style.left=(cx-27)+'px';ce.style.top=(cy-48)+'px';
+  var outer=['triage','kai','priya','zoe','sam','alex'];
+  outer.forEach(function(id,i){
+    var angle=(-Math.PI/2)+(i/outer.length)*Math.PI*2;
+    var x=cx+Math.cos(angle)*r,y=cy+Math.sin(angle)*r;
+    var node=document.getElementById('node-'+id);node.style.left=(x-27)+'px';node.style.top=(y-48)+'px';
+    var bub=document.getElementById('bubble-'+id);bub.style.cssText='';
+    if(Math.cos(angle)>0.3){bub.style.left='64px';bub.style.top='0';}
+    else if(Math.cos(angle)<-0.3){bub.style.right='64px';bub.style.left='auto';bub.style.top='0';}
+    else if(Math.sin(angle)<0){bub.style.bottom='72px';bub.style.left='-45px';}
+    else{bub.style.top='72px';bub.style.left='-45px';}
+  });
+  var eb=document.getElementById('bubble-emma');eb.style.bottom='76px';eb.style.left='-55px';
+}
+positionAgents();window.addEventListener('resize',positionAgents);
+
+var step=0;
+var script=[
+  {dur:2400,run:function(){
+    hideAll();setBanner('⚡ Team consulting…','pb-consulting');
+    setState('triage','speaking');setBubble('triage','Triage','bt-speak',['Urgency: ',{b:'Routine'},'. Routing to Physio.']);showBubble('triage');
+    addSys('⚡ Consultation started');
+    addMsg(false,'TriageBot','Triage AI',['Assessed Jordan. Urgency: ',{b:'Routine'},'. No red flags. Routing to Emma AI.']);
+    setProgress(0);
+  }},
+  {dur:2400,run:function(){
+    hideAll();setState('emma','speaking');setBubble('emma','Lead','bt-lead',['Taking this. Residents — ',{b:'assess now.'}]);showBubble('emma');
+    addMsg(false,'EmmaPhysio','Emma AI — Lead',['I\'m taking lead. ',{b:'Kai, Priya, Zoe, Sam'},' — run parallel assessments now.']);
+    setProgress(1);
+  }},
+  {dur:2200,run:function(){
+    hideAll();['kai','priya','zoe','sam'].forEach(function(id){setState(id,'thinking');});setState('emma','done');
+    setProgress(2);
+  }},
+  {dur:2000,run:function(){
+    hideAll();setState('sam','speaking');setState('emma','done');setBubble('sam','Red-flag','bt-speak',['No nerve signs. ',{b:'All clear.'}]);showBubble('sam');
+    addMsg(false,'ResSam','Res. Sam · Red-flag',[{b:'All clear.'},' No radiculopathy, no fracture risk. Safe to proceed.']);
+  }},
+  {dur:2000,run:function(){
+    hideAll();setState('zoe','speaking');setState('sam','done');setState('emma','done');setBubble('zoe','Investigative','bt-speak',[{b:'Bike fit'},' — root cause.']);showBubble('zoe');
+    addMsg(false,'ResZoe','Res. Zoe · Investigative',[{b:'Saddle height + handlebar reach'},' likely root cause. Bike fit first line. 82% confident.']);
+  }},
+  {dur:2000,run:function(){
+    hideAll();setState('kai','speaking');setState('sam','done');setState('zoe','done');setState('emma','done');setBubble('kai','Conservative','bt-speak',['Hot pack + stretches. ',{b:'No meds'},' day 3.']);showBubble('kai');
+    addMsg(false,'ResKai','Res. Kai · Conservative',['Hot pack 20min×3 daily. Hip flexor stretches. ',{b:'No medication at day 3.'}]);
+    setProgress(2);
+  }},
+  {dur:2400,run:function(){
+    hideAll();setState('priya','challenge');['kai','sam','zoe','emma'].forEach(function(id){setState(id,'done');});drawLine('priya','kai','#dc2626');
+    setBubble('priya','⚡ Challenge','bt-challenge',['"Rest risks deconditioning. ',{b:'Move early.'},'"']);showBubble('priya');
+    addMsg(false,'ResPriya','Res. Priya',[{b:'⚡ Kai'},' — pure rest isn\'t optimal. Early active movement + ibuprofen 400mg if pain ≥4/10.']);
+    setProgress(3);
+  }},
+  {dur:2000,run:function(){
+    hideAll();setState('zoe','agree');['kai','sam','priya','emma'].forEach(function(id){setState(id,'done');});drawLine('zoe','kai','#0891b2');
+    setBubble('zoe','✓ Agree','bt-agree',['Bike fit first. Meds ',{b:'day 5.'}]);showBubble('zoe');
+    addMsg(false,'ResZoe','Res. Zoe',[{b:'✓ Backs Kai'},' — fix root cause first. Meds are day-5 escalation.']);
+  }},
+  {dur:2600,run:function(){
+    hideAll();setState('emma','speaking');['kai','sam','zoe','priya'].forEach(function(id){setState(id,'done');});
+    setBubble('emma','Lead · Rectifying','bt-lead',['Active movement ✓. ',{b:'Meds day 5.'}]);showBubble('emma');
+    addMsg(false,'EmmaPhysio','Emma AI — Lead',['Team position: bike fit + active recovery + heat. ',{b:'Escalate meds only day 5.'}]);
+    setProgress(4);
+  }},
+  {dur:2200,run:function(){
+    hideAll();setState('alex','speaking');['emma','kai','sam','zoe','priya'].forEach(function(id){setState(id,'done');});
+    setBubble('alex','GP · MDT','bt-speak',['Agree. GP review if ',{b:'7 days no change.'}]);showBubble('alex');
+    addMsg(false,'AlexGP','Alex AI — GP',['Agree with Emma. GP assessment if no improvement in 7 days.']);
+  }},
+  {dur:3000,run:function(){
+    hideAll();allAgents.forEach(function(id){setState(id,'done');});
+    setBanner('✅ Results ready','pb-results');
+    document.getElementById('chatTitle').textContent='Q&A — Ask anything';
+    addSys('✅ Consultation complete');
+    addMsg(false,'EmmaPhysio','Emma AI — Lead',[{b:'Recommendation:'},' Bike fit + active recovery + hot pack. Ibuprofen day 5 if needed. Book physio if no change in 7 days.']);
+    setProgress(5);
+  }},
+  // Simple Q
+  {dur:3000,run:function(){
+    addMsg(true,'Jordan23','Jordan',['How long should I use the hot pack each time?']);
+    document.getElementById('inputField').value='How long should I use the hot pack each time?';
+    addRouting('💬 Simple — routing to Emma directly','rc-simple');
+    hideAll();allAgents.forEach(function(id){setState(id,'done');});setState('emma','answering');
+    setBubble('emma','Answer','bt-answer',['20 min × 3 daily. ',{b:'Never skin-direct.'}]);showBubble('emma');
+    document.getElementById('centerGlow').classList.add('simple-ans');
+    setBanner('💬 Emma answering…','pb-simple');
+  }},
+  {dur:2200,run:function(){
+    document.getElementById('inputField').value='';
+    addMsg(false,'EmmaPhysio','Emma AI',[{b:'20 minutes, 3 times a day.'},' Always wrap in a cloth — never directly on skin. Stop if you feel burning.']);
+    hideAll();allAgents.forEach(function(id){setState(id,'done');});document.getElementById('centerGlow').classList.remove('simple-ans');setBanner('✅ Results ready','pb-results');
+  }},
+  // Complex Q
+  {dur:3200,run:function(){
+    addMsg(true,'Jordan23','Jordan',['What if the pain spreads down my leg?']);
+    document.getElementById('inputField').value='What if the pain spreads down my leg?';
+    addRouting('⚡ Complex — re-activating relevant residents','rc-complex');
+    document.getElementById('centerGlow').classList.add('reactivate');
+    setBanner('⚡ Huddle re-activating…','pb-reactivate');
+    hideAll();['kai','zoe','triage','alex'].forEach(function(id){setState(id,'faded');});
+    setState('emma','reactivated');setState('sam','reactivated');setState('priya','reactivated');
+    setBubble('sam','Red-flag','bt-reactivate',['Leg pain = ',{b:'nerve involvement.'},' Different case.']);showBubble('sam');
+  }},
+  {dur:2200,run:function(){
+    addMsg(false,'ResSam','Res. Sam · Red-flag',[{b:'Pain down the leg'},' = possible nerve root compression. Changes everything.']);
+    hideAll();unfadeAll();setState('emma','reactivated');setState('sam','done');setState('priya','reactivated');
+    setBubble('priya','Pharmacological','bt-reactivate',['OTC alone ',{b:'not enough'},' for nerve pain.']);showBubble('priya');
+  }},
+  {dur:2200,run:function(){
+    addMsg(false,'ResPriya','Res. Priya',['If pain radiates below the knee, anti-inflammatories alone won\'t be sufficient. ',{b:'Needs clinical assessment.'}]);
+    hideAll();unfadeAll();allAgents.forEach(function(id){setState(id,'done');});setState('emma','answering');
+    setBubble('emma','Lead · Final','bt-answer',['Leg pain → see physio/GP ',{b:'within 48hrs.'}]);showBubble('emma');
+    document.getElementById('centerGlow').classList.remove('reactivate');
+  }},
+  {dur:99999999,run:function(){
+    document.getElementById('inputField').value='';
+    addMsg(false,'EmmaPhysio','Emma AI — Lead',[{b:'If pain radiates down your leg,'},' stop self-treating. See a physio or GP within 24–48 hours — this may indicate nerve involvement.']);
+    addSys('📅 Book an appointment below');
+    hideAll();unfadeAll();allAgents.forEach(function(id){setState(id,'done');});
+    setBanner('✅ Done','pb-results');
+  }}
+];
+
+function runStep(){
+  if(step>=script.length)return;
+  var s=script[step];step++;
+  s.run();
+  if(s.dur<99999999)setTimeout(runStep,s.dur);
+}
+setTimeout(runStep,800);
+</script>
+</body>
+</html>

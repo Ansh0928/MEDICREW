@@ -1,0 +1,101 @@
+<h2>Sign-in Page — Color Direction</h2>
+<p class="subtitle">Same animated dot-matrix component, three blue-on-white palettes. Pick the one that feels right for MediCrew.</p>
+
+<div class="cards">
+
+  <!-- Option A: Clinical Blue -->
+  <div class="card" data-choice="clinical" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#ffffff; border-bottom:1px solid #e2e8f0; padding:20px; font-family:system-ui;">
+      <!-- Mini login card preview -->
+      <div style="background:#ffffff; border-radius:12px; box-shadow:0 4px 24px rgba(37,99,235,0.12); padding:24px; max-width:260px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="width:36px;height:36px;background:#2563eb;border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;">
+            <span style="color:white;font-size:18px;">+</span>
+          </div>
+          <div style="font-size:18px;font-weight:700;color:#1e3a8a;">Welcome to MediCrew</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px;">Sign in to your account</div>
+        </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:12px;color:#1e40af;text-align:center;margin-bottom:10px;">Sign in with Google</div>
+        <div style="background:#f1f5f9;border-radius:20px;padding:8px 12px;font-size:12px;color:#94a3b8;text-align:center;margin-bottom:10px;">email@example.com →</div>
+        <div style="background:#2563eb;border-radius:20px;padding:8px 12px;font-size:12px;color:white;text-align:center;font-weight:600;">Continue</div>
+      </div>
+      <!-- Dot matrix preview strip -->
+      <div style="margin-top:12px;display:flex;justify-content:center;gap:3px;flex-wrap:wrap;width:260px;margin-left:auto;margin-right:auto;">
+        <script>
+          for(let i=0;i<80;i++){
+            const op = Math.random() > 0.6 ? 0.8 : 0.2;
+            document.currentScript.insertAdjacentHTML('afterend', `<div style="width:4px;height:4px;border-radius:50%;background:rgba(37,99,235,${op.toFixed(1)})"></div>`);
+          }
+        </script>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#94a3b8;margin-top:6px;">Animated dot matrix — blue dots on white</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Clinical Blue</h3>
+      <p>Medical-grade authority. Deep navy headings, electric blue accents (#2563eb), white background. Dot matrix in blue. Clean and trustworthy.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Sky / Soft Blue -->
+  <div class="card" data-choice="sky" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f9ff; border-bottom:1px solid #e0f2fe; padding:20px; font-family:system-ui;">
+      <div style="background:#ffffff; border-radius:12px; box-shadow:0 4px 24px rgba(14,165,233,0.1); padding:24px; max-width:260px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;">
+            <span style="color:white;font-size:18px;">+</span>
+          </div>
+          <div style="font-size:18px;font-weight:700;color:#0c4a6e;">Welcome to MediCrew</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px;">Sign in to your account</div>
+        </div>
+        <div style="background:#e0f2fe;border:1px solid #7dd3fc;border-radius:8px;padding:8px 12px;font-size:12px;color:#0369a1;text-align:center;margin-bottom:10px;">Sign in with Google</div>
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:20px;padding:8px 12px;font-size:12px;color:#94a3b8;text-align:center;margin-bottom:10px;">email@example.com →</div>
+        <div style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);border-radius:20px;padding:8px 12px;font-size:12px;color:white;text-align:center;font-weight:600;">Continue</div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:center;gap:3px;flex-wrap:wrap;width:260px;margin-left:auto;margin-right:auto;">
+        <script>
+          for(let i=0;i<80;i++){
+            const op = Math.random() > 0.6 ? 0.7 : 0.15;
+            document.currentScript.insertAdjacentHTML('afterend', `<div style="width:4px;height:4px;border-radius:50%;background:rgba(14,165,233,${op.toFixed(1)})"></div>`);
+          }
+        </script>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#94a3b8;margin-top:6px;">Animated dot matrix — sky blue dots on light blue bg</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Sky Blue</h3>
+      <p>Lighter, friendlier feel. Sky blue gradient (#0ea5e9→#38bdf8), soft blue page tint, white card. Warmer and more approachable.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Indigo / Modern SaaS -->
+  <div class="card" data-choice="indigo" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#ffffff; border-bottom:1px solid #e2e8f0; padding:20px; font-family:system-ui;">
+      <div style="background:#ffffff; border-radius:12px; box-shadow:0 4px 24px rgba(99,102,241,0.12); padding:24px; max-width:260px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;">
+            <span style="color:white;font-size:18px;">+</span>
+          </div>
+          <div style="font-size:18px;font-weight:700;color:#312e81;">Welcome to MediCrew</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px;">Sign in to your account</div>
+        </div>
+        <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px;font-size:12px;color:#4338ca;text-align:center;margin-bottom:10px;">Sign in with Google</div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:8px 12px;font-size:12px;color:#94a3b8;text-align:center;margin-bottom:10px;">email@example.com →</div>
+        <div style="background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:20px;padding:8px 12px;font-size:12px;color:white;text-align:center;font-weight:600;">Continue</div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:center;gap:3px;flex-wrap:wrap;width:260px;margin-left:auto;margin-right:auto;">
+        <script>
+          for(let i=0;i<80;i++){
+            const op = Math.random() > 0.6 ? 0.7 : 0.15;
+            document.currentScript.insertAdjacentHTML('afterend', `<div style="width:4px;height:4px;border-radius:50%;background:rgba(99,102,241,${op.toFixed(1)})"></div>`);
+          }
+        </script>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#94a3b8;margin-top:6px;">Animated dot matrix — indigo dots on white</div>
+    </div>
+    <div class="card-body">
+      <h3>C — Indigo / Modern SaaS</h3>
+      <p>Bold indigo-violet palette (#6366f1), pure white background. More startup-energy, still professional. Strong visual impact.</p>
+    </div>
+  </div>
+
+</div>

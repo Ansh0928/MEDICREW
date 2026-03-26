@@ -1,0 +1,79 @@
+<h2>Patient sees simplicity. Agents do the heavy lifting.</h2>
+<p class="subtitle">How much of the swarm do patients actually see? Pick the style.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a; padding:1rem; font-size:0.78rem; font-family:system-ui; color:#e2e8f0; min-height:160px;">
+      <div style="color:#94a3b8; font-size:0.7rem; margin-bottom:0.5rem;">A — "Pulse" (minimal activity strip)</div>
+      <div style="background:#1e293b; border-radius:8px; padding:0.75rem; margin-bottom:0.5rem;">
+        <div style="color:#fbbf24; font-size:0.75rem;">You said: "chest pain, arm tingling 2 hours"</div>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center; padding:0.5rem 0.75rem; background:#1e3a5f; border-radius:8px; margin-bottom:0.5rem;">
+        <div style="display:flex;gap:3px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#60a5fa;animation:pulse 1s infinite;display:inline-block;"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:#f472b6;opacity:0.7;display:inline-block;"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:#34d399;opacity:0.5;display:inline-block;"></span>
+        </div>
+        <span style="color:#93c5fd;font-size:0.75rem;">Your care team is reviewing this...</span>
+      </div>
+      <div style="color:#94a3b8;font-size:0.7rem;text-align:center;">Patient only sees "team is working" — no agent names</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Minimal Pulse</h3>
+      <p>Animated dots + "your care team is reviewing." Patient feels something's happening but sees nothing complex. Maximum simplicity.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a; padding:1rem; font-size:0.78rem; font-family:system-ui; color:#e2e8f0; min-height:160px;">
+      <div style="color:#94a3b8; font-size:0.7rem; margin-bottom:0.5rem;">B — "Live Feed" (agent activity ticker)</div>
+      <div style="background:#1e293b; border-radius:8px; padding:0.75rem; margin-bottom:0.5rem;">
+        <div style="color:#fbbf24; font-size:0.75rem;">You said: "chest pain, arm tingling 2 hours"</div>
+      </div>
+      <div style="background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.72rem;">
+        <div style="color:#f87171; margin-bottom:2px;">🚨 Triage assessed: <strong>Urgent</strong></div>
+        <div style="color:#f472b6; margin-bottom:2px;">❤️ Cardiologist reviewing...</div>
+        <div style="color:#34d399; margin-bottom:2px;">🧠 Mental health checking anxiety link...</div>
+        <div style="color:#60a5fa;">👨‍⚕️ GP coordinating team...</div>
+      </div>
+      <div style="color:#94a3b8;font-size:0.7rem;text-align:center;margin-top:0.4rem;">Scrolling live ticker — agents appear as they activate</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Live Agent Feed</h3>
+      <p>Patient sees each specialist activate in real-time: "Cardiologist reviewing… Mental health checking…" Simple text, but they feel the team working.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a; padding:1rem; font-size:0.78rem; font-family:system-ui; color:#e2e8f0; min-height:160px;">
+      <div style="color:#94a3b8; font-size:0.7rem; margin-bottom:0.5rem;">C — "Avatar Orbs" (visual team)</div>
+      <div style="display:flex; gap:8px; justify-content:center; margin:0.75rem 0;">
+        <div style="text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid #f87171;">🚨</div>
+          <div style="font-size:0.6rem;color:#f87171;margin-top:2px;">Triage</div>
+        </div>
+        <div style="text-align:center;animation:pulse 1.5s infinite;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid #60a5fa;">❤️</div>
+          <div style="font-size:0.6rem;color:#60a5fa;margin-top:2px;">thinking...</div>
+        </div>
+        <div style="text-align:center;opacity:0.4;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-size:1rem;">🧠</div>
+          <div style="font-size:0.6rem;color:#6b7280;margin-top:2px;">waiting</div>
+        </div>
+        <div style="text-align:center;opacity:0.4;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-size:1rem;">👨‍⚕️</div>
+          <div style="font-size:0.6rem;color:#6b7280;margin-top:2px;">waiting</div>
+        </div>
+      </div>
+      <div style="color:#93c5fd; font-size:0.75rem; text-align:center; background:#1e3a5f; border-radius:8px; padding:0.4rem;">Your cardiology specialist is reviewing...</div>
+    </div>
+    <div class="card-body">
+      <h3>C — Avatar Orbs</h3>
+      <p>Row of doctor avatar orbs — lights up as each activates, dims when done. Patient sees "who's on their team" without reading long text. Very visual, very reassuring.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:1rem; font-size:0.82rem;">All 3 hide the swarm complexity. Patient never sees "sub-agent hypothesis 3 confidence 72%". They just feel cared for. Which feels right? (Can combine B + C)</p>

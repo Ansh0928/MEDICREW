@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthenticatedPatient } from "@/lib/auth";
 import { runConsultation, streamConsultation } from "@/agents/orchestrator";
 import { detectEmergency } from "@/lib/emergency-rules";
 import { checkConsent } from "@/lib/consent-check";
@@ -52,14 +53,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Consent gate — must have valid consent before processing health data
-    // TODO: Phase 2 will replace x-patient-id header with Supabase Auth session
-    const patientId = request.headers.get("x-patient-id");
-    if (!patientId) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
+    const { patient: authPatient, error: authError } = await getAuthenticatedPatient();
+    if (authError) return authError;
+    const patientId = authPatient.id;
     const hasConsent = await checkConsent(patientId);
     if (!hasConsent) {
       return NextResponse.json(
