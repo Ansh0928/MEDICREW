@@ -58,7 +58,7 @@
 
 - [ ] **ESCL-01**: Deterministic escalation rules engine: if patient response contains emergency keywords, immediately send high-priority notification + 000 referral
 - [ ] **ESCL-02**: Care status escalation: if patient reports "Worse" on check-in, urgency tier increases and specialist agent is notified in patient's care status
-- [ ] **ESCL-03**: Doctor portal shows a monitoring queue — all active patients with their last check-in status, urgency level, and last agent activity
+- [x] **ESCL-03**: Doctor portal shows a monitoring queue — all active patients with their last check-in status, urgency level, and last agent activity
 
 ### Notifications
 
@@ -132,7 +132,7 @@
 | CHKN-04 | Phase 3 | Pending |
 | ESCL-01 | Phase 3 | Pending |
 | ESCL-02 | Phase 3 | Pending |
-| ESCL-03 | Phase 3 | Pending |
+| ESCL-03 | Phase 3 | Complete |
 | NOTF-01 | Phase 3 | Pending |
 | NOTF-02 | Phase 3 | Pending |
 | NOTF-03 | Phase 3 | Pending |
