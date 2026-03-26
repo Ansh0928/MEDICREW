@@ -1,7 +1,7 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 11 — no changes detected)**
-Previous: Run 10 (no changes)
+**Last reviewed: 2026-03-26 (Run 12 — Phase 02-01 executed, swarm unaffected)**
+Previous: Run 11 (no changes)
 **Previous review: 2026-03-26 (Run 6)**
 **Reviewer:** Claude (automated)
 
@@ -10,6 +10,26 @@ Previous: Run 10 (no changes)
 ## Overall Status: ✅ HEALTHY
 
 The swarm architecture is fully implemented and passes all dependency checks. The 14 original issues are fixed. The system is ready for local testing and demo.
+
+---
+
+## Run 12: Phase 02-01 Progress Check
+
+### ✅ Swarm files unchanged
+No modifications to: `swarm.ts`, `swarm-types.ts`, `/api/swarm/start`, `/api/swarm/answer`, `SwarmChat.tsx`, or any specialist definitions. All 13/14 fixes remain in place.
+
+### ✅ Phase 02-01 executed (3 new commits since Run 11)
+- `bc3abe9` — Wave 0: Prisma schema migration (DOB/medications/allergies/CareTeamStatus/SymptomJournal), Supabase helpers, care-team-config, 11 test stubs
+- `f2a42a2` — Onboarding multi-step page, consent API (`/api/patient/consent`), onboarding API (`/api/patient/onboarding`)
+- `40b756c` — Phase 02-01 SUMMARY.md
+
+### ⚠️ Uncommitted change: `src/app/api/consult/route.ts`
+The old `/api/consult` route (orchestrator pipeline) has ~82 lines of uncommitted additions that build `CareTeamStatus` JSONB from agent messages and persist them to Prisma. This is Phase 02-01 work. It is NOT yet committed.
+
+**Action needed:** Commit or stage this file as part of Phase 02-01 completion. The change is expected (wires old pipeline to new CareTeamStatus schema) — it is not a regression.
+
+### ✅ Scope Boundaries confirmed in all 6 specialist prompts
+All guardrails intact post Phase 02-01 execution.
 
 ---
 
