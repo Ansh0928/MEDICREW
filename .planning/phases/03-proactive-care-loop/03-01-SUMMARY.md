@@ -57,10 +57,28 @@ completed: 2026-03-26
 - Both streaming and non-streaming consult routes fire consultation/completed event
 - Profile GET/PATCH support checkInsOptOut toggle
 
+## Deviations from Plan
+
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Inngest v4 createFunction API signature mismatch**
+- **Found during:** Task 1 verification (build failed)
+- **Issue:** functions.ts used Inngest v3 3-argument API (options, trigger, handler); v4 requires 2-arg form with triggers nested in options object
+- **Fix:** Changed to `createFunction({ id, name, triggers: [{ event }] }, handler)` v4 pattern
+- **Files modified:** src/lib/inngest/functions.ts
+- **Commit:** 6e0eb82
+
+**2. [Rule 1 - Bug] Resend client module-level instantiation threw on missing API key**
+- **Found during:** Task 1 verification (Next.js build page data collection failed)
+- **Issue:** `new Resend(process.env.RESEND_API_KEY)` at module top level threw when key was undefined, crashing route compilation
+- **Fix:** Moved instantiation into `getResendClient()` helper called lazily inside each send function, guarded by existing env check
+- **Files modified:** src/lib/email/resend.ts
+- **Commit:** 6e0eb82
+
 ## Self-Check: PASSED
 
 - grep "model CheckIn" prisma/schema.prisma: 1 match
 - grep "scheduleCheckIn" src/lib/inngest/functions.ts: 1 match
 - grep "inngest.send" src/app/api/consult/route.ts: 2 matches
 - grep "checkInsOptOut" src/app/api/patient/profile/route.ts: 5 matches
-- 47 tests passing
+- bun run build: compiled successfully

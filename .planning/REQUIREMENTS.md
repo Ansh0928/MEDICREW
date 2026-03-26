@@ -49,10 +49,10 @@
 
 ### Proactive Check-ins
 
-- [ ] **CHKN-01**: After each consultation, an Inngest job schedules a 48-hour follow-up check-in from the primary agent
-- [ ] **CHKN-02**: Check-in message sent as in-app notification: "Hi [Name], this is Alex AI — GP. How are you feeling since your consultation on [date]?"
+- [x] **CHKN-01**: After each consultation, an Inngest job schedules a 48-hour follow-up check-in from the primary agent
+- [x] **CHKN-02**: Check-in message sent as in-app notification: "Hi [Name], this is Alex AI — GP. How are you feeling since your consultation on [date]?"
 - [ ] **CHKN-03**: Patient can respond to check-in (quick options: Better / Same / Worse + optional free text)
-- [ ] **CHKN-04**: Patient can opt out of proactive check-ins from their profile settings
+- [x] **CHKN-04**: Patient can opt out of proactive check-ins from their profile settings
 
 ### Escalation & Monitoring
 
@@ -126,10 +126,10 @@
 | PROF-01 | Phase 2 | Complete |
 | PROF-02 | Phase 2 | Complete — 02-03 |
 | PROF-03 | Phase 2 | Complete |
-| CHKN-01 | Phase 3 | Pending |
-| CHKN-02 | Phase 3 | Pending |
+| CHKN-01 | Phase 3 | Complete |
+| CHKN-02 | Phase 3 | Complete |
 | CHKN-03 | Phase 3 | Pending |
-| CHKN-04 | Phase 3 | Pending |
+| CHKN-04 | Phase 3 | Complete |
 | ESCL-01 | Phase 3 | Pending |
 | ESCL-02 | Phase 3 | Pending |
 | ESCL-03 | Phase 3 | Complete |
