@@ -8,11 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MedicalHistoryStepProps {
-  patientId: string;
   onComplete: () => void;
 }
 
-export function MedicalHistoryStep({ patientId, onComplete }: MedicalHistoryStepProps) {
+export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
   const [knownConditions, setKnownConditions] = useState("");
@@ -80,7 +79,6 @@ export function MedicalHistoryStep({ patientId, onComplete }: MedicalHistoryStep
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-patient-id": patientId,
         },
         body: JSON.stringify({
           dateOfBirth,

@@ -14,11 +14,6 @@ const STEP_TITLES = [
   { title: "Meet Your Care Team", description: "Your personalised AI health team is ready." },
 ];
 
-// TODO: Phase 2 — replace with Supabase Auth session
-const DEMO_PATIENT_ID = typeof window !== "undefined"
-  ? localStorage.getItem("patientId") ?? "demo-patient"
-  : "demo-patient";
-
 function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
     <div className="flex items-center gap-2 mb-6">
@@ -77,16 +72,10 @@ function OnboardingContent() {
           </CardHeader>
           <CardContent>
             {clampedStep === 1 && (
-              <MedicalHistoryStep
-                patientId={DEMO_PATIENT_ID}
-                onComplete={() => goToStep(2)}
-              />
+              <MedicalHistoryStep onComplete={() => goToStep(2)} />
             )}
             {clampedStep === 2 && (
-              <ConsentStep
-                patientId={DEMO_PATIENT_ID}
-                onComplete={() => goToStep(3)}
-              />
+              <ConsentStep onComplete={() => goToStep(3)} />
             )}
             {clampedStep === 3 && <CareTeamIntroStep />}
           </CardContent>

@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 const CONSENT_VERSION = "1.0";
 
 interface ConsentStepProps {
-  patientId: string;
   onComplete: () => void;
 }
 
-export function ConsentStep({ patientId, onComplete }: ConsentStepProps) {
+export function ConsentStep({ onComplete }: ConsentStepProps) {
   const [healthData, setHealthData] = useState(false);
   const [aiGuidance, setAiGuidance] = useState(false);
   const [overseasProcessing, setOverseasProcessing] = useState(false);
@@ -31,7 +30,6 @@ export function ConsentStep({ patientId, onComplete }: ConsentStepProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-patient-id": patientId,
         },
         body: JSON.stringify({
           consentVersion: CONSENT_VERSION,
