@@ -3,6 +3,7 @@ import { runConsultation, streamConsultation } from "@/agents/orchestrator";
 import { detectEmergency } from "@/lib/emergency-rules";
 import { checkConsent } from "@/lib/consent-check";
 import { prisma } from "@/lib/prisma";
+import { inngest } from "@/lib/inngest/client";
 import { Prisma } from "@prisma/client";
 import { AgentMessage } from "@/agents/types";
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
             // Fetch patient profile for context injection (PROF-02)
             const patient = await prisma.patient.findUnique({
               where: { id: patientId },
-              select: { knownConditions: true, medications: true, age: true, gender: true, allergies: true },
+              select: { knownConditions: true, medications: true, age: true, gender: true, allergies: true, name: true },
             });
 
             const patientContext = patient
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
               });
             }
 
-            await prisma.consultation.create({
+            const consultation = await prisma.consultation.create({
               data: {
                 patientId,
                 symptoms,
@@ -125,6 +126,16 @@ export async function POST(request: NextRequest) {
                 recommendation: finalResult.recommendation !== undefined
                   ? (finalResult.recommendation as Prisma.InputJsonValue)
                   : Prisma.JsonNull,
+              },
+            });
+
+            // Fire Inngest check-in event — 48h durable delay (Phase 3)
+            await inngest.send({
+              name: "consultation/completed",
+              data: {
+                patientId,
+                consultationId: consultation.id,
+                patientName: patient?.name ?? "there",
               },
             });
           } catch (error) {
@@ -174,7 +185,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await prisma.consultation.create({
+    const nonStreamingPatient = await prisma.patient.findUnique({
+      where: { id: patientId },
+      select: { name: true },
+    });
+
+    const nonStreamingConsultation = await prisma.consultation.create({
       data: {
         patientId,
         symptoms,
@@ -182,6 +198,16 @@ export async function POST(request: NextRequest) {
         recommendation: result.recommendation !== undefined
           ? (result.recommendation as unknown as Prisma.InputJsonValue)
           : Prisma.JsonNull,
+      },
+    });
+
+    // Fire Inngest check-in event — 48h durable delay (Phase 3)
+    await inngest.send({
+      name: "consultation/completed",
+      data: {
+        patientId,
+        consultationId: nonStreamingConsultation.id,
+        patientName: nonStreamingPatient?.name ?? "there",
       },
     });
 

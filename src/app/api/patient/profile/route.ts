@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       emergencyContact: true,
       gpDetails: true,
       onboardingComplete: true,
+      checkInsOptOut: true,
     },
   });
 
@@ -49,12 +50,14 @@ export async function PATCH(request: NextRequest) {
     allergies,
     emergencyContact,
     gpDetails,
+    checkInsOptOut,
   } = body as {
     knownConditions?: string;
     medications?: string[];
     allergies?: string[];
     emergencyContact?: unknown;
     gpDetails?: unknown;
+    checkInsOptOut?: boolean;
   };
 
   // Validate medications and allergies are arrays if provided
@@ -83,6 +86,7 @@ export async function PATCH(request: NextRequest) {
       ...(gpDetails !== undefined && {
         gpDetails: gpDetails as Parameters<typeof prisma.patient.update>[0]["data"]["gpDetails"],
       }),
+      ...(typeof checkInsOptOut === "boolean" && { checkInsOptOut }),
     },
     select: {
       id: true,
@@ -95,6 +99,7 @@ export async function PATCH(request: NextRequest) {
       emergencyContact: true,
       gpDetails: true,
       onboardingComplete: true,
+      checkInsOptOut: true,
     },
   });
 

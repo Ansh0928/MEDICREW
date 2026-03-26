@@ -33,11 +33,14 @@ model Patient {
   onboardingComplete Boolean        @default(false)
   supabaseUserId     String?        @unique
 
+  checkInsOptOut     Boolean        @default(false)
+
   consultations      Consultation[]
   notifications      Notification[]
   consents           PatientConsent[]
   symptomJournals    SymptomJournal[]
   careTeamStatus     CareTeamStatus?
+  checkIns           CheckIn[]
 }
 
 // Consultation model - stores AI consultation history
@@ -57,6 +60,7 @@ model Consultation {
   recommendation    Json?    @db.JsonB
 
   createdAt     DateTime @default(now())
+  checkIns      CheckIn[]
 }
 
 // Doctor model - for demo, simple doctor profiles
@@ -116,4 +120,20 @@ model CareTeamStatus {
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   statuses  Json     @db.JsonB
   updatedAt DateTime @updatedAt
+}
+
+// CheckIn model - Phase 3 proactive care loop check-ins
+model CheckIn {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  consultationId  String
+  consultation    Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  status          String   @default("pending")   // pending, responded, expired
+  response        String?                          // "better" | "same" | "worse"
+  responseText    String?
+  notificationId  String?
+  scheduledFor    DateTime
+  respondedAt     DateTime?
+  createdAt       DateTime @default(now())
 }
