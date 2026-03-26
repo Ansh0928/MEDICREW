@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Clock, User, FileText, AlertCircle, LogOut, Users, HeartPulse } from "lucide-react";
 import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
+import { CarePlanDetail } from "@/components/dashboard/CarePlanDetail";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
 import { NotificationInbox } from "@/components/notifications/NotificationInbox";
 
@@ -279,7 +280,7 @@ export default function PatientPortal() {
               </motion.div>
             )}
 
-            {/* Care Plan Tab — DASH-02 basic form, Phase 4 will deepen */}
+            {/* Care Plan Tab — DASH-02 real care plan view */}
             {activeTab === "care-plan" && (
               <motion.div
                 key="care-plan"
@@ -287,20 +288,13 @@ export default function PatientPortal() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Your Care Plan</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Your care team is monitoring your health. Check-in scheduling will be available soon.
-                    </p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm">Status: Active monitoring</p>
-                      <p className="text-sm">Next check-in: Coming in Phase 3</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {patient ? (
+                  <CarePlanDetail patientId={patient.id} />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>Loading your care plan...</p>
+                  </div>
+                )}
               </motion.div>
             )}
 
