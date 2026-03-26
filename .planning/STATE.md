@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 01-02-PLAN.md. Next: 01-03."
+stopped_at: "Completed 01-03-PLAN.md. Next: 01-04 (care summary + AHPRA disclaimer)."
 last_updated: "2026-03-26T01:10:00.173Z"
 progress:
   total_phases: 4
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 01 (foundation-compliance) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -80,7 +80,7 @@ None yet.
 - [Phase 1 gate]: TGA SaMD classification assessment must be commissioned before public launch — outcome unknown, could be 6-18 months
 - [Phase 1 gate]: LLM provider DPAs (OpenAI, Groq) for AU health data must be confirmed before any real patient data is processed
 - [Phase 1 gate]: Supabase region must be verified as ap-southeast-2 before migration begins (manual — check Supabase Dashboard)
-- [Phase 1 gate]: AHPRA "Dr." vs "AI" naming decision must be resolved before any user-facing agent persona work
+- [Phase 1 gate]: AHPRA "Dr." vs "AI" naming decision RESOLVED — all agents renamed to AI format (see 01-03)
 
 ## Session Continuity
 
