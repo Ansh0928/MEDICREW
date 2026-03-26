@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
                 triageResponse: triageResponse ? JSON.stringify(triageResponse) : null,
                 gpResponse: gpResponse ? JSON.stringify(gpResponse) : null,
                 specialistResponse: specialistResponse ? JSON.stringify(specialistResponse) : null,
-                recommendation: recommendation ? JSON.stringify(recommendation) : null,
+                recommendation: recommendation ?? null,
             },
         });
 

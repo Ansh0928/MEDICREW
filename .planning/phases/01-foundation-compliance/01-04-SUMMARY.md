@@ -137,3 +137,14 @@ None — no external service configuration required.
 ---
 *Phase: 01-foundation-compliance*
 *Completed: 2026-03-26*
+
+## Self-Check: PASSED
+
+- FOUND: src/lib/consent-check.ts
+- FOUND: src/app/consent/page.tsx
+- FOUND: src/app/api/patient/export/route.ts
+- FOUND: src/app/api/patient/route.ts
+- FOUND: .planning/phases/01-foundation-compliance/01-04-SUMMARY.md
+- FOUND commit: 589cf9a (feat: consent gate)
+- FOUND commit: 06506ed (feat: patient export and delete)
+- FOUND commit: a95daf0 (docs: metadata)
