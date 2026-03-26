@@ -20,9 +20,9 @@ describe("retrieveMedicalContext", () => {
   test("returns chunks per specialty with AU disclaimer prefix", async () => {
     const result = await retrieveMedicalContext("chest pain", ["cardiology"]);
     expect(result.cardiology).toHaveLength(2);
-    expect(result.cardiology[0]).toContain("[Reference material");
-    expect(result.cardiology[0]).toContain("Australian clinical standards");
-    expect(result.cardiology[0]).toContain("cardiac assessment chunk");
+    expect(result.cardiology![0]).toContain("[Reference material");
+    expect(result.cardiology![0]).toContain("Australian clinical standards");
+    expect(result.cardiology![0]).toContain("cardiac assessment chunk");
   });
 
   test("returns empty object when embedText throws", async () => {
