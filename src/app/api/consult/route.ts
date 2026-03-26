@@ -26,16 +26,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Consent gate — must have valid consent before processing health data
-    // TODO: Extract patientId from session/auth context (Phase 2 will refine)
+    // TODO: Phase 2 will replace x-patient-id header with Supabase Auth session
     const patientId = request.headers.get("x-patient-id");
-    if (patientId) {
-      const hasConsent = await checkConsent(patientId);
-      if (!hasConsent) {
-        return NextResponse.json(
-          { error: "Consent required", redirectTo: "/consent" },
-          { status: 403 }
-        );
-      }
+    if (!patientId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+    const hasConsent = await checkConsent(patientId);
+    if (!hasConsent) {
+      return NextResponse.json(
+        { error: "Consent required", redirectTo: "/consent" },
+        { status: 403 }
+      );
     }
 
     if (stream) {
