@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedPatient } from "@/lib/auth";
 
 const onboardingSchema = z.object({
   dateOfBirth: z.string().min(1, "dateOfBirth is required"),
@@ -26,10 +27,9 @@ const onboardingSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const patientId = request.headers.get("x-patient-id");
-  if (!patientId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
+  const { patient, error } = await getAuthenticatedPatient();
+  if (error) return error;
+  const patientId = patient.id;
 
   const body = await request.json();
   const result = onboardingSchema.safeParse(body);
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     gpDetails,
   } = result.data;
 
-  const patient = await prisma.patient.update({
+  const updatedPatient = await prisma.patient.update({
     where: { id: patientId },
     data: {
       dateOfBirth: new Date(dateOfBirth),
@@ -65,5 +65,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(patient, { status: 200 });
+  return NextResponse.json(updatedPatient, { status: 200 });
 }
