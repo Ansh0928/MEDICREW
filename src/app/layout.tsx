@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, DM_Serif_Display, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -8,9 +8,9 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const dmSerif = DM_Serif_Display({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   variable: "--font-display",
 });
@@ -43,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${dmSerif.variable} ${ibmMono.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} ${ibmMono.variable} font-sans antialiased`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
