@@ -106,6 +106,13 @@ None - no external service configuration required.
 - Phase 4 (Retention + Polish) can begin: symptom trend charts, care plan UI, and monitoring queue urgency trend indicators
 - Monitoring queue urgency trend indicators (04-03) can consume the same /api/doctor/monitoring endpoint — extend with historical checkIn aggregation
 
+## Self-Check: PASSED
+
+- FOUND: src/app/api/doctor/monitoring/route.ts
+- FOUND: src/components/doctor/MonitoringQueue.tsx
+- FOUND: src/app/doctor/page.tsx
+- FOUND: commit ad5abad (feat(03-wave2): notification inbox UI, Resend email, doctor monitoring queue)
+
 ---
 *Phase: 03-proactive-care-loop*
 *Completed: 2026-03-26*
