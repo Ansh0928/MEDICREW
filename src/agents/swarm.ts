@@ -88,7 +88,7 @@ async function runHypothesisSubAgent(
 
   let tokenBuffer = "";
   const stream = await llm.stream([
-    new SystemMessage(`${agent.systemPrompt}${SCOPE_BOUNDARY}
+    new SystemMessage(`${agent.systemPrompt}
 You are evaluating ONE specific hypothesis. Be concise — max 150 words.
 Respond with JSON: { "confidence": 0-100, "reasoning": "brief reasoning", "needsClarification": "question or null" }`),
     new HumanMessage(`Patient: ${patientInfo.age}y ${patientInfo.gender}
@@ -215,7 +215,7 @@ async function runDebate(
 
       const llm = createFastModel();
       const response = await llm.invoke([
-        new SystemMessage(`${agent.systemPrompt}${SCOPE_BOUNDARY}
+        new SystemMessage(`${agent.systemPrompt}
 You are in a multidisciplinary team (MDT) meeting. Read all hypotheses and respond with ONE of: agree, challenge, or add_context.
 Be concise — max 100 words. Respond as JSON: { "type": "agree"|"challenge"|"add_context", "content": "your message", "referencingHypothesis": "hypothesis name or null" }`),
         new HumanMessage(`All team hypotheses:\n${allHypotheses}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}, symptoms: ${state.symptoms}`),
