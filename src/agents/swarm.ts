@@ -14,6 +14,7 @@ import {
 } from "./swarm-types";
 import { UrgencyLevel } from "./types";
 import crypto from "crypto";
+import { retrieveMedicalContext } from "@/lib/rag/retrieve";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -42,11 +43,15 @@ export function buildResidentPrompt(
   residentRole: ResidentRole,
   specialtyRole: DoctorRole,
   symptoms: string,
-  patientInfo: SwarmState["patientInfo"]
+  patientInfo: SwarmState["patientInfo"],
+  ragChunks: string[] = []
 ): string {
   const base = residentDefinitions[residentRole].systemPrompt;
   const context = `\n\n## Specialty Context\nYou are embedded in the ${specialtyRole} specialty team.\nPatient: ${patientInfo.age}y ${patientInfo.gender}${patientInfo.knownConditions ? `, conditions: ${patientInfo.knownConditions}` : ""}\nSymptoms: ${symptoms}`;
-  return base + context;
+  const ragSection = ragChunks.length > 0
+    ? `\n\n## Relevant Medical Reference\n${ragChunks.join("\n\n---\n\n")}`
+    : "";
+  return base + context + ragSection;
 }
 
 const SCOPE_BOUNDARY = `\n\n## Scope Boundaries\nYou provide health navigation guidance only — not medical diagnoses or prescriptions.\nNever state a definitive diagnosis. Use language like "may suggest", "could indicate", "worth investigating".\nIf you cannot assess confidently, say so explicitly.\nAlways recommend discussing findings with a qualified healthcare provider.`;
@@ -110,10 +115,11 @@ async function runResident(
   residentRole: ResidentRole,
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
+  ragChunks: string[] = []
 ): Promise<void> {
   const llm = createFastModel();
-  const systemPrompt = buildResidentPrompt(residentRole, specialtyRole, state.symptoms, state.patientInfo);
+  const systemPrompt = buildResidentPrompt(residentRole, specialtyRole, state.symptoms, state.patientInfo, ragChunks);
 
   const response = await llm.invoke([
     new SystemMessage(systemPrompt),
@@ -247,7 +253,8 @@ Respond ONLY with valid JSON:
 async function runLeadSwarm(
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
+  ragChunks: string[] = []
 ): Promise<void> {
   const leadDef = agentRegistry[specialtyRole];
   state.leadSwarms[specialtyRole] = {
@@ -262,7 +269,7 @@ async function runLeadSwarm(
   // L3: residents run in parallel
   await Promise.all(
     RESIDENT_ROLES.map((residentRole) =>
-      runResident(residentRole, specialtyRole, state, emit)
+      runResident(residentRole, specialtyRole, state, emit, ragChunks)
     )
   );
 
@@ -405,9 +412,20 @@ export async function* streamSwarm(
   yield* flush();
   if (state.currentPhase === "complete") return;
 
-  // L2-L5: all lead swarms in parallel
+  // L2-L5: RAG retrieval before fan-out
   const relevantDoctors = state.triage!.relevantDoctors;
-  await Promise.all(relevantDoctors.map((role) => runLeadSwarm(role, state, emit)));
+  let ragContext: Partial<Record<DoctorRole, string[]>> = {};
+  try {
+    ragContext = await retrieveMedicalContext(state.symptoms, relevantDoctors);
+  } catch (err) {
+    console.error("[RAG] retrieval failed, proceeding without context:", err);
+  }
+
+  await Promise.all(
+    relevantDoctors.map((role) =>
+      runLeadSwarm(role, state, emit, ragContext[role] ?? [])
+    )
+  );
   yield* flush();
 
   // L6
