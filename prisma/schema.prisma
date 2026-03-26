@@ -32,6 +32,7 @@ model Patient {
   gpDetails          Json?          @db.JsonB
   onboardingComplete Boolean        @default(false)
   supabaseUserId     String?        @unique
+  clerkUserId        String?        @unique
 
   checkInsOptOut     Boolean        @default(false)
 
