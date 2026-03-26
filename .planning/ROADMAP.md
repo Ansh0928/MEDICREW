@@ -29,13 +29,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A new patient cannot store any health data until they have completed the explicit Privacy Act consent step (what data, why, which overseas processors)
   4. Patient can export all their data and trigger full account deletion from the patient portal
   5. The application connects to Supabase PostgreSQL (Sydney ap-southeast-2), all tables have RLS, and LangGraph uses PostgresSaver for consultation thread checkpointing
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 01-01: Supabase PostgreSQL migration — replace SQLite, enable RLS, lock region to ap-southeast-2
-- [ ] 01-02: LangGraph PostgresSaver + Inngest setup
-- [ ] 01-03: AHPRA compliance layer — agent prompt disclaimers, AI disclosure, emergency rules engine
-- [ ] 01-04: Privacy consent flow, data export, and account deletion
+- [ ] 01-01-PLAN.md — Supabase PostgreSQL migration + vitest test infrastructure + RLS policies
+- [ ] 01-02-PLAN.md — LangGraph PostgresSaver checkpointer + Inngest background job setup
+- [ ] 01-03-PLAN.md — AHPRA compliance layer: agent renaming, disclaimers, emergency rules engine
+- [ ] 01-04-PLAN.md — Privacy consent flow, data export, and account deletion
 
 ### Phase 2: Core Patient Experience
 **Goal**: Patients feel continuously monitored by a named, consistent AI care team from the moment they finish onboarding
@@ -96,7 +96,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Compliance | 0/4 | Not started | - |
+| 1. Foundation + Compliance | 0/4 | Planned | - |
 | 2. Core Patient Experience | 0/4 | Not started | - |
 | 3. Proactive Care Loop | 0/4 | Not started | - |
 | 4. Retention + Polish | 0/3 | Not started | - |
