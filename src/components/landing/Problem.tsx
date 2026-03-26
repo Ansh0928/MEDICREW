@@ -1,77 +1,51 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { motion } from "framer-motion";
 import { Clock, MapPin, HelpCircle, DollarSign } from "lucide-react";
 
-const problems = [
-  {
-    icon: <Clock className="w-6 h-6" />,
-    stat: "4-6 weeks",
-    title: "Average specialist wait time",
-    description: "In Australia, waiting for a specialist appointment can take months.",
-  },
-  {
-    icon: <MapPin className="w-6 h-6" />,
-    stat: "7M+",
-    title: "Australians in rural areas",
-    description: "Limited access to healthcare specialists outside major cities.",
-  },
-  {
-    icon: <HelpCircle className="w-6 h-6" />,
-    stat: "65%",
-    title: "Unsure when to seek care",
-    description: "Most people don't know if their symptoms need urgent attention.",
-  },
-  {
-    icon: <DollarSign className="w-6 h-6" />,
-    stat: "$400+",
-    title: "Average specialist visit cost",
-    description: "Out-of-pocket costs can be a barrier to getting the right care.",
-  },
+const stats = [
+  { icon: <Clock className="w-5 h-5" />, stat: "4–6 weeks", label: "Avg. specialist wait time in Australia" },
+  { icon: <MapPin className="w-5 h-5" />, stat: "7M+", label: "Australians with limited specialist access" },
+  { icon: <HelpCircle className="w-5 h-5" />, stat: "65%", label: "Unsure if symptoms need urgent care" },
+  { icon: <DollarSign className="w-5 h-5" />, stat: "$400+", label: "Average out-of-pocket specialist visit" },
 ];
 
 export function Problem() {
   return (
-    <section className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Healthcare access shouldn't be this hard
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Millions of Australians face barriers to getting timely, quality healthcare guidance.
-          </p>
-        </motion.div>
+    <section className="bg-[#050505] py-24 px-6 border-t border-white/[0.04]">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          {/* Left */}
+          <div>
+            <p className="font-[family-name:var(--font-mono)] text-xs text-white/30 tracking-widest uppercase mb-4">
+              The Problem
+            </p>
+            <h2 className="font-[family-name:var(--font-display)] text-4xl md:text-5xl text-white leading-tight mb-6">
+              Healthcare access{" "}
+              <span className="italic text-blue-300">shouldn't be this hard.</span>
+            </h2>
+            <p className="text-white/40 text-base leading-relaxed max-w-sm">
+              Millions of Australians wait weeks or pay hundreds to understand their own symptoms.
+              MediCrew gives you the guidance — instantly, for free.
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {problems.map((problem, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="p-6 h-full hover:shadow-lg transition-shadow">
-                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-                  {problem.icon}
+          {/* Right — stats */}
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map((s, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-colors duration-300"
+              >
+                <div className="text-white/25 mb-3">{s.icon}</div>
+                <div className="font-[family-name:var(--font-display)] text-3xl text-white mb-1">
+                  {s.stat}
                 </div>
-                <div className="text-3xl font-bold text-primary mb-2">
-                  {problem.stat}
-                </div>
-                <h3 className="font-semibold mb-2">{problem.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {problem.description}
+                <p className="font-[family-name:var(--font-mono)] text-[11px] text-white/30 leading-snug">
+                  {s.label}
                 </p>
-              </Card>
-            </motion.div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

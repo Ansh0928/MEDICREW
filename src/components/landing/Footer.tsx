@@ -4,33 +4,32 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="py-12 border-t">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🏥</span>
-            <span className="font-bold text-xl">MediCrew</span>
+    <footer className="bg-black border-t border-white/[0.05] px-6 py-10">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded bg-white/10 border border-white/15 flex items-center justify-center text-xs text-white/60">
+            +
           </div>
-
-          <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-foreground transition-colors">
-              About
-            </Link>
-            <Link href="#" className="hover:text-foreground transition-colors">
-              Privacy
-            </Link>
-            <Link href="#" className="hover:text-foreground transition-colors">
-              Terms
-            </Link>
-            <Link href="#" className="hover:text-foreground transition-colors">
-              Contact
-            </Link>
-          </nav>
-
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} MediCrew. Health navigation, not medical advice.
-          </p>
+          <span className="font-[family-name:var(--font-mono)] text-sm text-white/50">
+            MediCrew
+          </span>
         </div>
+
+        <nav className="flex items-center gap-6">
+          {["About", "Privacy", "Terms", "Contact"].map((label) => (
+            <Link
+              key={label}
+              href="#"
+              className="font-[family-name:var(--font-mono)] text-xs text-white/25 hover:text-white/60 transition-colors"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <p className="font-[family-name:var(--font-mono)] text-[11px] text-white/20 text-center md:text-right">
+          © {new Date().getFullYear()} MediCrew · Health navigation, not medical advice.
+        </p>
       </div>
     </footer>
   );

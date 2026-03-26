@@ -1,38 +1,44 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 
 export function CTA() {
   return (
-    <section className="py-20">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <Card className="max-w-4xl mx-auto p-8 md:p-12 bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
-            <div className="text-center">
-              <div className="text-5xl mb-6">👨‍⚕️👩‍⚕️🩺</div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Ready to meet your AI care team?
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-                Start a free consultation now. No account needed, no data stored, just instant health navigation.
-              </p>
-              <Link href="/consult">
-                <Button size="lg" className="text-lg px-8 h-14 gap-2">
-                  Start Free Consultation
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </motion.div>
+    <section className="bg-[#050505] py-28 px-6 border-t border-white/[0.04]">
+      <div className="max-w-4xl mx-auto text-center">
+        {/* Glow */}
+        <div className="relative inline-block mb-10">
+          <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl scale-150 pointer-events-none" />
+          <span className="relative text-5xl">+</span>
+        </div>
+
+        <h2 className="font-[family-name:var(--font-display)] text-4xl md:text-6xl text-white leading-tight mb-6">
+          Ready to meet your{" "}
+          <span className="italic text-blue-300">AI care team?</span>
+        </h2>
+        <p className="text-white/40 text-lg mb-10 max-w-lg mx-auto">
+          Free consultation. No account. No data stored. Just instant, structured health guidance.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link
+            href="/consult"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white text-black font-medium font-[family-name:var(--font-mono)] text-sm hover:bg-blue-50 transition-all duration-200"
+          >
+            Start Free Consultation
+            <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+          </Link>
+          <Link
+            href="/login/patient"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-white/[0.12] text-white/60 font-[family-name:var(--font-mono)] text-sm hover:border-white/25 hover:text-white transition-all duration-200"
+          >
+            Patient Portal
+          </Link>
+        </div>
+
+        <p className="mt-8 font-[family-name:var(--font-mono)] text-[11px] text-white/20">
+          AHPRA-aligned · Privacy Act 1988 · Data stored in Australia
+        </p>
       </div>
     </section>
   );

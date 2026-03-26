@@ -1,8 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
 import { agentRegistry } from "@/agents/definitions";
 import { AgentRole } from "@/agents/types";
 
@@ -17,62 +14,74 @@ const teamRoles: AgentRole[] = [
   "physiotherapy",
 ];
 
+const roleAccent: Record<string, string> = {
+  triage:       "border-red-500/20 bg-red-500/5",
+  gp:           "border-blue-500/20 bg-blue-500/5",
+  cardiology:   "border-rose-500/20 bg-rose-500/5",
+  mental_health:"border-violet-500/20 bg-violet-500/5",
+  dermatology:  "border-amber-500/20 bg-amber-500/5",
+  orthopedic:   "border-cyan-500/20 bg-cyan-500/5",
+  gastro:       "border-emerald-500/20 bg-emerald-500/5",
+  physiotherapy:"border-orange-500/20 bg-orange-500/5",
+};
+
 export function MeetTheTeam() {
   return (
-    <section className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Meet Your AI Care Team
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Each consultation is reviewed by multiple AI specialists, working together to give you comprehensive guidance.
+    <section id="team" className="bg-[#050505] py-28 px-6 border-t border-white/[0.04]">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="max-w-xl">
+            <p className="font-[family-name:var(--font-mono)] text-xs text-white/30 tracking-widest uppercase mb-4">
+              Your AI Care Team
+            </p>
+            <h2 className="font-[family-name:var(--font-display)] text-4xl md:text-5xl text-white leading-tight">
+              Eight specialists.{" "}
+              <span className="italic text-blue-300">One consultation.</span>
+            </h2>
+          </div>
+          <p className="text-white/35 text-sm max-w-xs leading-relaxed">
+            Every case is reviewed by all relevant specialists simultaneously — not routed to just one.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-6xl mx-auto">
-          {teamRoles.map((role, index) => {
+        {/* Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {teamRoles.map((role) => {
             const agent = agentRegistry[role];
+            const accent = roleAccent[role] ?? "border-white/10 bg-white/[0.02]";
             return (
-              <motion.div
+              <div
                 key={role}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
+                className={`group relative rounded-2xl p-5 border ${accent} hover:scale-[1.02] transition-all duration-300 cursor-default`}
               >
-                <Card className="p-5 h-full hover:shadow-lg transition-all hover:-translate-y-1 group">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl group-hover:scale-110 transition-transform">
-                      {agent.emoji}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm mb-1 truncate">
-                        {agent.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                        {agent.description}
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {agent.specialties.slice(0, 2).map((specialty) => (
-                          <Badge
-                            key={specialty}
-                            variant="secondary"
-                            className="text-xs py-0"
-                          >
-                            {specialty}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
+                {/* Emoji */}
+                <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                  {agent.emoji}
+                </div>
+
+                {/* Name */}
+                <h3 className="text-white text-sm font-medium mb-1 leading-tight">
+                  {agent.name}
+                </h3>
+
+                {/* Description */}
+                <p className="text-white/35 text-xs leading-relaxed mb-4 line-clamp-2">
+                  {agent.description}
+                </p>
+
+                {/* Specialties */}
+                <div className="flex flex-wrap gap-1.5">
+                  {agent.specialties.slice(0, 2).map((s) => (
+                    <span
+                      key={s}
+                      className="font-[family-name:var(--font-mono)] text-[10px] text-white/30 border border-white/[0.08] rounded-full px-2 py-0.5 capitalize"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>

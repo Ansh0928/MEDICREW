@@ -1,75 +1,113 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 
 export function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b"
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-black/80 backdrop-blur-xl border-b border-white/[0.06]"
+          : "bg-transparent"
+      }`}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">🏥</span>
-            <span className="font-bold text-xl">MediCrew</span>
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-7 h-7 rounded-md bg-white/10 border border-white/20 flex items-center justify-center text-sm group-hover:bg-blue-500/20 group-hover:border-blue-400/40 transition-all duration-200">
+            +
+          </div>
+          <span className="font-[family-name:var(--font-mono)] text-sm font-medium text-white tracking-tight">
+            MediCrew
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          {[
+            { label: "How It Works", href: "#how-it-works" },
+            { label: "The Team", href: "#team" },
+            { label: "Trust & Safety", href: "#safety" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="font-[family-name:var(--font-mono)] text-xs text-white/50 hover:text-white transition-colors duration-200 tracking-wide uppercase"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right side */}
+        <div className="hidden md:flex items-center gap-5">
+          <Link
+            href="/login/patient"
+            className="font-[family-name:var(--font-mono)] text-xs text-white/40 hover:text-white/80 transition-colors"
+          >
+            Patient
           </Link>
+          <span className="text-white/20 text-xs">·</span>
+          <Link
+            href="/login/doctor"
+            className="font-[family-name:var(--font-mono)] text-xs text-white/40 hover:text-white/80 transition-colors"
+          >
+            Doctor
+          </Link>
+          <Link
+            href="/consult"
+            className="ml-2 px-4 py-2 rounded-md bg-white text-black text-xs font-medium font-[family-name:var(--font-mono)] hover:bg-white/90 transition-colors"
+          >
+            Start Consultation →
+          </Link>
+        </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link
-              href="#how-it-works"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="#team"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              The Team
-            </Link>
-            <Link
-              href="#safety"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Trust & Safety
-            </Link>
-          </nav>
+        {/* Mobile menu toggle */}
+        <button
+          className="md:hidden text-white/60 hover:text-white"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X size={18} /> : <Menu size={18} />}
+        </button>
+      </div>
 
-          {/* CTA */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2">
-              <Link
-                href="/login/patient"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Patient Login
-              </Link>
-              <span className="text-muted-foreground/50">|</span>
-              <Link
-                href="/login/doctor"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Doctor Login
-              </Link>
-            </div>
+      {/* Mobile menu */}
+      {open && (
+        <div className="md:hidden bg-black/95 border-b border-white/[0.06] px-6 py-6 flex flex-col gap-5">
+          {[
+            { label: "How It Works", href: "#how-it-works" },
+            { label: "The Team", href: "#team" },
+            { label: "Trust & Safety", href: "#safety" },
+          ].map((item) => (
             <Link
-              href="/login"
-              className="sm:hidden text-sm text-muted-foreground hover:text-foreground transition-colors"
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className="font-[family-name:var(--font-mono)] text-sm text-white/60 hover:text-white transition-colors"
             >
-              Login
+              {item.label}
             </Link>
-            <Link href="/consult">
-              <Button>Start Consultation</Button>
+          ))}
+          <div className="pt-2 flex flex-col gap-3 border-t border-white/[0.06]">
+            <Link href="/login/patient" className="font-[family-name:var(--font-mono)] text-sm text-white/40">Patient Login</Link>
+            <Link href="/login/doctor" className="font-[family-name:var(--font-mono)] text-sm text-white/40">Doctor Login</Link>
+            <Link href="/consult" className="mt-1 px-4 py-2.5 rounded-md bg-white text-black text-sm font-medium text-center">
+              Start Consultation
             </Link>
           </div>
         </div>
-      </div>
-    </motion.header>
+      )}
+    </header>
   );
 }

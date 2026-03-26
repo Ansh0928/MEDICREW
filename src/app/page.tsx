@@ -10,24 +10,20 @@ import { Footer } from "@/components/landing/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="bg-black min-h-screen">
       <Header />
-      <div className="pt-16">
-        <Hero />
-        <Problem />
-        <section id="how-it-works">
-          <HowItWorks />
-        </section>
-        <section id="team">
-          <MeetTheTeam />
-        </section>
-        <Features />
-        <section id="safety">
-          <TrustSection />
-        </section>
-        <CTA />
-        <Footer />
-      </div>
+      <Hero />
+      <Problem />
+      <HowItWorks />
+      <Features />
+      <section id="team">
+        <MeetTheTeam />
+      </section>
+      <section id="safety">
+        <TrustSection />
+      </section>
+      <CTA />
+      <Footer />
     </main>
   );
 }
