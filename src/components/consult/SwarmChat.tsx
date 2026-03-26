@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { DoctorOrbRow } from "./DoctorOrbRow";
 import { LiveFeedLine } from "./LiveFeedLine";
 import { ClarificationBubble } from "./ClarificationBubble";
@@ -20,8 +20,6 @@ export function SwarmChat() {
   const [clarifications, setClarifications] = useState<Array<{ clarificationId: string; doctorRole: DoctorRole; question: string }>>([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const tokenBufferRef = useRef<Record<string, string>>({});
 
   const updateOrb = useCallback((role: DoctorRole, status: OrbStatus) => {
     setOrbs((prev) => {
@@ -53,18 +51,24 @@ export function SwarmChat() {
         updateOrb(event.doctorRole, "done");
         break;
       case "doctor_token":
-        tokenBufferRef.current[event.doctorRole] = (tokenBufferRef.current[event.doctorRole] ?? "") + event.token;
+        // Token streaming is used for live feed updates via doctor_activated
         break;
       case "question_ready":
         setClarifications((prev) => [...prev, { clarificationId: event.clarificationId, doctorRole: event.doctorRole, question: event.question }]);
         setLiveFeed("Your care team has a question for you...");
         break;
       case "phase_changed":
-        if (event.phase === "debate") setLiveFeed("Your care team is discussing...");
+        if (event.phase === "debate") setLiveFeed("Your care team is discussing your case...");
         if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
+        if (event.phase === "awaiting_patient") setLiveFeed("Waiting for your answers to continue...");
         break;
       case "synthesis_complete":
         setSynthesis(event.data);
+        setIsLoading(false);
+        break;
+      case "done":
+        setIsLoading(false);
+        setLiveFeed("");
         break;
       case "error":
         setError(event.message);
@@ -88,22 +92,44 @@ export function SwarmChat() {
         body: JSON.stringify({ symptoms, patientInfo }),
       });
 
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: "Request failed" }));
+        const msg = res.status === 429
+          ? `Too many requests. Please wait ${errBody.retryAfter ?? 60} seconds.`
+          : errBody.error ?? "Failed to start consultation.";
+        setError(msg);
+        return;
+      }
+
       const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
       if (!reader) throw new Error("No stream");
+
+      // Create decoder ONCE before the while loop (streaming mode)
+      const decoder = new TextDecoder("utf-8");
+      let remainder = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const lines = decoder.decode(value).split("\n").filter((l) => l.startsWith("data: "));
+        // Stream-mode decode preserves multi-byte UTF-8 state across chunks
+        const chunk = decoder.decode(value, { stream: true });
+        const text = remainder + chunk;
+        const lines = text.split("\n");
+
+        // Last element may be incomplete — save for next iteration
+        remainder = lines.pop() ?? "";
+
         for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
           try {
-            const event: SwarmEvent = JSON.parse(line.replace("data: ", ""));
+            const event: SwarmEvent = JSON.parse(line.slice(6));
             handleEvent(event);
           } catch { /* skip malformed */ }
         }
       }
+      // Flush any remaining decoder state
+      decoder.decode();
     } catch (err) {
       setError("Connection issue. Please try again.");
     } finally {
@@ -120,7 +146,6 @@ export function SwarmChat() {
     setSynthesis(null);
     setError(null);
     setLiveFeed("");
-    tokenBufferRef.current = {};
     setPatientInfo({ age: "", gender: "", knownConditions: "" });
   };
 
