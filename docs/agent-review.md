@@ -1,15 +1,68 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 23 — ✅ HEALTHY: no changes)**
-Previous: Run 22 (v1.0 complete, all 4 phases done)
-**Previous review: 2026-03-26 (Run 6)**
+**Last reviewed: 2026-03-26 (Run 35 — ✅ HEALTHY: 130/130 tests, 0 skipped, 0 TS errors)**
+Previous: Run 34 (HEALTHY: RAG layer merged to master, corpus script pending run)
 **Reviewer:** Claude (automated)
 
 ---
 
-## Overall Status: ✅ HEALTHY
+## Run 34: RAG Merged to Master
 
-The swarm architecture is fully implemented and the patient consult page is reconnected to `<SwarmChat />`. All 13/14 original issues fixed (1 deferred). System is ready for local testing and demo.
+### Summary
+- PR#2 merged — RAG layer is now on master (commit `5c22689`)
+- MiroFish 7-layer swarm + RAG injection fully operational on master
+- `medical_chunks` table exists in Neon; corpus script NOT yet run (table is empty)
+- All agents healthy: swarm.ts L1-L7 intact, RAG fallback in place (silent if table empty)
+
+### Action needed
+- [ ] Run corpus script to populate medical_chunks: `DATABASE_URL=<prod> NOMIC_API_KEY=<key> bun run scripts/embed-corpus.ts` (~20 min)
+- [ ] After insert: create ivfflat index — `bunx prisma db execute --stdin <<< "CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);"`
+- [ ] Smoke test /consult after corpus loaded to verify RAG chunks appear in terminal logs
+
+---
+
+## Run 33: Medical RAG Layer Complete — PR#2 Open
+
+### Summary
+- All 6 RAG tasks implemented on `feature/medical-rag`, PR open: https://github.com/Ansh0928/MEDICREW/pull/2
+- `medical_chunks` pgvector table created in Neon production
+- `src/lib/rag/embed.ts` — Nomic AI embed helper (768-dim, res.ok guard)
+- `src/lib/rag/retrieve.ts` — parallel pgvector queries, AU disclaimer prefix, silent fallback
+- `src/agents/swarm.ts` — RAG wired in: triage → embed → retrieve → inject into resident prompts
+- `scripts/embed-corpus.ts` — one-time corpus loader (MedQA + PubMedQA, ~20 min)
+- 87 tests passing, 0 TypeScript errors
+
+### Action needed before merging PR#2
+- [ ] Run corpus script locally: `DATABASE_URL=<prod> NOMIC_API_KEY=<key> bun run scripts/embed-corpus.ts`
+- [ ] After corpus loaded: `bunx prisma db execute --stdin <<< "CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);"`
+- [ ] Smoke test /consult — confirm no `[RAG]` errors
+- [ ] Merge PR#2 into master
+- Next action: continue executing `docs/superpowers/plans/2026-03-26-medical-rag.md` Tasks 2-6 on `feature/medical-rag` branch
+
+---
+
+## Overall Status: ⚠️ IN PROGRESS — MiroFish Migration Partially Applied
+
+Old swarm flow still works (SwarmChat → swarm.ts → 5-layer pipeline). New resident layer has been scaffolded but NOT wired into swarm.ts. System is functional for existing users but the MiroFish architecture is incomplete.
+
+### What changed since Run 30
+
+**New files added (MiroFish scaffolding):**
+- `src/agents/definitions/residents/red-flag.ts` ✅ defined
+- `src/agents/definitions/residents/investigative.ts` ✅ defined
+- `src/agents/definitions/residents/pharmacological.ts` ✅ defined
+- `src/agents/definitions/residents/conservative.ts` ✅ defined
+- `src/agents/definitions/residents/index.ts` ✅ exports `residentDefinitions` registry
+- `src/app/api/swarm/followup/route.ts` ✅ created
+- `src/agents/swarm-types.ts` — `ResidentRole` type + `RESIDENT_ROLES` array added
+
+**Not yet updated:**
+- `src/agents/swarm.ts` — 0 references to residents, still runs 5-layer pipeline
+- No frontend components (HuddleRoom, AgentNode, HuddleChatPanel) detected yet
+
+### Action needed for new Claude session
+
+Pick up the MiroFish backend plan at `docs/superpowers/plans/` — the resident definitions are done (Tasks 1-2 of backend plan). Next task is wiring residents into `swarm.ts` (Task 3: 7-layer orchestrator). Residents are defined but the swarm never calls them.
 
 ---
 
