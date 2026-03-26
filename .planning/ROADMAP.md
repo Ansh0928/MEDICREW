@@ -12,7 +12,7 @@ Medicrew ships in four phases that follow a strict dependency chain: compliance 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation + Compliance** - Legal minimum and infrastructure before any real users
+- [x] **Phase 1: Foundation + Compliance** - Legal minimum and infrastructure before any real users (completed 2026-03-26)
 - [ ] **Phase 2: Core Patient Experience** - Named care team, streaming consultations, health profile
 - [ ] **Phase 3: Proactive Care Loop** - Check-ins, escalation detection, notifications
 - [ ] **Phase 4: Retention + Polish** - Symptom trends, care plan UI, monitoring queue
@@ -96,7 +96,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Compliance | 1/4 | In Progress|  |
+| 1. Foundation + Compliance | 4/4 | Complete   | 2026-03-26 |
 | 2. Core Patient Experience | 0/4 | Not started | - |
 | 3. Proactive Care Loop | 0/4 | Not started | - |
 | 4. Retention + Polish | 0/3 | Not started | - |

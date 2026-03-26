@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 01-03-PLAN.md. Next: 01-04 (care summary + AHPRA disclaimer)."
-last_updated: "2026-03-26T01:10:00.173Z"
+stopped_at: Completed 01-04-PLAN.md. Phase 01-foundation-compliance complete (4/4 plans done).
+last_updated: "2026-03-26T01:15:36.300Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Plan: 3 of 4
 | Phase 01-foundation-compliance P01 | 4 | 2 tasks | 15 files |
 | Phase 01-foundation-compliance P02 | 12 | 2 tasks | 6 files |
 | Phase 01-foundation-compliance P03 | 4 | 2 tasks | 14 files |
+| Phase 01-foundation-compliance P04 | 2 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 01-02]: Exit-mode checkpointing enforced by omitting interruptBefore/After in stream path — state only saved at graph completion
 - [Phase 01-03]: Agent names use em dash format: 'Alex AI — GP' (not 'Dr. Alex') per AHPRA safe AI identification
 - [Phase 01-03]: detectEmergency is a pure regex function — no LLM involved, deterministic, runs before any LangGraph invocation
+- [Phase 01-04]: Consent gate uses x-patient-id header (temporary) — Phase 2 Supabase Auth will replace with session-based identity
+- [Phase 01-04]: Soft delete preserves original email in deletedEmail for 30-day recovery window before Phase 3 hard-delete job
+- [Phase 01-04]: /consent page posts to /api/patient/consent not yet created — Phase 2 will implement consent record creation endpoint
 
 ### Pending Todos
 
@@ -84,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T01:10:00.171Z
-Stopped at: Completed 01-02-PLAN.md. Next: 01-03.
+Last session: 2026-03-26T01:15:36.298Z
+Stopped at: Completed 01-04-PLAN.md. Phase 01-foundation-compliance complete (4/4 plans done).
 Resume file: None
