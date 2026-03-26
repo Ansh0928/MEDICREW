@@ -13,6 +13,7 @@ import {
   SymptomJournalEntry,
   type JournalEntry,
 } from "@/components/profile/SymptomJournalEntry";
+import { SymptomTrendChart } from "@/components/profile/SymptomTrendChart";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -128,6 +129,11 @@ export default function ProfilePage() {
               />
             </div>
           </div>
+
+          {/* Symptom trend chart — full width below the two-column grid */}
+          <section className="mt-6">
+            <SymptomTrendChart patientId={profile.id} />
+          </section>
         </div>
       </main>
     </div>
