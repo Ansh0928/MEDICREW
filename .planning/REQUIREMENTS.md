@@ -30,7 +30,7 @@
 ### Care Team Dashboard
 
 - [ ] **DASH-01**: Patient dashboard shows their named care team with live status indicators (e.g., "Alex AI — GP: Reviewed your symptoms today")
-- [ ] **DASH-02**: Dashboard displays active care plan — current monitoring status, next check-in scheduled, open action items
+- [x] **DASH-02**: Dashboard displays active care plan — current monitoring status, next check-in scheduled, open action items
 - [ ] **DASH-03**: Dashboard shows consultation history with urgency levels, agent names who participated, and outcome summary
 - [ ] **DASH-04**: Real-time care team status updates via Supabase Realtime — no polling, updates within 2 seconds of agent activity
 
@@ -116,7 +116,7 @@
 | ONBD-02 | Phase 2 | Pending |
 | ONBD-03 | Phase 2 | Pending |
 | DASH-01 | Phase 2 | Pending |
-| DASH-02 | Phase 2 | Pending |
+| DASH-02 | Phase 2 | Complete |
 | DASH-03 | Phase 2 | Pending |
 | DASH-04 | Phase 2 | Pending |
 | CONS-01 | Phase 2 | Complete — 02-03 |
