@@ -12,12 +12,12 @@
 - [ ] **COMP-03**: Emergency signals (chest pain, suicidal ideation, stroke FAST symptoms, severe allergic reaction) trigger deterministic keyword/rules detection before any LLM processing, with mandatory 000 referral
 - [ ] **COMP-04**: Patient onboarding includes explicit consent for: data collection, AI-provided health guidance, LLM providers processing data overseas, optional proactive check-ins
 - [ ] **COMP-05**: Patient can export their data (APP 12) and request account deletion with full cascade from patient portal
-- [ ] **COMP-06**: Supabase project locked to Sydney region (ap-southeast-2) for Privacy Act APP 8 compliance
+- [x] **COMP-06**: Supabase project locked to Sydney region (ap-southeast-2) for Privacy Act APP 8 compliance
 
 ### Database & Infrastructure
 
-- [ ] **INFRA-01**: SQLite replaced with Supabase PostgreSQL — all Prisma models migrated, connection uses `DATABASE_URL` (pooled) + `DIRECT_URL` (direct for migrations)
-- [ ] **INFRA-02**: Supabase Row Level Security (RLS) enabled — patients can only read/write their own records
+- [x] **INFRA-01**: SQLite replaced with Supabase PostgreSQL — all Prisma models migrated, connection uses `DATABASE_URL` (pooled) + `DIRECT_URL` (direct for migrations)
+- [x] **INFRA-02**: Supabase Row Level Security (RLS) enabled — patients can only read/write their own records
 - [ ] **INFRA-03**: `@langchain/langgraph-checkpoint-postgres` installed and configured as consultation thread checkpointer
 - [ ] **INFRA-04**: Inngest configured for durable background job execution (proactive check-ins, escalation scanning)
 
@@ -107,9 +107,9 @@
 | COMP-03 | Phase 1 | Pending |
 | COMP-04 | Phase 1 | Pending |
 | COMP-05 | Phase 1 | Pending |
-| COMP-06 | Phase 1 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
+| COMP-06 | Phase 1 | Complete |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Pending |
 | INFRA-04 | Phase 1 | Pending |
 | ONBD-01 | Phase 2 | Pending |
