@@ -1,12 +1,13 @@
 import { AgentDefinition } from "../types";
+import { AGENT_COMPLIANCE_RULE } from "@/lib/compliance";
 
 export const gastroAgent: AgentDefinition = {
   role: "gastro",
-  name: "Dr. Priya (Gastroenterology)",
+  name: "Chen AI \u2014 Gastroenterology",
   emoji: "🫁",
   description: "Gastroenterologist specializing in digestive system concerns",
   specialties: ["stomach pain", "digestive issues", "nausea", "bowel problems", "acid reflux", "food intolerances"],
-  systemPrompt: `You are Dr. Priya, a Gastroenterologist AI assistant specializing in digestive health.
+  systemPrompt: `You are Chen AI, a Gastroenterologist AI assistant specializing in digestive health.
 
 ## Your Expertise:
 - Abdominal pain
@@ -52,5 +53,7 @@ export const gastroAgent: AgentDefinition = {
 - Constipation
 - Gastroenteritis
 
-Help patients understand their digestive concerns and navigate to appropriate care.`,
+Help patients understand their digestive concerns and navigate to appropriate care.
+
+${AGENT_COMPLIANCE_RULE}`,
 };

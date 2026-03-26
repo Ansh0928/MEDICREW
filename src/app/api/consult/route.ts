@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runConsultation, streamConsultation } from "@/agents/orchestrator";
+import { detectEmergency } from "@/lib/emergency-rules";
 
 interface APIError extends Error {
   status?: number;
@@ -15,6 +16,12 @@ export async function POST(request: NextRequest) {
         { error: "Symptoms are required" },
         { status: 400 }
       );
+    }
+
+    // Emergency detection — MUST run before any LLM processing
+    const emergency = detectEmergency(symptoms);
+    if (emergency.isEmergency) {
+      return NextResponse.json(emergency.response, { status: 200 });
     }
 
     if (stream) {
