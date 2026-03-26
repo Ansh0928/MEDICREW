@@ -408,7 +408,7 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
       href="/login"
       className="px-4 py-2 sm:px-3 text-xs sm:text-sm border border-slate-200 bg-white text-slate-600 rounded-full hover:border-slate-400 hover:text-slate-900 transition-colors duration-200 w-full sm:w-auto text-center block"
     >
-      Back
+      ← Back
     </a>
   );
 
