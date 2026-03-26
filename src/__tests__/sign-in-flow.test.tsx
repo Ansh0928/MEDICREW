@@ -102,6 +102,14 @@ import { SignInPage } from "@/components/ui/sign-in-flow-1";
 import * as AuthContext from "@/contexts/AuthContext";
 import * as Nav from "next/navigation";
 
+// Fix 5: reset the login mock before every test to prevent state bleed
+beforeEach(() => {
+  vi.clearAllMocks();
+  const { useAuth } = AuthContext as any;
+  const { login } = useAuth();
+  vi.mocked(login).mockReset();
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function renderPatient() {
   return render(<SignInPage role="patient" />);

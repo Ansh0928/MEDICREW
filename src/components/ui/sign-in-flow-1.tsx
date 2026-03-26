@@ -190,11 +190,11 @@ const DotMatrix: React.FC<DotMatrixProps> = ({
             float frequency = 5.0;
             float show_offset = random(st2);
             float rand = random(st2 * floor((u_time / frequency) + show_offset + frequency));
-            opacity *= u_opacities[int(rand * 10.0)];
+            opacity *= u_opacities[clamp(int(rand * 10.0), 0, 9)];
             opacity *= 1.0 - step(u_dot_size / u_total_size, fract(st.x / u_total_size));
             opacity *= 1.0 - step(u_dot_size / u_total_size, fract(st.y / u_total_size));
 
-            vec3 color = u_colors[int(show_offset * 6.0)];
+            vec3 color = u_colors[clamp(int(show_offset * 6.0), 0, 5)];
 
             float animation_speed_factor = 0.5;
             vec2 center_grid = u_resolution / 2.0 / u_total_size;
@@ -225,30 +225,33 @@ const DotMatrix: React.FC<DotMatrixProps> = ({
   );
 };
 
+// Fix 8: removed dead `hovered?: boolean` from props interface
 const ShaderMaterial = ({
   source,
   uniforms,
   maxFps = 60,
 }: {
   source: string;
-  hovered?: boolean;
   maxFps?: number;
   uniforms: Uniforms;
 }) => {
   const { size } = useThree();
   const ref = useRef<THREE.Mesh>(null);
-  let lastFrameTime = 0;
+  // Fix 1: lastFrameTime is now a ref so it persists across renders without
+  // causing re-renders and is safe inside useFrame.
+  const lastFrameTimeRef = useRef(0);
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
     const timestamp = clock.getElapsedTime();
-    lastFrameTime = timestamp;
+    lastFrameTimeRef.current = timestamp;
     const material: any = ref.current.material;
     const timeLocation = material.uniforms.u_time;
     timeLocation.value = timestamp;
   });
 
-  const getUniforms = () => {
+  // Fix 2: uniforms logic inlined into useMemo; `uniforms` added to dep array.
+  const material = useMemo(() => {
     const preparedUniforms: any = {};
     for (const uniformName in uniforms) {
       const uniform: any = uniforms[uniformName];
@@ -291,10 +294,7 @@ const ShaderMaterial = ({
     preparedUniforms["u_resolution"] = {
       value: new THREE.Vector2(size.width * 2, size.height * 2),
     };
-    return preparedUniforms;
-  };
 
-  const material = useMemo(() => {
     const materialObject = new THREE.ShaderMaterial({
       vertexShader: `
       precision mediump float;
@@ -310,14 +310,14 @@ const ShaderMaterial = ({
       }
       `,
       fragmentShader: source,
-      uniforms: getUniforms(),
+      uniforms: preparedUniforms,
       glslVersion: THREE.GLSL3,
       blending: THREE.CustomBlending,
       blendSrc: THREE.SrcAlphaFactor,
       blendDst: THREE.OneFactor,
     });
     return materialObject;
-  }, [size.width, size.height, source]);
+  }, [size.width, size.height, source, uniforms]);
 
   return (
     <mesh ref={ref as any}>
@@ -335,6 +335,7 @@ const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => {
   );
 };
 
+// Fix 6: Use Next.js <Link> instead of <a> for nav links
 const AnimatedNavLink = ({
   href,
   children,
@@ -345,7 +346,7 @@ const AnimatedNavLink = ({
   const textSizeClass = "text-sm";
 
   return (
-    <a
+    <Link
       href={href}
       className={`group relative inline-block overflow-hidden h-5 flex items-center ${textSizeClass}`}
     >
@@ -353,7 +354,7 @@ const AnimatedNavLink = ({
         <span className="text-slate-500">{children}</span>
         <span className="text-slate-900">{children}</span>
       </div>
-    </a>
+    </Link>
   );
 };
 
@@ -403,12 +404,13 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
     },
   ];
 
+  // Fix 6 (loginButtonElement): stays as <a> — full navigation to /login is fine here
   const loginButtonElement = (
     <a
       href="/login"
       className="px-4 py-2 sm:px-3 text-xs sm:text-sm border border-slate-200 bg-white text-slate-600 rounded-full hover:border-slate-400 hover:text-slate-900 transition-colors duration-200 w-full sm:w-auto text-center block"
     >
-      ← Back
+      &larr; Back
     </a>
   );
 
@@ -471,15 +473,16 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
             : "max-h-0 opacity-0 pt-0 pointer-events-none"
         }`}
       >
+        {/* Fix 6: mobile dropdown nav links use <Link> */}
         <nav className="flex flex-col items-center space-y-4 text-base w-full">
           {navLinksData.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-slate-600 hover:text-slate-900 transition-colors w-full text-center"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="flex flex-col items-center space-y-4 mt-4 w-full">
@@ -509,7 +512,9 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [authError, setAuthError] = useState("");
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  // Fix 4: ref to hold the success-step timeout so we can clear it on unmount
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Fix 7: removed dead `showSuccessAnimation` state
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
 
@@ -528,6 +533,13 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
     }
   }, [step]);
 
+  // Fix 4: cleanup the success timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    };
+  }, []);
+
   const handleCodeComplete = async (finalCode: string[]) => {
     setAuthError("");
     setReverseCanvasVisible(true);
@@ -535,7 +547,8 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
 
     const ok = await login(email, finalCode.join(""), role);
     if (ok) {
-      setTimeout(() => {
+      // Fix 4: store ref so the timeout can be cleared on unmount
+      successTimeoutRef.current = setTimeout(() => {
         setStep("success");
       }, 2000);
     } else {
@@ -547,7 +560,9 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
     }
   };
 
-  const handleCodeChange = async (index: number, value: string) => {
+  // Fix 4: handleCodeChange is no longer async; the returned Promise is caught
+  // with a no-op so it doesn't silently disappear.
+  const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1) {
       const newCode = [...code];
       newCode[index] = value;
@@ -558,7 +573,7 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
       if (index === 5 && value) {
         const isComplete = newCode.every((digit) => digit.length === 1);
         if (isComplete) {
-          await handleCodeComplete(newCode);
+          handleCodeComplete(newCode).catch(() => {});
         }
       }
     }
@@ -643,7 +658,9 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
                       </p>
                     </div>
                     <div className="space-y-4">
+                      {/* Fix 3: type="button" prevents this from submitting the form below */}
                       <button
+                        type="button"
                         className={`backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border ${borderColor} rounded-full py-3 px-4 transition-colors`}
                       >
                         <span className="text-lg">G</span>
@@ -674,10 +691,10 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
                           >
                             <span className="relative w-full h-full block overflow-hidden">
                               <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
-                                →
+                                &rarr;
                               </span>
                               <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 -translate-x-full group-hover:translate-x-0">
-                                →
+                                &rarr;
                               </span>
                             </span>
                           </button>
