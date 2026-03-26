@@ -1,7 +1,7 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 16 — ⚠️ SWARM STILL DISCONNECTED — no fix yet)**
-Previous: Run 15 (no changes)
+**Last reviewed: 2026-03-26 (Run 17 — ⚠️ SWARM STILL DISCONNECTED — 5 runs, no fix)**
+Previous: Run 16 (no changes)
 **Previous review: 2026-03-26 (Run 6)**
 **Reviewer:** Claude (automated)
 
