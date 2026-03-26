@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         try {
           for await (const event of streamDoctorConsultation(symptomCheck)) {
-            const data = JSON.stringify(event) + "\n";
-            controller.enqueue(encoder.encode(`data: ${data}\n`));
+            const data = JSON.stringify(event);
+            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
