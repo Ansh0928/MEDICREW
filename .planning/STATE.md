@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-03-PLAN.md. Phase 02-core-patient-experience plan 3/4 done.
-last_updated: "2026-03-26T08:00:00.000Z"
+stopped_at: Completed 02-04-PLAN.md. Phase 02-core-patient-experience plan 4/4 done — phase complete.
+last_updated: "2026-03-26T03:40:33.529Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 8
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Plan: 3 of 4
 | Phase 01-foundation-compliance P03 | 4 | 2 tasks | 14 files |
 | Phase 01-foundation-compliance P04 | 2 | 2 tasks | 8 files |
 | Phase 02-core-patient-experience P03 | 15 | 2 tasks | 4 files |
+| Phase 02-core-patient-experience P04 | 4 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase 02-03]: graph.streamEvents() v2 used for token-level streaming — single loop handles all node token deltas via on_llm_stream events
 - [Phase 02-03]: CARE_TEAM (not agentRegistry) in client components — agentRegistry has server-only systemPrompts
 - [Phase 02-03]: consult/page.tsx replaced SwarmChat with direct /api/consult SSE — SwarmChat remains functional at /api/swarm/start
+- [Phase 02-04]: CareSummary renders only after streaming completes (!isStreaming) to avoid partial render during recommendation generation
+- [Phase 02-04]: dateOfBirth and gender are read-only on profile page — set during onboarding, editing would risk data integrity
+- [Phase 02-04]: API route pattern: x-patient-id header auth gate, early return 401, then prisma operation for all patient API routes
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T08:00:00.000Z
-Stopped at: Completed 02-03-PLAN.md. Phase 02-core-patient-experience plan 3/4 done.
+Last session: 2026-03-26T03:40:33.526Z
+Stopped at: Completed 02-04-PLAN.md. Phase 02-core-patient-experience plan 4/4 done — phase complete.
 Resume file: None
