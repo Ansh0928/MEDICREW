@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-04-PLAN.md. Phase 01-foundation-compliance complete (4/4 plans done).
-last_updated: "2026-03-26T03:06:22.805Z"
+stopped_at: Completed 02-03-PLAN.md. Phase 02-core-patient-experience plan 3/4 done.
+last_updated: "2026-03-26T08:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 02 (core-patient-experience) — EXECUTING
-Plan: 1 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Plan: 1 of 4
 | Phase 01-foundation-compliance P02 | 12 | 2 tasks | 6 files |
 | Phase 01-foundation-compliance P03 | 4 | 2 tasks | 14 files |
 | Phase 01-foundation-compliance P04 | 2 | 2 tasks | 8 files |
+| Phase 02-core-patient-experience P03 | 15 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 01-04]: Consent gate uses x-patient-id header (temporary) — Phase 2 Supabase Auth will replace with session-based identity
 - [Phase 01-04]: Soft delete preserves original email in deletedEmail for 30-day recovery window before Phase 3 hard-delete job
 - [Phase 01-04]: /consent page posts to /api/patient/consent not yet created — Phase 2 will implement consent record creation endpoint
+- [Phase 02-03]: graph.streamEvents() v2 used for token-level streaming — single loop handles all node token deltas via on_llm_stream events
+- [Phase 02-03]: CARE_TEAM (not agentRegistry) in client components — agentRegistry has server-only systemPrompts
+- [Phase 02-03]: consult/page.tsx replaced SwarmChat with direct /api/consult SSE — SwarmChat remains functional at /api/swarm/start
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T01:15:36.298Z
-Stopped at: Completed 01-04-PLAN.md. Phase 01-foundation-compliance complete (4/4 plans done).
+Last session: 2026-03-26T08:00:00.000Z
+Stopped at: Completed 02-03-PLAN.md. Phase 02-core-patient-experience plan 3/4 done.
 Resume file: None

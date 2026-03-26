@@ -36,15 +36,15 @@
 
 ### Consultation Experience
 
-- [ ] **CONS-01**: Consultation UI shows which AI agent is currently speaking — agent name, avatar, specialty badge visible during streaming
-- [ ] **CONS-02**: Agent responses stream in real-time via SSE — patient sees text appear progressively, not all-at-once
-- [ ] **CONS-03**: After triage, patient can see which specialists are reviewing their case ("Dr. Sarah AI — Cardiology is reviewing")
+- [x] **CONS-01**: Consultation UI shows which AI agent is currently speaking — agent name, avatar, specialty badge visible during streaming
+- [x] **CONS-02**: Agent responses stream in real-time via SSE — patient sees text appear progressively, not all-at-once
+- [x] **CONS-03**: After triage, patient can see which specialists are reviewing their case ("Dr. Sarah AI — Cardiology is reviewing")
 - [ ] **CONS-04**: Consultation ends with a structured Care Summary: urgency, what agents found, next steps, timeframe, disclaimer
 
 ### Patient Health Profile
 
 - [ ] **PROF-01**: Patient has a persistent health profile page — known conditions, medications, allergies, consultation history summary
-- [ ] **PROF-02**: Agents access patient profile context at consultation start — personalized responses ("I see you have a history of asthma")
+- [x] **PROF-02**: Agents access patient profile context at consultation start — personalized responses ("I see you have a history of asthma")
 - [ ] **PROF-03**: Symptom journal: patient can log daily symptoms (1-5 severity + free text) between consultations
 
 ### Proactive Check-ins
@@ -119,12 +119,12 @@
 | DASH-02 | Phase 2 | Pending |
 | DASH-03 | Phase 2 | Pending |
 | DASH-04 | Phase 2 | Pending |
-| CONS-01 | Phase 2 | Pending |
-| CONS-02 | Phase 2 | Pending |
-| CONS-03 | Phase 2 | Pending |
+| CONS-01 | Phase 2 | Complete — 02-03 |
+| CONS-02 | Phase 2 | Complete — 02-03 |
+| CONS-03 | Phase 2 | Complete — 02-03 |
 | CONS-04 | Phase 2 | Pending |
 | PROF-01 | Phase 2 | Pending |
-| PROF-02 | Phase 2 | Pending |
+| PROF-02 | Phase 2 | Complete — 02-03 |
 | PROF-03 | Phase 2 | Pending |
 | CHKN-01 | Phase 3 | Pending |
 | CHKN-02 | Phase 3 | Pending |

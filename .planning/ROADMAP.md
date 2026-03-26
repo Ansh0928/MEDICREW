@@ -52,7 +52,7 @@ Plans:
 Plans:
 - [ ] 02-01-PLAN.md — Patient onboarding: Prisma schema migration, consent API, Supabase client helpers, multi-step onboarding page
 - [ ] 02-02-PLAN.md — Care team dashboard: Supabase Realtime status indicators, consultation history, care plan card
-- [ ] 02-03-PLAN.md — Streaming consultation UI: SSE agent identity metadata, AgentOverlay, routing events
+- [x] 02-03-PLAN.md — Streaming consultation UI: SSE agent identity metadata, AgentOverlay, routing events
 - [ ] 02-04-PLAN.md — Care Summary component, patient health profile page, symptom journal
 
 ### Phase 3: Proactive Care Loop
