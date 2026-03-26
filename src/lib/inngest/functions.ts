@@ -1,9 +1,13 @@
 import { inngest } from "./client";
 import { prisma } from "@/lib/prisma";
+import { sendCheckInEmail } from "@/lib/email/resend";
 
 export const scheduleCheckIn = inngest.createFunction(
-  { id: "schedule-check-in", name: "Schedule Patient Check-In" },
-  { event: "consultation/completed" },
+  {
+    id: "schedule-check-in",
+    name: "Schedule Patient Check-In",
+    triggers: [{ event: "consultation/completed" }],
+  },
   async ({ event, step }) => {
     const { patientId, consultationId, patientName } = event.data;
 
@@ -14,7 +18,7 @@ export const scheduleCheckIn = inngest.createFunction(
     const patient = await step.run("check-opt-out", async () => {
       return prisma.patient.findUnique({
         where: { id: patientId },
-        select: { checkInsOptOut: true, name: true, deletedAt: true },
+        select: { checkInsOptOut: true, name: true, deletedAt: true, email: true },
       });
     });
 
@@ -22,8 +26,8 @@ export const scheduleCheckIn = inngest.createFunction(
       return { skipped: true, reason: "opted-out-or-deleted" };
     }
 
-    // Create in-app notification as check-in message
-    const notification = await step.run("create-check-in-notification", async () => {
+    // Resolve the check-in message text (used in both notification and email)
+    const checkInMessage = await step.run("resolve-check-in-message", async () => {
       const consultation = await prisma.consultation.findUnique({
         where: { id: consultationId },
         select: { createdAt: true },
@@ -37,8 +41,11 @@ export const scheduleCheckIn = inngest.createFunction(
           })
         : "your recent visit";
 
-      const checkInMessage = `Hi ${patientName}, this is Alex AI \u2014 GP. How are you feeling since your consultation on ${consultDate}?`;
+      return `Hi ${patientName}, this is Alex AI \u2014 GP. How are you feeling since your consultation on ${consultDate}?`;
+    });
 
+    // Create in-app notification as check-in message
+    const notification = await step.run("create-check-in-notification", async () => {
       return prisma.notification.create({
         data: {
           patientId,
@@ -60,6 +67,13 @@ export const scheduleCheckIn = inngest.createFunction(
           scheduledFor: new Date(),
         },
       });
+    });
+
+    // Send check-in follow-up email via Resend
+    await step.run("send-check-in-email", async () => {
+      if (patient.email) {
+        await sendCheckInEmail(patient.email, patientName, checkInMessage);
+      }
     });
 
     return { success: true, notificationId: notification.id };
