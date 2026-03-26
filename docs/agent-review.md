@@ -1,7 +1,7 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 13 — ⚠️ SWARM DISCONNECTED from patient UI)**
-Previous: Run 12 (Phase 02-01 executed, uncommitted consult route flagged)
+**Last reviewed: 2026-03-26 (Run 14 — ⚠️ SWARM STILL DISCONNECTED — no fix yet)**
+Previous: Run 13 (SwarmChat displaced by Phase 02-03)
 **Previous review: 2026-03-26 (Run 6)**
 **Reviewer:** Claude (automated)
 
