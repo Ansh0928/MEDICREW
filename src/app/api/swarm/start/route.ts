@@ -10,7 +10,7 @@ export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  const rateCheck = checkRateLimit(ip);
+  const rateCheck = await checkRateLimit(ip);
   if (!rateCheck.allowed) {
     return new Response(
       JSON.stringify({ error: "Too many requests", retryAfter: rateCheck.retryAfter }),

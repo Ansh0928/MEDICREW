@@ -1,26 +1,19 @@
 // src/lib/rate-limit.ts
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-const store = new Map<string, RateLimitEntry>();
-const MAX_REQUESTS = 5;
-const WINDOW_MS = 60_000;
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(5, "60 s"),
+  prefix: "medicrew:rl",
+});
 
-export function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
-  const now = Date.now();
-  const entry = store.get(ip);
-
-  if (!entry || now > entry.resetAt) {
-    store.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return { allowed: true };
+export async function checkRateLimit(
+  ip: string
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const { success, reset } = await ratelimit.limit(ip);
+  if (!success) {
+    return { allowed: false, retryAfter: Math.ceil((reset - Date.now()) / 1000) };
   }
-
-  if (entry.count >= MAX_REQUESTS) {
-    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
-  }
-
-  entry.count++;
   return { allowed: true };
 }
