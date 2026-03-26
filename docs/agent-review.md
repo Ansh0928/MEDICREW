@@ -1,7 +1,7 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-26 (Run 20 — ✅ FIXED: SwarmChat reconnected to consult page)**
-Previous: Run 19 (no changes, 8th run flagging disconnect)
+**Last reviewed: 2026-03-26 (Run 21 — ✅ HEALTHY: Phase 03 executed, swarm intact)**
+Previous: Run 20 (SwarmChat reconnected, swarm restored)
 **Previous review: 2026-03-26 (Run 6)**
 **Reviewer:** Claude (automated)
 
@@ -33,46 +33,35 @@ All guardrails intact post Phase 02-01 execution.
 
 ---
 
-## Run 13: Phase 02 Complete — Swarm Disconnection Found
+## Run 21: Phase 03 Executed — Swarm Healthy
 
-### ✅ Phase 02 fully executed (9 commits since Run 12)
-- `d4b7982` — CareTeamStatus writes from consult route + PATCH care-status API
-- `e8bdd3a` — Dashboard UI: CareTeamCard with Realtime, ConsultationHistoryList
-- `7cde4a3` — `streamConsultation` extended: agent identity metadata, token streaming, routing event
-- `8d6e6ee` — `AgentOverlay` component wired into consult page
-- `ccc2b33` — Phase 02-03 SUMMARY
-- `3e64429` — Phase 02-02 SUMMARY
-- `92f1d7a` — CareSummary component, journal + profile APIs
-- `ce33fd6` — Patient profile page, HealthProfileForm, SymptomJournalEntry
-- `90ef47a` — Phase 02-04 SUMMARY — Phase 02 complete
+### ✅ SwarmChat confirmed in consult page (fixed Run 20)
+`src/app/consult/page.tsx` imports and renders `<SwarmChat />`. Fix from Run 20 (`aeff08f`) is holding.
 
-### ⚠️ CRITICAL: SwarmChat displaced from consult page
-Phase 02-03 rewrote `src/app/consult/page.tsx` (291 lines). The page now:
-- Fetches from `/api/consult` (old orchestrator pipeline)
-- Renders `<AgentOverlay>` + `<CareSummary>` (old pipeline components)
-- **Does NOT import or render `<SwarmChat />`**
+### ✅ Phase 03 (Proactive Care Loop) executed — 10 commits since Run 20
+- `0d646bb` — Phase 03 plan (4 plans, 2 waves)
+- `96e5ca9` — Research + validation strategy
+- `c1bf016` — Plan revisions from checker feedback
+- `1ba0df0` — Inngest 48h check-in job, escalation rules engine, check-in respond endpoint
+- `ad5abad` — Notification inbox UI, Resend email helper, doctor monitoring queue
+- `aabadce` — Phase 03 Wave 1 SUMMARYs
+- `3bc6f78` — Phase 03 all 4 plan SUMMARYs
+- `c6ab9d3` — Resend email helper + notification inbox components
+- `892208c` — NotificationInbox wired into patient portal + email on escalation/check-in
+- `6e0eb82` — Fix: Inngest v4 API + lazy Resend client init
 
-`SwarmChat.tsx` still exists and still calls `/api/swarm/start`, but it is unreachable from any page. The 5-layer swarm MVP feature is dead from a patient perspective.
-
-### ✅ Swarm engine itself is intact
-`swarm.ts`, `swarm-types.ts`, `/api/swarm/start`, `/api/swarm/answer` — all unchanged. The engine runs fine if called directly.
+### ✅ Swarm core files unchanged
+No modifications to `swarm.ts`, `swarm-types.ts`, `/api/swarm/start`, `/api/swarm/answer`, or `SwarmChat.tsx`.
 
 ### ✅ All 6 specialist Scope Boundaries still present
-### ✅ Run 12 flag resolved: `src/app/api/consult/route.ts` committed in `d4b7982`
 
----
-
-### Next Steps for any new Claude session
-
-**PRIORITY 1 — Reconnect swarm to patient UI:**
-The simplest fix is to restore `<SwarmChat />` in `src/app/consult/page.tsx`, either:
-- **Option A** (recommended): Replace the `/api/consult` fetch + AgentOverlay with `<SwarmChat />`. The swarm already handles the full consultation flow. AgentOverlay + CareSummary from Phase 02-03 can be removed or kept as doctor-portal views only.
-- **Option B**: Keep both paths and add a feature flag/toggle. Patient gets SwarmChat; doctor portal gets the old pipeline with AgentOverlay.
-
-File to edit: `src/app/consult/page.tsx` — import `SwarmChat` from `@/components/consult/SwarmChat` and render it instead of the current `/api/consult` flow.
-
-**PRIORITY 2 — Verify Phase 02 deliverables don't break swarm:**
-Check that new APIs (`/api/patient/consent`, `/api/patient/onboarding`, `/api/patient/profile`, `/api/patient/journal`) are additive and don't conflict with swarm routes.
+### Next Steps (Phase 4 — Retention + Polish)
+Per roadmap: Phase 4 is next. Current known open items:
+- [ ] Replace `answerStore` with Upstash Redis (Phase 2 blocker before production)
+- [ ] Replace rate limiter with `@upstash/ratelimit` sliding window
+- [ ] Local smoke test: `bun run dev` → http://localhost:3000/consult
+- [ ] Emergency path test: "chest pain and arm numbness" → should show Call 000 immediately
+- [ ] Wire doctor portal to live swarm data (`src/app/doctor/page.tsx` renders empty SwarmDebugPanel)
 
 ---
 
