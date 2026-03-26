@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -8,7 +8,21 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedPatient } from '@/lib/auth';
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
 
 const BASE_BODY = {
   dateOfBirth: '1990-01-15',
@@ -17,6 +31,10 @@ const BASE_BODY = {
   medications: ['Lisinopril'],
   allergies: ['Penicillin'],
 };
+
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+});
 
 describe('ONBD-01: Patient onboarding API', () => {
   it('POST /api/patient/onboarding saves dateOfBirth, gender, knownConditions, medications, allergies', async () => {
@@ -33,7 +51,7 @@ describe('ONBD-01: Patient onboarding API', () => {
     const { POST } = await import('@/app/api/patient/onboarding/route');
     const req = new Request('http://localhost/api/patient/onboarding', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify(BASE_BODY),
     });
     const res = await POST(req as any);
@@ -58,7 +76,7 @@ describe('ONBD-01: Patient onboarding API', () => {
     const { POST } = await import('@/app/api/patient/onboarding/route');
     const req = new Request('http://localhost/api/patient/onboarding', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...BASE_BODY, emergencyContact: ec, gpDetails: gp }),
     });
     const res = await POST(req as any);
@@ -79,7 +97,7 @@ describe('ONBD-01: Patient onboarding API', () => {
     const { POST } = await import('@/app/api/patient/onboarding/route');
     const req = new Request('http://localhost/api/patient/onboarding', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify(BASE_BODY),
     });
     await POST(req as any);
@@ -94,14 +112,15 @@ describe('ONBD-01: Patient onboarding API', () => {
     const { POST } = await import('@/app/api/patient/onboarding/route');
     const req = new Request('http://localhost/api/patient/onboarding', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ knownConditions: 'none' }),
     });
     const res = await POST(req as any);
     expect(res.status).toBe(400);
   });
 
-  it('POST /api/patient/onboarding returns 401 without x-patient-id header', async () => {
+  it('POST /api/patient/onboarding returns 401 without authentication', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import('@/app/api/patient/onboarding/route');
     const req = new Request('http://localhost/api/patient/onboarding', {
       method: 'POST',

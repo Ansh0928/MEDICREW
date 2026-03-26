@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -21,10 +21,15 @@ vi.mock('@/lib/consent-check', () => ({
   checkConsent: vi.fn(),
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
 import { checkConsent } from '@/lib/consent-check';
 import { streamConsultation } from '@/agents/orchestrator';
 import { inngest } from '@/lib/inngest/client';
+import { getAuthenticatedPatient } from '@/lib/auth';
 
 async function* mockStream(events: object[]) {
   for (const event of events) {
@@ -37,21 +42,27 @@ async function collectSSELines(res: Response): Promise<string[]> {
   return text.split('\n').filter((l) => l.startsWith('data:'));
 }
 
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue({ patient: { id: 'p1' }, error: null } as any);
+  vi.mocked(checkConsent).mockResolvedValue(true);
+  vi.mocked(prisma.patient.findUnique).mockResolvedValue({
+    id: 'p1', name: 'Test', knownConditions: null, medications: [], age: '30', gender: 'male', allergies: [],
+  } as any);
+  vi.mocked(prisma.careTeamStatus.upsert).mockResolvedValue({} as any);
+  vi.mocked(prisma.consultation.create).mockResolvedValue({ id: 'c1' } as any);
+  vi.mocked(inngest.send).mockResolvedValue({} as any);
+});
+
 describe('CONS-02: Consultation stream events', () => {
   it('POST /api/consult streams agent events in SSE format', async () => {
-    vi.mocked(checkConsent).mockResolvedValue(true);
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue({ id: 'p1', name: 'Test', knownConditions: null, medications: [], age: '30', gender: 'male', allergies: [] } as any);
     vi.mocked(streamConsultation).mockReturnValue(mockStream([
       { type: 'agent_message', data: { role: 'gp', agentName: 'Alex AI — GP', content: 'I see your symptoms', messages: [] } },
     ]) as any);
-    vi.mocked(prisma.careTeamStatus.upsert).mockResolvedValue({} as any);
-    vi.mocked(prisma.consultation.create).mockResolvedValue({ id: 'c1' } as any);
-    vi.mocked(inngest.send).mockResolvedValue({} as any);
 
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ symptoms: 'mild headache', stream: true }),
     });
     const res = await POST(req as any);
@@ -61,19 +72,14 @@ describe('CONS-02: Consultation stream events', () => {
   });
 
   it('POST /api/consult emits agent_message events with role and content', async () => {
-    vi.mocked(checkConsent).mockResolvedValue(true);
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue({ id: 'p1', name: 'Test', knownConditions: null, medications: [], age: '30', gender: 'male', allergies: [] } as any);
     vi.mocked(streamConsultation).mockReturnValue(mockStream([
       { type: 'agent_message', data: { role: 'gp', agentName: 'Alex AI — GP', content: 'Your symptoms suggest tension headache', messages: [] } },
     ]) as any);
-    vi.mocked(prisma.careTeamStatus.upsert).mockResolvedValue({} as any);
-    vi.mocked(prisma.consultation.create).mockResolvedValue({ id: 'c1' } as any);
-    vi.mocked(inngest.send).mockResolvedValue({} as any);
 
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ symptoms: 'mild headache', stream: true }),
     });
     const res = await POST(req as any);
@@ -85,19 +91,14 @@ describe('CONS-02: Consultation stream events', () => {
   });
 
   it('POST /api/consult emits final recommendation event', async () => {
-    vi.mocked(checkConsent).mockResolvedValue(true);
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue({ id: 'p1', name: 'Test', knownConditions: null, medications: [], age: '30', gender: 'male', allergies: [] } as any);
     vi.mocked(streamConsultation).mockReturnValue(mockStream([
       { type: 'recommendation', data: { urgencyLevel: 'routine', recommendation: { urgency: 'routine', summary: 'Rest', nextSteps: [], questionsForDoctor: [], timeframe: '1 week', disclaimer: '' } } },
     ]) as any);
-    vi.mocked(prisma.careTeamStatus.upsert).mockResolvedValue({} as any);
-    vi.mocked(prisma.consultation.create).mockResolvedValue({ id: 'c1' } as any);
-    vi.mocked(inngest.send).mockResolvedValue({} as any);
 
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ symptoms: 'mild headache', stream: true }),
     });
     const res = await POST(req as any);
@@ -111,17 +112,12 @@ describe('CONS-02: Consultation stream events', () => {
   });
 
   it('POST /api/consult emits done event on completion', async () => {
-    vi.mocked(checkConsent).mockResolvedValue(true);
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue({ id: 'p1', name: 'Test', knownConditions: null, medications: [], age: '30', gender: 'male', allergies: [] } as any);
     vi.mocked(streamConsultation).mockReturnValue(mockStream([]) as any);
-    vi.mocked(prisma.careTeamStatus.upsert).mockResolvedValue({} as any);
-    vi.mocked(prisma.consultation.create).mockResolvedValue({ id: 'c1' } as any);
-    vi.mocked(inngest.send).mockResolvedValue({} as any);
 
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ symptoms: 'mild headache', stream: true }),
     });
     const res = await POST(req as any);

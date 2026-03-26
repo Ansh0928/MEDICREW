@@ -33,6 +33,19 @@ vi.mock("@upstash/ratelimit", () => {
   return { Ratelimit };
 });
 
+vi.mock("@/lib/auth", () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
+
 describe("GET /api/checkin", () => {
   beforeEach(() => vi.resetModules());
 
@@ -60,7 +73,9 @@ describe("GET /api/checkin", () => {
 describe("POST /api/checkin/respond", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 401 when x-patient-id header is missing", async () => {
+  it("returns 401 when not authenticated", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
     const res = await POST(new Request("http://localhost/api/checkin/respond", {
       method: "POST",
@@ -71,11 +86,13 @@ describe("POST /api/checkin/respond", () => {
   });
 
   it("returns 400 when checkInId is missing", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
     const res = await POST(new Request("http://localhost/api/checkin/respond", {
       method: "POST",
       body: JSON.stringify({ response: "better" }),
-      headers: { "Content-Type": "application/json", "x-patient-id": "p1" },
+      headers: { "Content-Type": "application/json" },
     }) as any);
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -83,11 +100,13 @@ describe("POST /api/checkin/respond", () => {
   });
 
   it("returns 400 for invalid response value", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
     const res = await POST(new Request("http://localhost/api/checkin/respond", {
       method: "POST",
       body: JSON.stringify({ checkInId: "ci-1", response: "excellent" }),
-      headers: { "Content-Type": "application/json", "x-patient-id": "p1" },
+      headers: { "Content-Type": "application/json" },
     }) as any);
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -95,11 +114,13 @@ describe("POST /api/checkin/respond", () => {
   });
 
   it("returns 404 when check-in not found or wrong patient", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
     const res = await POST(new Request("http://localhost/api/checkin/respond", {
       method: "POST",
       body: JSON.stringify({ checkInId: "nonexistent", response: "better" }),
-      headers: { "Content-Type": "application/json", "x-patient-id": "p1" },
+      headers: { "Content-Type": "application/json" },
     }) as any);
     expect(res.status).toBe(404);
   });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -8,7 +8,25 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedPatient } from '@/lib/auth';
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
+
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+});
 
 describe('DASH-01: Care team status API', () => {
   it('GET /api/patient/care-team-status returns per-agent status messages', async () => {
@@ -21,9 +39,7 @@ describe('DASH-01: Care team status API', () => {
     } as any);
 
     const { GET } = await import('@/app/api/patient/care-team-status/route');
-    const req = new Request('http://localhost/api/patient/care-team-status', {
-      headers: { 'x-patient-id': 'p1' },
-    });
+    const req = new Request('http://localhost/api/patient/care-team-status');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -32,6 +48,7 @@ describe('DASH-01: Care team status API', () => {
   });
 
   it('GET /api/patient/care-team-status returns 401 without authentication', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { GET } = await import('@/app/api/patient/care-team-status/route');
     const req = new Request('http://localhost/api/patient/care-team-status');
     const res = await GET(req as any);
@@ -39,12 +56,11 @@ describe('DASH-01: Care team status API', () => {
   });
 
   it('GET /api/patient/care-team-status returns empty statuses for new patient', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue({ patient: { id: 'new-patient' }, error: null } as any);
     vi.mocked(prisma.careTeamStatus.findUnique).mockResolvedValue(null);
 
     const { GET } = await import('@/app/api/patient/care-team-status/route');
-    const req = new Request('http://localhost/api/patient/care-team-status', {
-      headers: { 'x-patient-id': 'new-patient' },
-    });
+    const req = new Request('http://localhost/api/patient/care-team-status');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();

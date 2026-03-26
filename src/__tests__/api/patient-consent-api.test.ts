@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -8,7 +8,25 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedPatient } from '@/lib/auth';
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
+
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+});
 
 describe('ONBD-02: Patient consent API', () => {
   it('POST /api/patient/consent creates PatientConsent record', async () => {
@@ -25,7 +43,7 @@ describe('ONBD-02: Patient consent API', () => {
     const { POST } = await import('@/app/api/patient/consent/route');
     const req = new Request('http://localhost/api/patient/consent', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ consentVersion: '1.0', dataCategories: { health: true } }),
     });
     const res = await POST(req as any);
@@ -41,7 +59,7 @@ describe('ONBD-02: Patient consent API', () => {
     const { POST } = await import('@/app/api/patient/consent/route');
     const req = new Request('http://localhost/api/patient/consent', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({}),
     });
     const res = await POST(req as any);
@@ -49,6 +67,7 @@ describe('ONBD-02: Patient consent API', () => {
   });
 
   it('POST /api/patient/consent requires patient authentication', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import('@/app/api/patient/consent/route');
     const req = new Request('http://localhost/api/patient/consent', {
       method: 'POST',
@@ -73,7 +92,7 @@ describe('ONBD-02: Patient consent API', () => {
     const { POST } = await import('@/app/api/patient/consent/route');
     const req = new Request('http://localhost/api/patient/consent', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ consentVersion: '1.0', dataCategories: {} }),
     });
     const res = await POST(req as any);

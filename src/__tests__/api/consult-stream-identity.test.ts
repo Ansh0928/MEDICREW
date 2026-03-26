@@ -22,13 +22,28 @@ vi.mock('@/lib/consent-check', () => ({
   checkConsent: vi.fn(),
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
 import { checkConsent } from '@/lib/consent-check';
 import { runConsultation } from '@/agents/orchestrator';
 import { inngest } from '@/lib/inngest/client';
+import { getAuthenticatedPatient } from '@/lib/auth';
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
 
 describe('CONS-01: Consultation stream identity', () => {
-  it('POST /api/consult requires x-patient-id header', async () => {
+  it('POST /api/consult requires authentication', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
@@ -40,6 +55,7 @@ describe('CONS-01: Consultation stream identity', () => {
   });
 
   it('POST /api/consult returns 401 without patient identification', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
@@ -55,12 +71,13 @@ describe('CONS-01: Consultation stream identity', () => {
 
 describe('CONS-03: Consultation stream onboarding gate', () => {
   it('POST /api/consult returns 403 when patient has not completed onboarding', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     vi.mocked(checkConsent).mockResolvedValue(false);
 
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ symptoms: 'headache' }),
     });
     const res = await POST(req as any);
@@ -68,6 +85,7 @@ describe('CONS-03: Consultation stream onboarding gate', () => {
   });
 
   it('POST /api/consult proceeds when onboardingComplete is true', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     vi.mocked(checkConsent).mockResolvedValue(true);
     vi.mocked(prisma.patient.findUnique).mockResolvedValue({
       id: 'p1',
@@ -90,7 +108,7 @@ describe('CONS-03: Consultation stream onboarding gate', () => {
     const { POST } = await import('@/app/api/consult/route');
     const req = new Request('http://localhost/api/consult', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ symptoms: 'mild headache', stream: false }),
     });
     const res = await POST(req as any);

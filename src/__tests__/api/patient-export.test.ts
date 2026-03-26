@@ -1,6 +1,5 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach } from "vitest";
 
-// Mock prisma
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     patient: {
@@ -9,7 +8,25 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedPatient } from "@/lib/auth";
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
+
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+});
 
 describe("COMP-05a: Patient data export", () => {
   test("export includes patient, consultations, notifications, and consents", async () => {
@@ -23,11 +40,8 @@ describe("COMP-05a: Patient data export", () => {
     };
     vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatient as any);
 
-    // Import the handler dynamically to pick up mocks
     const { GET } = await import("@/app/api/patient/export/route");
-    const req = new Request("http://localhost/api/patient/export", {
-      headers: { "x-patient-id": "p1" },
-    });
+    const req = new Request("http://localhost/api/patient/export");
     const res = await GET(req as any);
     const data = await res.json();
 
@@ -37,7 +51,8 @@ describe("COMP-05a: Patient data export", () => {
     expect(data).toHaveProperty("consents");
   });
 
-  test("export returns 401 when no patient ID", async () => {
+  test("export returns 401 when not authenticated", async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { GET } = await import("@/app/api/patient/export/route");
     const req = new Request("http://localhost/api/patient/export");
     const res = await GET(req as any);

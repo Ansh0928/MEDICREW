@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -9,7 +9,21 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedPatient } from '@/lib/auth';
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
 
 const MOCK_CONSULTATION = {
   id: 'c1',
@@ -26,15 +40,17 @@ const MOCK_CONSULTATION = {
   createdAt: new Date('2026-01-01'),
 };
 
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+});
+
 describe('DASH-03: Consultation history API', () => {
   it('GET /api/patient/consultations returns paginated consultation list', async () => {
     vi.mocked(prisma.consultation.count).mockResolvedValue(1);
     vi.mocked(prisma.consultation.findMany).mockResolvedValue([MOCK_CONSULTATION] as any);
 
     const { GET } = await import('@/app/api/patient/consultations/route');
-    const req = new Request('http://localhost/api/patient/consultations?page=1&limit=10', {
-      headers: { 'x-patient-id': 'p1' },
-    });
+    const req = new Request('http://localhost/api/patient/consultations?page=1&limit=10');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -44,6 +60,7 @@ describe('DASH-03: Consultation history API', () => {
   });
 
   it('GET /api/patient/consultations returns 401 without authentication', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { GET } = await import('@/app/api/patient/consultations/route');
     const req = new Request('http://localhost/api/patient/consultations');
     const res = await GET(req as any);
@@ -55,9 +72,7 @@ describe('DASH-03: Consultation history API', () => {
     vi.mocked(prisma.consultation.findMany).mockResolvedValue([MOCK_CONSULTATION] as any);
 
     const { GET } = await import('@/app/api/patient/consultations/route');
-    const req = new Request('http://localhost/api/patient/consultations', {
-      headers: { 'x-patient-id': 'p1' },
-    });
+    const req = new Request('http://localhost/api/patient/consultations');
     await GET(req as any);
     expect(prisma.consultation.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { patientId: 'p1' } })
@@ -69,9 +84,7 @@ describe('DASH-03: Consultation history API', () => {
     vi.mocked(prisma.consultation.findMany).mockResolvedValue([MOCK_CONSULTATION] as any);
 
     const { GET } = await import('@/app/api/patient/consultations/route');
-    const req = new Request('http://localhost/api/patient/consultations', {
-      headers: { 'x-patient-id': 'p1' },
-    });
+    const req = new Request('http://localhost/api/patient/consultations');
     const res = await GET(req as any);
     const body = await res.json();
     const first = body.consultations[0];

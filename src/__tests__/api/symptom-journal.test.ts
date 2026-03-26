@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -9,7 +9,25 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedPatient } from '@/lib/auth';
+
+const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'content-type': 'application/json' },
+  }),
+};
+
+beforeEach(() => {
+  vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+});
 
 describe('PROF-03: Symptom journal API', () => {
   it('POST /api/patient/symptom-journal creates SymptomJournal entry', async () => {
@@ -25,7 +43,7 @@ describe('PROF-03: Symptom journal API', () => {
     const { POST } = await import('@/app/api/patient/symptom-journal/route');
     const req = new Request('http://localhost/api/patient/symptom-journal', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ severity: 3, notes: 'mild headache' }),
     });
     const res = await POST(req as any);
@@ -41,7 +59,7 @@ describe('PROF-03: Symptom journal API', () => {
     const { POST } = await import('@/app/api/patient/symptom-journal/route');
     const req = new Request('http://localhost/api/patient/symptom-journal', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-patient-id': 'p1' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ severity: 10 }),
     });
     const res = await POST(req as any);
@@ -54,9 +72,7 @@ describe('PROF-03: Symptom journal API', () => {
     ] as any);
 
     const { GET } = await import('@/app/api/patient/symptom-journal/route');
-    const req = new Request('http://localhost/api/patient/symptom-journal', {
-      headers: { 'x-patient-id': 'p1' },
-    });
+    const req = new Request('http://localhost/api/patient/symptom-journal');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -65,6 +81,7 @@ describe('PROF-03: Symptom journal API', () => {
   });
 
   it('GET /api/patient/symptom-journal returns 401 without authentication', async () => {
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { GET } = await import('@/app/api/patient/symptom-journal/route');
     const req = new Request('http://localhost/api/patient/symptom-journal');
     const res = await GET(req as any);
