@@ -161,11 +161,12 @@ export function SwarmChat() {
           <input
             type="number"
             placeholder="Age"
+            aria-label="Age"
             value={patientInfo.age}
             onChange={(e) => setPatientInfo({ ...patientInfo, age: e.target.value })}
             className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
           />
-          <div className="flex gap-2">
+          <div role="group" aria-label="Biological sex" className="flex gap-2">
             {["Male", "Female", "Other"].map((g) => (
               <button key={g} onClick={() => setPatientInfo({ ...patientInfo, gender: g })}
                 className={`flex-1 py-2 rounded-lg border-2 text-sm transition-colors ${patientInfo.gender === g ? "border-primary bg-primary/10" : "border-border"}`}>
@@ -223,6 +224,7 @@ export function SwarmChat() {
             <input
               type="text"
               placeholder="Describe your symptoms..."
+              aria-label="Describe your symptoms"
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && startConsultation()}
@@ -233,6 +235,7 @@ export function SwarmChat() {
             <button
               onClick={startConsultation}
               disabled={!symptoms.trim() || isLoading}
+              aria-label={isLoading ? "Sending consultation" : "Send symptoms"}
               className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm disabled:opacity-50"
             >
               {isLoading ? (

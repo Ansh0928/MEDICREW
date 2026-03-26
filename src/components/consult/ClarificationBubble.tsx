@@ -40,6 +40,7 @@ export function ClarificationBubble({
           <Input
             type="text"
             placeholder="Your answer..."
+            aria-label={`Answer to: ${question}`}
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) =>

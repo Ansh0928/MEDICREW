@@ -17,6 +17,13 @@ export function DoctorOrbRow({ orbs }: { orbs: OrbState[] }) {
         return (
           <motion.div
             key={role}
+            aria-label={
+              status === "done"
+                ? `${agent?.name ?? role} - complete`
+                : status === "active"
+                ? `${agent?.name ?? role} - thinking`
+                : `${agent?.name ?? role} - waiting`
+            }
             initial={{ scale: 0.8, opacity: 0.4 }}
             animate={{
               scale: status === "active" ? [1, 1.08, 1] : 1,
