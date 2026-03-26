@@ -1,80 +1,46 @@
+// src/components/consult/SynthesisCard.tsx
 "use client";
 import { SwarmSynthesis } from "@/agents/swarm-types";
-import { UrgencyLevel } from "@/agents/types";
 
-const URGENCY_CONFIG: Record<
-  UrgencyLevel,
-  { label: string; className: string }
-> = {
-  emergency: {
-    label: "🚨 EMERGENCY — Call 000 immediately",
-    className:
-      "block w-full text-center bg-red-600 text-white text-lg px-4 py-3 rounded-lg font-bold animate-pulse",
-  },
-  urgent: {
-    label: "Urgent — See doctor today",
-    className:
-      "bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium",
-  },
-  routine: {
-    label: "Routine — Schedule an appointment",
-    className:
-      "bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium",
-  },
-  self_care: {
-    label: "Self-care recommended",
-    className:
-      "bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium",
-  },
+const urgencyColors: Record<string, string> = {
+  emergency: "bg-red-100 text-red-700",
+  urgent: "bg-orange-100 text-orange-700",
+  routine: "bg-green-100 text-green-700",
+  self_care: "bg-blue-100 text-blue-700",
 };
 
-interface Props {
+interface SynthesisCardProps {
   synthesis: SwarmSynthesis;
-  onStartNew: () => void;
+  onStartNew?: () => void;
 }
 
-export function SynthesisCard({ synthesis, onStartNew }: Props) {
-  const config = URGENCY_CONFIG[synthesis.urgency];
-  const isEmergency = synthesis.urgency === "emergency";
+export function SynthesisCard({ synthesis, onStartNew }: SynthesisCardProps) {
   return (
-    <div
-      className={`rounded-xl p-6 space-y-4 border-2 ${isEmergency ? "border-red-600 bg-red-950/20" : ""}`}
-      role={isEmergency ? "alert" : undefined}
-      aria-live={isEmergency ? "assertive" : undefined}
-    >
-      <span className={config.className}>{config.label}</span>
-
-      <div>
-        <h3 className="font-semibold mb-2">Next Steps</h3>
-        <ol className="space-y-1">
-          {synthesis.nextSteps.map((step, i) => (
-            <li key={i} className="flex gap-2 text-sm">
-              <span className="text-primary font-medium">{i + 1}.</span> {step}
-            </li>
-          ))}
-        </ol>
+    <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${urgencyColors[synthesis.urgency] ?? "bg-gray-100 text-gray-700"}`}>
+          {synthesis.urgency}
+        </span>
+        <span className="text-sm font-medium text-gray-900">Team Recommendation</span>
       </div>
-
-      {synthesis.questionsForDoctor.length > 0 && (
-        <div>
-          <h3 className="font-semibold mb-2">Questions to ask your doctor</h3>
-          <ul className="space-y-1">
-            {synthesis.questionsForDoctor.map((q, i) => (
-              <li key={i} className="text-sm text-muted-foreground">
-                • {q}
-              </li>
-            ))}
-          </ul>
-        </div>
+      <p className="text-sm text-gray-700">{synthesis.primaryRecommendation}</p>
+      {synthesis.nextSteps.length > 0 && (
+        <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+          {synthesis.nextSteps.map((step, i) => <li key={i}>{step}</li>)}
+        </ul>
       )}
-
-      <p className="text-xs text-muted-foreground border-t pt-3">
-        {synthesis.disclaimer}
-      </p>
-
-      <button onClick={onStartNew} className="text-sm text-primary underline">
-        Start new consultation
-      </button>
+      {synthesis.bookingNeeded && (
+        <p className="text-xs text-blue-600 font-medium">Booking with a healthcare provider is recommended.</p>
+      )}
+      <p className="text-[10px] text-gray-400">{synthesis.disclaimer}</p>
+      {onStartNew && (
+        <button
+          onClick={onStartNew}
+          className="text-xs px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Start new consultation
+        </button>
+      )}
     </div>
   );
 }
