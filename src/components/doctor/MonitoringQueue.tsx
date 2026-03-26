@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Clock, User, Activity } from "lucide-react";
+import { AlertCircle, Clock, User, Activity, TrendingUp, TrendingDown, Minus, type LucideIcon } from "lucide-react";
 
 interface MonitoringPatient {
   id: string;
@@ -22,6 +22,7 @@ interface MonitoringPatient {
     createdAt: string;
   } | null;
   effectiveUrgency: string;
+  urgencyTrend: "improving" | "stable" | "worsening" | "insufficient_data";
   lastAgentActivity: {
     agentName: string;
     message: string;
@@ -40,6 +41,13 @@ const RESPONSE_COLOR: Record<string, string> = {
   better: "text-green-600",
   same: "text-yellow-600",
   worse: "text-red-600",
+};
+
+const TREND_INDICATOR: Record<string, { icon: LucideIcon; label: string; className: string }> = {
+  improving: { icon: TrendingUp, label: "Improving", className: "text-green-600" },
+  stable: { icon: Minus, label: "Stable", className: "text-yellow-600" },
+  worsening: { icon: TrendingDown, label: "Worsening", className: "text-red-600" },
+  insufficient_data: { icon: Minus, label: "Not enough data", className: "text-muted-foreground" },
 };
 
 export function MonitoringQueue() {
@@ -81,6 +89,8 @@ export function MonitoringQueue() {
       </p>
       {patients.map((patient) => {
         const urgencyInfo = URGENCY_BADGE[patient.effectiveUrgency] ?? { variant: "outline" as const, label: patient.effectiveUrgency };
+        const trendInfo = TREND_INDICATOR[patient.urgencyTrend] ?? TREND_INDICATOR.insufficient_data;
+        const TrendIcon = trendInfo.icon;
         return (
           <Card key={patient.id} className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -101,6 +111,10 @@ export function MonitoringQueue() {
                     )}
                     {urgencyInfo.label}
                   </Badge>
+                  <div className="flex items-center gap-1 mt-1">
+                    <TrendIcon className={`w-4 h-4 ${trendInfo.className}`} />
+                    <span className={`text-xs ${trendInfo.className}`}>{trendInfo.label}</span>
+                  </div>
                 </div>
               </div>
 
