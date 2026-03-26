@@ -3,12 +3,23 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useState, useCallback } from "react";
 import { AgentOverlay, RoutingNotice } from "@/components/consult/AgentOverlay";
+import { CareSummary } from "@/components/consult/CareSummary";
 import { CARE_TEAM } from "@/lib/care-team-config";
 
 interface CurrentAgent {
   agentName?: string;
   agentRole?: string;
   specialty?: string;
+}
+
+interface CareRecommendation {
+  urgency: string;
+  summary: string;
+  nextSteps: string[];
+  questionsForDoctor: string[];
+  specialistType?: string;
+  timeframe: string;
+  disclaimer: string;
 }
 
 interface ConsultMessage {
@@ -27,6 +38,7 @@ export default function ConsultPage() {
   const [streamingText, setStreamingText] = useState(""); // Progressive token buffer
   const [messages, setMessages] = useState<ConsultMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [recommendation, setRecommendation] = useState<CareRecommendation | null>(null);
 
   const handleSubmit = useCallback(async () => {
     if (!symptoms.trim() || isLoading) return;
@@ -38,6 +50,7 @@ export default function ConsultPage() {
     setStreamingText("");
     setCurrentAgent({});
     setRoutingSpecialists([]);
+    setRecommendation(null);
 
     try {
       const res = await fetch("/api/consult", {
@@ -121,6 +134,10 @@ export default function ConsultPage() {
                   },
                 ]);
               }
+              // Extract recommendation from the recommend node output
+              if (parsed.step === "recommend" && parsed.data?.recommendation) {
+                setRecommendation(parsed.data.recommendation as CareRecommendation);
+              }
               // Clear streaming buffer after node completes
               setStreamingText("");
               activeAgent = {};
@@ -157,6 +174,7 @@ export default function ConsultPage() {
     setError(null);
     setIsLoading(false);
     setIsStreaming(false);
+    setRecommendation(null);
   };
 
   return (
@@ -213,6 +231,11 @@ export default function ConsultPage() {
               <p className="text-sm text-foreground whitespace-pre-wrap">{streamingText}</p>
               <span className="inline-block w-1 h-4 bg-foreground/50 animate-pulse ml-0.5" />
             </div>
+          )}
+
+          {/* Care Summary — shown after streaming completes and recommendation is available */}
+          {recommendation && !isStreaming && (
+            <CareSummary recommendation={recommendation} />
           )}
 
           {/* Error */}
