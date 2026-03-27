@@ -7,12 +7,37 @@ import { Features } from "@/components/landing/Features";
 import { TrustSection } from "@/components/landing/TrustSection";
 import { CTA } from "@/components/landing/CTA";
 import { Footer } from "@/components/landing/Footer";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import {
+  isLandingVariant,
+  LANDING_VARIANT_COOKIE,
+  resolveLandingVariant,
+} from "@/lib/marketing/landing-variants";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "AI Health Navigation for Australia",
+  description:
+    "Get AI specialist guidance, emergency-first escalation, and clear care next steps tailored for Australian pathways.",
+};
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const rawQueryVariant = Array.isArray(params?.lpv) ? params?.lpv[0] : params?.lpv;
+  const cookieStore = await cookies();
+  const landingVariantFromCookie = resolveLandingVariant(cookieStore.get(LANDING_VARIANT_COOKIE)?.value);
+  const landingVariant = isLandingVariant(rawQueryVariant)
+    ? rawQueryVariant
+    : landingVariantFromCookie;
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
-      <Hero />
+      <Hero variant={landingVariant} />
       <Problem />
       <HowItWorks />
       <Features />
@@ -22,7 +47,7 @@ export default function Home() {
       <section id="safety">
         <TrustSection />
       </section>
-      <CTA />
+      <CTA variant={landingVariant} />
       <Footer />
     </main>
   );

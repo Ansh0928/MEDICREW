@@ -1,13 +1,34 @@
 import { NextRequest } from "next/server";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { createJsonModel, createFastModel } from "@/lib/ai/config";
-import { SwarmEvent, ResidentRole, RESIDENT_ROLES, createInitialSwarmState } from "@/agents/swarm-types";
-import { buildResidentPrompt, runResident } from "@/agents/swarm";
-import crypto from "crypto";
+import { RESIDENT_ROLES, SwarmEvent, ResidentRole } from "@/agents/swarm-types";
+import { streamSwarm } from "@/agents/swarm";
+import { getAuthenticatedPatient } from "@/lib/auth";
+import { checkConsent } from "@/lib/consent-check";
+import { detectEmergency } from "@/lib/emergency-rules";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/lib/prisma";
+import { AGENT_COMPLIANCE_RULE } from "@/lib/compliance";
+import { buildPatientContext, resolveConsultationPatientInfo } from "@/lib/consultation-intake";
 
 export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
+  const { patient: authPatient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+  if (authError) return authError;
+  if (needsOnboarding) return Response.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = authPatient!.id;
+  const hasConsent = await checkConsent(patientId);
+  if (!hasConsent) {
+    return Response.json({ error: "Consent required", redirectTo: "/consent" }, { status: 403 });
+  }
+
+  const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+  const rateCheck = await checkRateLimit(ip);
+  if (!rateCheck.allowed) {
+    return Response.json({ error: "Too many requests", retryAfter: rateCheck.retryAfter }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => ({}));
   const { sessionId, question, synthesisContext } = body;
 
@@ -20,6 +41,18 @@ export async function POST(request: NextRequest) {
   if (question.length > 500) {
     return Response.json({ error: "question must be under 500 characters" }, { status: 400 });
   }
+
+  const emergency = detectEmergency(`${question}\n${typeof synthesisContext === "string" ? synthesisContext : ""}`);
+  if (emergency.isEmergency) {
+    return Response.json(emergency.response, { status: 200 });
+  }
+
+  const patientProfile = await prisma.patient.findUnique({
+    where: { id: patientId },
+    select: { age: true, gender: true, knownConditions: true, medications: true, allergies: true },
+  });
+  const resolvedPatientInfo = resolveConsultationPatientInfo(patientProfile, undefined);
+  const patientContext = buildPatientContext(resolvedPatientInfo);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -67,59 +100,44 @@ relevantResidentRoles is only populated for complex questions.`),
         });
 
         if (questionType === "complex" && relevantResidentRoles.length > 0) {
-          // ── Complex path: run residents then synthesise their input ──────────
-          // Build a minimal state for the follow-up context.
-          // symptoms = original synthesis context + new question
-          const followUpSymptoms = `${synthesisContext ?? ""}\nFollow-up: ${question}`;
-          const followUpState = createInitialSwarmState(
-            crypto.randomUUID(),
-            followUpSymptoms,
-            { age: "unknown", gender: "unknown" }
-          );
-
-          // Pre-initialise the gp lead entry so runResident can push to it.
-          const specialtyRole = "gp" as const;
-          followUpState.leadSwarms[specialtyRole] = {
-            status: "running",
-            hypotheses: [],
-            residentDebate: [],
-            rectification: null,
-          };
-
-          // Run each relevant resident in parallel
-          await Promise.all(
-            relevantResidentRoles.map((residentRole) =>
-              runResident(residentRole, specialtyRole, followUpState, send)
-            )
-          );
-
-          // Collect resident hypotheses for synthesis prompt
-          const residentSummary = (followUpState.leadSwarms[specialtyRole]?.hypotheses ?? [])
-            .map((h) => `[${h.residentRole}] "${h.name}" (${h.confidence}%) — ${h.reasoning}`)
-            .join("\n");
-
-          // Synthesise resident views into a final follow-up answer
-          const llm = createFastModel();
-          const answer = await llm.invoke([
-            new SystemMessage(`You are a helpful AI health navigator. You have received clinical assessments from ${relevantResidentRoles.length} resident perspectives below.
-Synthesise their input to answer the follow-up question clearly and concisely.
-Keep your answer under 200 words.
-Always end with a reminder to consult a healthcare provider for personalised advice.`),
-            new HumanMessage(`Follow-up question: "${question}"\nOriginal context: ${synthesisContext ?? ""}
-
-Resident assessments:
-${residentSummary || "No resident input available."}`),
-          ]);
-
-          send({ type: "followup_answer", answer: answer.content as string });
+          // Complex follow-up re-enters the full swarm cycle.
+          const followUpSymptoms = `${patientContext}\n\nPrevious recommendation context:\n${synthesisContext ?? "Not provided"}\n\nFollow-up question:\n${question}`;
+          let finalSynthesis: { primaryRecommendation: string; nextSteps: string[] } | null = null;
+          for await (const event of streamSwarm(followUpSymptoms, resolvedPatientInfo)) {
+            if (event.type === "synthesis_complete") {
+              finalSynthesis = {
+                primaryRecommendation: event.data.primaryRecommendation,
+                nextSteps: event.data.nextSteps,
+              };
+            }
+            if (event.type === "done") continue;
+            send(event);
+          }
+          if (finalSynthesis) {
+            const nextStepsText = finalSynthesis.nextSteps.length > 0
+              ? ` Next steps: ${finalSynthesis.nextSteps.join("; ")}`
+              : "";
+            send({
+              type: "followup_answer",
+              answer: `${finalSynthesis.primaryRecommendation}${nextStepsText} Please consult a healthcare provider for personalised advice.`,
+            });
+          }
         } else {
-          // ── Simple path: single LLM call ─────────────────────────────────────
+          // ── Simple path: gatekeeper quick answer ─────────────────────────────
           const llm = createFastModel();
           const answer = await llm.invoke([
-            new SystemMessage(`You are a helpful AI health navigator. Answer this follow-up question concisely and clearly.
-Provide practical guidance. Keep answer under 150 words.
-Always end with a reminder to consult a healthcare provider for personalised advice.`),
-            new HumanMessage(`Question: "${question}"\nContext: ${synthesisContext ?? ""}`),
+            new SystemMessage(`You are Alex AI — GP, the gatekeeper for follow-up questions.
+${AGENT_COMPLIANCE_RULE}
+Answer follow-up questions concisely and clearly in under 150 words.
+Use cautious language, avoid diagnosis claims, and always include a reminder to consult a qualified healthcare provider.`),
+            new HumanMessage(`Patient context:
+${patientContext}
+
+Prior recommendation context:
+${synthesisContext ?? "Not provided"}
+
+Follow-up question:
+${question}`),
           ]);
 
           send({ type: "followup_answer", answer: answer.content as string });

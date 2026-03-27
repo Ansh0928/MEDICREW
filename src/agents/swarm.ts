@@ -15,6 +15,7 @@ import {
 import { UrgencyLevel } from "./types";
 import crypto from "crypto";
 import { retrieveMedicalContext } from "@/lib/rag/retrieve";
+import { AGENT_COMPLIANCE_RULE } from "@/lib/compliance";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ export function buildResidentPrompt(
   ragChunks: string[] = []
 ): string {
   const base = residentDefinitions[residentRole].systemPrompt;
-  const context = `\n\n## Specialty Context\nYou are embedded in the ${specialtyRole} specialty team.\nPatient: ${patientInfo.age}y ${patientInfo.gender}${patientInfo.knownConditions ? `, conditions: ${patientInfo.knownConditions}` : ""}\nSymptoms: ${symptoms}`;
+  const context = `\n\n## Specialty Context\nYou are embedded in the ${specialtyRole} specialty team.\nPatient: ${patientInfo.age}y ${patientInfo.gender}${patientInfo.knownConditions ? `, conditions: ${patientInfo.knownConditions}` : ""}${patientInfo.medications?.length ? `, medications: ${patientInfo.medications.join(", ")}` : ""}${patientInfo.allergies?.length ? `, allergies: ${patientInfo.allergies.join(", ")}` : ""}\nSymptoms: ${symptoms}${patientInfo.historySummary ? `\nRelevant history: ${patientInfo.historySummary}` : ""}`;
   const ragSection = ragChunks.length > 0
     ? `\n\n## Relevant Medical Reference\n${ragChunks.join("\n\n---\n\n")}`
     : "";
@@ -386,9 +387,96 @@ Respond ONLY with valid JSON:
 
   state.synthesis = synthesis;
   state.primaryLeadRole = selectPrimaryLead(state.leadSwarms);
-  state.currentPhase = "complete";
-
   emit({ type: "synthesis_complete", data: synthesis });
+}
+
+async function runGatekeeperReview(
+  state: SwarmState,
+  emit: (e: SwarmEvent) => void
+): Promise<void> {
+  const synthesis = state.synthesis;
+  if (!synthesis) return;
+
+  const llm = createJsonModel();
+  const leadSummaries = (Object.keys(state.leadSwarms) as DoctorRole[])
+    .map((role) => state.leadSwarms[role]?.rectification?.summary)
+    .filter(Boolean)
+    .join("\n\n");
+
+  try {
+    const reviewResponse = await llm.invoke([
+      new SystemMessage(`You are Alex AI — GP acting as the final gatekeeper for patient safety and clarity.
+Review the draft synthesis from the specialist swarm and decide if it is safe and clear for patient delivery.
+${AGENT_COMPLIANCE_RULE}
+Respond ONLY with valid JSON:
+{
+  "decision": "approved" | "revise",
+  "rationale": "<max 2 sentences>",
+  "approvedUrgency": "emergency" | "urgent" | "routine" | "self_care",
+  "replacementPrimaryRecommendation": "<optional improved recommendation>",
+  "replacementNextSteps": ["<optional step 1>", "<optional step 2>"],
+  "replacementDisclaimer": "<optional disclaimer>"
+}`),
+      new HumanMessage(`Patient: ${state.patientInfo.age}y ${state.patientInfo.gender}${state.patientInfo.knownConditions ? `, conditions: ${state.patientInfo.knownConditions}` : ""}
+Original symptoms:
+${state.symptoms}
+
+Lead summaries:
+${leadSummaries || "None"}
+
+Draft synthesis:
+${JSON.stringify(synthesis, null, 2)}`),
+    ]);
+
+    const parsed = JSON.parse((reviewResponse.content as string).replace(/```json\n?|\n?```/g, ""));
+    const approvedUrgency = (parsed.approvedUrgency ?? synthesis.urgency) as UrgencyLevel;
+    const replacementPrimaryRecommendation = typeof parsed.replacementPrimaryRecommendation === "string"
+      ? parsed.replacementPrimaryRecommendation.trim()
+      : "";
+    const replacementNextSteps = Array.isArray(parsed.replacementNextSteps)
+      ? parsed.replacementNextSteps.filter((item: unknown): item is string => typeof item === "string" && (item as string).trim().length > 0)
+      : [];
+    const replacementDisclaimer = typeof parsed.replacementDisclaimer === "string"
+      ? parsed.replacementDisclaimer.trim()
+      : "";
+
+    const changed = Boolean(
+      replacementPrimaryRecommendation ||
+      replacementNextSteps.length > 0 ||
+      replacementDisclaimer ||
+      approvedUrgency !== synthesis.urgency
+    );
+
+    state.synthesis = {
+      ...synthesis,
+      urgency: approvedUrgency,
+      primaryRecommendation: replacementPrimaryRecommendation || synthesis.primaryRecommendation,
+      nextSteps: replacementNextSteps.length > 0 ? replacementNextSteps : synthesis.nextSteps,
+      disclaimer: replacementDisclaimer || synthesis.disclaimer,
+    };
+
+    emit({
+      type: "gatekeeper_review",
+      decision: parsed.decision === "revise" ? "revise" : "approved",
+      rationale: typeof parsed.rationale === "string" && parsed.rationale.trim().length > 0
+        ? parsed.rationale
+        : "Final review completed by the gatekeeper AI.",
+      changed,
+      approvedUrgency: state.synthesis.urgency,
+    });
+  } catch (error) {
+    console.error("[swarm-v2] gatekeeper review failed, using synthesis as-is:", error);
+    emit({
+      type: "gatekeeper_review",
+      decision: "approved",
+      rationale: "Final review fallback: synthesis delivered as generated.",
+      changed: false,
+      approvedUrgency: synthesis.urgency,
+    });
+  }
+
+  emit({ type: "synthesis_complete", data: state.synthesis! });
+  state.currentPhase = "complete";
   emit({ type: "done" });
 }
 
@@ -511,5 +599,15 @@ export async function* streamSwarm(
       yield event;
     }
     await synthPromise;
+  }
+
+  // ── Final Gatekeeper Review (sequential, immediate delivery) ──────────────
+  {
+    const q = createEventQueue<SwarmEvent>();
+    const gatekeeperPromise = runGatekeeperReview(state, q.push).then(() => q.done());
+    for await (const event of q.iterator) {
+      yield event;
+    }
+    await gatekeeperPromise;
   }
 }

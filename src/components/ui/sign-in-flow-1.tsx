@@ -2,10 +2,11 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { SignIn } from "@clerk/nextjs";
+import { SignIn, useClerk } from "@clerk/nextjs";
 
 type Uniforms = {
   [key: string]: {
@@ -491,6 +492,121 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
   );
 }
 
+const DEMO_CREDENTIALS = {
+  patient: {
+    email: "demo-patient@medicrew.dev",
+    password: "Mc!Cr3w-P4t!ent#2026xQ",
+  },
+  doctor: {
+    email: "demo-doctor@medicrew.dev",
+    password: "Mc!Cr3w-D0ct0r#2026xQ",
+  },
+};
+
+function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
+  const clerk = useClerk();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDemoLogin = async () => {
+    if (!clerk.loaded) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      let signInResult = await clerk.client.signIn.create({
+        identifier: DEMO_CREDENTIALS[role].email,
+        password: DEMO_CREDENTIALS[role].password,
+      });
+
+      if (signInResult.status === "needs_second_factor") {
+        // In test mode, Clerk allows bypassing email/SMS verification with the test code "424242"
+        signInResult = await clerk.client.signIn.attemptSecondFactor({
+          strategy: "email_code",
+          code: "424242",
+        });
+      }
+
+      if (signInResult.status === "complete" && signInResult.createdSessionId) {
+        await clerk.setActive({ session: signInResult.createdSessionId });
+        router.push(role === "doctor" ? "/doctor" : "/patient");
+      } else {
+        console.error("Incomplete sign-in result", signInResult);
+        setError("Incomplete: sign-in requires further steps manually.");
+      }
+    } catch (err: any) {
+      console.error("Sign in failed", err);
+      const message =
+        err?.errors?.[0]?.longMessage ||
+        err?.errors?.[0]?.message ||
+        "Demo login failed. " + JSON.stringify(err);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isDoctor = role === "doctor";
+  const btnBg = isDoctor
+    ? "bg-cyan-600 hover:bg-cyan-700"
+    : "bg-sky-600 hover:bg-sky-700";
+  const ringColor = isDoctor ? "ring-cyan-400" : "ring-sky-400";
+
+  return (
+    <div className="flex flex-col items-center gap-2 mt-4 w-full max-w-[360px]">
+      <div className="flex items-center gap-3 w-full">
+        <div className="flex-1 h-px bg-slate-300" />
+        <span className="text-xs text-slate-400 uppercase tracking-wide">
+          or try a demo
+        </span>
+        <div className="flex-1 h-px bg-slate-300" />
+      </div>
+
+      <button
+        onClick={handleDemoLogin}
+        disabled={loading || !clerk.loaded}
+        className={`w-full px-5 py-2.5 rounded-lg text-white text-sm font-medium shadow-md transition-all duration-200 focus:outline-none focus:ring-2 ${ringColor} focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed ${btnBg}`}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg
+              className="animate-spin h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
+            </svg>
+            Signing in…
+          </span>
+        ) : (
+          `Demo ${isDoctor ? "Doctor" : "Patient"} Login`
+        )}
+      </button>
+
+      {error && (
+        <p className="text-xs text-red-500 text-center mt-1 px-2">{error}</p>
+      )}
+
+      <p className="text-[10px] text-slate-400 text-center">
+        Uses a shared demo account — no sign-up required
+      </p>
+    </div>
+  );
+}
+
 export const SignInPage = ({ role, className }: SignInPageProps) => {
   const isDoctor = role === "doctor";
   const dotColor: number[] = isDoctor ? [6, 182, 212] : [14, 165, 233];
@@ -523,9 +639,11 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
       <div className="relative z-10 flex flex-col flex-1">
         <MiniNavbar role={role} />
         <div className="flex flex-1 flex-col justify-center items-center mt-[150px] pb-16">
-          <SignIn />
+          <SignIn forceRedirectUrl={role === "doctor" ? "/doctor" : "/patient"} />
+          <DemoLoginButton role={role} />
         </div>
       </div>
     </div>
   );
 };
+
