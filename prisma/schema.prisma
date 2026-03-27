@@ -60,6 +60,8 @@ model Consultation {
   specialistResponse String?
   recommendation    Json?    @db.JsonB
 
+  notes         Json?    @db.JsonB
+
   createdAt     DateTime @default(now())
   checkIns      CheckIn[]
 }

@@ -1,7 +1,23 @@
 # MediCrew Agent System Review
 
-**Last reviewed: 2026-03-27 (Run 40 — Deep agent code audit)**
-Previous: Run 39 (HEALTHY: 229/229 tests, Clerk foundation merged)
+**Last reviewed: 2026-03-27 (Run 42 — Post SwarmDebugPanel, all C/H/M issues still open)**
+Previous: Run 41 (Status check — bun test gotcha, stale auth rule fixed)
+
+---
+
+## Run 42 — Status Check
+
+**Tests:** 228/228 passing (`bun run test`). No regression.
+
+**New since Run 41:**
+- `src/components/doctor/SwarmDebugPanel.tsx` — built (commit `86bb30f`). Shows hypothesis confidence bars + MDT transcript. Reads from `Partial<SwarmState>`. Clean, no bugs.
+- `src/app/doctor/page.tsx` — wired (commit `19cfda2`). Toggle-able sidebar, SwarmState lifted to page level. Next step: feed live swarm events into it via HuddleRoom callback.
+
+**All C1/C2/C3/H1/H2/M1/M2/M3 issues remain open. No swarm route or orchestrator changes.**
+
+Fix priority unchanged — **C1 first** (emergency detection on swarm, compliance violation, 10 min).
+
+---
 
 ---
 

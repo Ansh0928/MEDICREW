@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
-  const { patient, error } = await getAuthenticatedPatient();
+  const { patient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  const patientId = patient.id;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = patient!.id;
 
   const { searchParams } = new URL(request.url);
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));

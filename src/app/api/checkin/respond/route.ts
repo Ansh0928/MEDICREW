@@ -5,9 +5,10 @@ import { sendEscalationEmail } from "@/lib/email/resend";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
-  const { patient: authPatient, error: authError } = await getAuthenticatedPatient();
+  const { patient: authPatient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
   if (authError) return authError;
-  const patientId = authPatient.id;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = authPatient!.id;
 
   const body = await request.json();
   const { checkInId, response, freeText = "" } = body;

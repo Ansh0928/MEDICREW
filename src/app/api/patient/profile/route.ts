@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function GET(_request: NextRequest) {
-  const { patient: authPatient, error } = await getAuthenticatedPatient();
+  const { patient: authPatient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  const patientId = authPatient.id;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = authPatient!.id;
 
   const patient = await prisma.patient.findUnique({
     where: { id: patientId },
@@ -32,9 +33,10 @@ export async function GET(_request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { patient: authPatient2, error: authError2 } = await getAuthenticatedPatient();
+  const { patient: authPatient2, needsOnboarding: needsOnboarding2, error: authError2 } = await getAuthenticatedPatient();
   if (authError2) return authError2;
-  const patientId = authPatient2.id;
+  if (needsOnboarding2) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = authPatient2!.id;
 
   let body: unknown;
   try {

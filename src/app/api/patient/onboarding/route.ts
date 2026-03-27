@@ -27,9 +27,10 @@ const onboardingSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const { patient, error } = await getAuthenticatedPatient();
+  const { patient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  const patientId = patient.id;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = patient!.id;
 
   const body = await request.json();
   const result = onboardingSchema.safeParse(body);

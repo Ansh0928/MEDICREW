@@ -22,8 +22,9 @@ interface SOAPNote {
 
 export async function POST(request: NextRequest) {
   // Auth gate
-  const { patient, error: authError } = await getAuthenticatedPatient();
+  const { patient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
   if (authError) return authError;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
 
   let consultationId: string;
   try {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Ensure patient can only access their own consultations
-  if (consultation.patientId !== patient.id) {
+  if (consultation.patientId !== patient!.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

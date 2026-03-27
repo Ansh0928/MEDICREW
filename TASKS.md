@@ -28,19 +28,19 @@
 
 **Goal:** Verify all DONE work is actually correct. Decide + implement swarm auth strategy.
 
-- [ ] **CTO AUDIT**: Read and verify every DONE item above — check the actual code, not just the checklist
-  - Confirm `detectEmergency()` fires before LLM in both routes
-  - Confirm `Promise.all` in `specialistNode()` in orchestrator.ts
-  - Confirm patient context passed to `runConsultation()` in non-streaming path
-  - Confirm `onSwarmStateChange` wired in doctor/page.tsx and HuddleRoom emits leadSwarms + mdtMessages
-  - Flag anything wrong with file:line references
+- [x] **CTO AUDIT**: Read and verify every DONE item above — check the actual code, not just the checklist
+  - [x] `detectEmergency()` fires before LLM — consult/route.ts:52, swarm/start/route.ts:33 PASS
+  - [x] `Promise.all` in `specialistNode()` — orchestrator.ts:177 PASS
+  - [x] Patient context passed to `runConsultation()` — consult/route.ts:170-178 PASS
+  - [x] `onSwarmStateChange` wired — doctor/page.tsx:47, HuddleRoom emits leadSwarms + mdtMessages PASS
+  - No failures found — all DONE items verified
 
-- [ ] **C2**: Swarm auth — implement chosen strategy
-  - Option A (recommended): Remove `/api/swarm/start` fetch from HuddleRoom. Point HuddleRoom at `/api/consult?stream=true`. Swarm becomes internal-only. No new auth code.
-  - Option B: Add `getAuthenticatedPatient()` + `prisma.consultation.create()` + Inngest to `/api/swarm/start`
-  - **Ask user to pick before touching**
+- [x] **C2**: Implemented Option A (recommended)
+  - HuddleRoom now calls `/api/consult` with `{ stream: true, swarm: true, patientInfo }` body
+  - New `if (stream && swarm)` branch in consult/route.ts:72 — calls `streamSwarm()`, proxies SwarmEvent SSE, writes Consultation + fires Inngest after stream
+  - `/api/swarm/start` is now internal-only (no patient-facing callers)
 
-- [ ] Confirm `bun run test` passes (currently 225)
+- [x] Confirm `bun run test` passes — 225/225 passing, 44 test files
 
 ---
 

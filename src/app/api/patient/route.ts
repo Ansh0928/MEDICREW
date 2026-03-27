@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function DELETE(_request: NextRequest) {
-  const { patient: authPatient, error } = await getAuthenticatedPatient();
+  const { patient: authPatient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  const patientId = authPatient.id;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = authPatient!.id;
 
   // Fetch current email to preserve for 30-day recovery window
   const patient = await prisma.patient.findUnique({

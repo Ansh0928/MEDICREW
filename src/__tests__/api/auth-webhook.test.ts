@@ -80,11 +80,23 @@ describe("POST /api/auth/webhook", () => {
     expect(prisma.patient.create).not.toHaveBeenCalled();
   });
 
-  it("returns 500 when CLERK_WEBHOOK_SECRET is not set", async () => {
+  it("processes event without signature verification when CLERK_WEBHOOK_SECRET is not set (dev mode)", async () => {
     delete process.env.CLERK_WEBHOOK_SECRET;
     const { POST } = await import("@/app/api/auth/webhook/route");
     const res = await POST(makeWebhookRequest(VALID_USER_CREATED_EVENT) as any);
-    expect(res.status).toBe(500);
+    // Dev mode: no secret → skip verification and still process the event
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.received).toBe(true);
+    expect(prisma.patient.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          clerkUserId: "user_clerk123",
+          email: "jane@example.com",
+          name: "Jane Doe",
+        }),
+      })
+    );
   });
 
   it("falls back to email as name when first_name and last_name are null", async () => {

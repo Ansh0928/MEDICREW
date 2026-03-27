@@ -55,9 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Consent gate — must have valid consent before processing health data
-    const { patient: authPatient, error: authError } = await getAuthenticatedPatient();
+    const { patient: authPatient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
     if (authError) return authError;
-    const patientId = authPatient.id;
+    if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+    const patientId = authPatient!.id;
     const hasConsent = await checkConsent(patientId);
     if (!hasConsent) {
       return NextResponse.json(
