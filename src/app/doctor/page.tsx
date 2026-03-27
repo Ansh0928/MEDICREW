@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
 import { HuddleRoom } from "@/components/consult/HuddleRoom";
 import { SwarmDebugPanel } from "@/components/doctor/SwarmDebugPanel";
@@ -43,12 +45,37 @@ function UrgencyBadge({ urgency }: { urgency: UrgencyLevel | null }) {
 
 // ── Doctor page ───────────────────────────────────────────────────────────────
 
+interface SelectedPatient {
+  id: string;
+  name: string;
+  latestConsultation: { id: string; symptoms: string; urgencyLevel: string | null } | null;
+}
+
 export default function DoctorPage() {
+  const searchParams = useSearchParams();
+  const patientId = searchParams.get("patient");
+
   const [swarmState, setSwarmState] = useState<Partial<SwarmState>>({});
   const [debugOpen, setDebugOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("huddle");
   const [urgency, setUrgency] = useState<UrgencyLevel | null>(null);
   const [currentPhase, setCurrentPhase] = useState<SwarmPhase | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<SelectedPatient | null>(null);
+
+  // Load selected patient from URL param
+  useEffect(() => {
+    if (!patientId) { setSelectedPatient(null); return; }
+    fetch(`/api/doctor/patients/${patientId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data) setSelectedPatient({
+          id: data.id,
+          name: data.name,
+          latestConsultation: data.consultations?.[0] ?? null,
+        });
+      })
+      .catch(() => {});
+  }, [patientId]);
 
   // Reactive urgency update from triage_complete SSE (via swarmState)
   const handleSwarmStateChange = useCallback((state: Partial<SwarmState>) => {
@@ -62,9 +89,9 @@ export default function DoctorPage() {
     navigator.clipboard.writeText(window.location.href).catch(() => {});
   }, []);
 
-  // Stub patient context — in Session 3 this will come from real patient data
-  const patientName = "Jordan K.";
-  const patientSymptom = "Back pain";
+  const patientName = selectedPatient?.name ?? "Jordan K.";
+  const patientSymptom = selectedPatient?.latestConsultation?.symptoms?.slice(0, 50) ?? "Back pain";
+  const latestConsultId = selectedPatient?.latestConsultation?.id;
   const consultDate = new Date().toLocaleDateString("en-AU", {
     day: "numeric",
     month: "short",
@@ -98,10 +125,19 @@ export default function DoctorPage() {
 
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Button variant="outline" size="sm" className="text-xs gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
-            Book Appointment
-          </Button>
+          {latestConsultId ? (
+            <Link href={`/doctor/referral/${latestConsultId}`} target="_blank">
+              <Button variant="outline" size="sm" className="text-xs gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
+                GP Referral Letter
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="outline" size="sm" className="text-xs gap-1.5" disabled>
+              <Calendar className="w-3.5 h-3.5" />
+              GP Referral Letter
+            </Button>
+          )}
           <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={handleCopyLink}>
             <Share2 className="w-3.5 h-3.5" />
             Share
