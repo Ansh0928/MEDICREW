@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, Activity, AlertCircle } from "lucide-react";
+import { Clock, CheckCircle, Activity, AlertCircle, ExternalLink, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface CarePlanData {
@@ -13,8 +13,11 @@ interface CarePlanData {
     status: string;
   } | null;
   latestConsultation: {
+    id: string;
     urgencyLevel: string | null;
     createdAt: string;
+    primaryRecommendation: string | null;
+    bookingNeeded: boolean;
   } | null;
   actionItems: string[];
   recentCheckIns: Array<{
@@ -204,6 +207,53 @@ export function CarePlanDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Care Team Assessment */}
+      {carePlan.latestConsultation?.primaryRecommendation && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Care Team Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-700">{carePlan.latestConsultation.primaryRecommendation}</p>
+            <Link
+              href={`/patient/consultation/${carePlan.latestConsultation.id}`}
+              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-2"
+            >
+              View full summary <ChevronRight className="w-3 h-3" />
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Book a GP CTA */}
+      {carePlan.latestConsultation?.bookingNeeded && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm font-medium text-blue-800 mb-2">
+              Your care team recommends seeing a GP.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="https://www.hotdoc.com.au"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Book via HotDoc <ExternalLink className="w-3 h-3" />
+              </a>
+              <a
+                href="https://www.healthengine.com.au"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border border-blue-300 text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                HealthEngine <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Action Items Card */}
       <Card>

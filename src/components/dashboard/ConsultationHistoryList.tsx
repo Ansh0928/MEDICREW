@@ -1,14 +1,15 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, FileText } from "lucide-react";
+import { ChevronRight, Clock, FileText } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 interface CareRecommendation {
   urgency?: string;
   summary?: string;
+  primaryRecommendation?: string;
   nextSteps?: string[];
   specialistType?: string;
   timeframe?: string;
@@ -58,44 +59,47 @@ export function ConsultationHistoryList({ consultations }: ConsultationHistoryLi
         const config = urgencyConfig[urgency] ?? urgencyConfig.routine;
         const rec = extractRecommendation(consultation.recommendation);
 
+        const snippet = rec?.primaryRecommendation ?? rec?.summary;
+
         return (
-          <Card key={consultation.id} className="p-4 bg-muted/30">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">
-                  {consultation.symptoms.substring(0, 100)}
-                  {consultation.symptoms.length > 100 && "..."}
-                </p>
-
-                {rec?.summary && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                    {rec.summary}
+          <Link
+            key={consultation.id}
+            href={`/patient/consultation/${consultation.id}`}
+            className="block group"
+          >
+            <Card className="p-4 bg-muted/30 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">
+                    {consultation.symptoms.substring(0, 100)}
+                    {consultation.symptoms.length > 100 && "…"}
                   </p>
-                )}
 
-                {rec?.specialistType && (
-                  <p className="text-xs text-blue-600 mt-1">
-                    Referred to: {rec.specialistType}
-                  </p>
-                )}
+                  {snippet && (
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                      {snippet}
+                    </p>
+                  )}
 
-                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3" />
-                  {new Date(consultation.createdAt).toLocaleDateString("en-AU", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    {new Date(consultation.createdAt).toLocaleDateString("en-AU", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant={config.variant}>{config.label}</Badge>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-blue-500 transition-colors" />
                 </div>
               </div>
-
-              <Badge variant={config.variant} className="shrink-0">
-                {config.label}
-              </Badge>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         );
       })}
     </div>

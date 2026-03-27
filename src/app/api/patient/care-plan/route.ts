@@ -110,8 +110,17 @@ export async function GET(_request: NextRequest) {
       : null,
     latestConsultation: latestConsultation
       ? {
+          id: latestConsultation.id,
           urgencyLevel: latestConsultation.urgencyLevel,
           createdAt: latestConsultation.createdAt,
+          primaryRecommendation: (() => {
+            const rec = latestConsultation.recommendation as { primaryRecommendation?: string } | null;
+            return rec?.primaryRecommendation ?? null;
+          })(),
+          bookingNeeded: (() => {
+            const rec = latestConsultation.recommendation as { bookingNeeded?: boolean } | null;
+            return rec?.bookingNeeded ?? false;
+          })(),
         }
       : null,
     actionItems,

@@ -8,11 +8,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, FileText, User, AlertCircle, LogOut, Users, HeartPulse } from "lucide-react";
+import { ArrowLeft, Bell, FileText, User, AlertCircle, LogOut, Users, HeartPulse, BookOpen } from "lucide-react";
 import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
 import { CarePlanDetail } from "@/components/dashboard/CarePlanDetail";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
 import { NotificationInbox } from "@/components/notifications/NotificationInbox";
+import { SymptomJournalWidget } from "@/components/dashboard/SymptomJournalWidget";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/client";
 
@@ -58,7 +59,7 @@ export default function PatientPortal() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"care-team" | "care-plan" | "history" | "notifications">("care-team");
+  const [activeTab, setActiveTab] = useState<"care-team" | "care-plan" | "history" | "journal" | "notifications">("care-team");
   const [checkIns, setCheckIns] = useState<Array<{ id: string; notificationId: string | null; status: string }>>([]);
 
   useEffect(() => {
@@ -270,6 +271,13 @@ export default function PatientPortal() {
               )}
             </Button>
             <Button
+              variant={activeTab === "journal" ? "default" : "outline"}
+              onClick={() => setActiveTab("journal")}
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Journal
+            </Button>
+            <Button
               variant={activeTab === "notifications" ? "default" : "outline"}
               onClick={() => setActiveTab("notifications")}
             >
@@ -340,6 +348,17 @@ export default function PatientPortal() {
                     })) ?? []}
                   />
                 </Card>
+              </motion.div>
+            )}
+
+            {activeTab === "journal" && (
+              <motion.div
+                key="journal"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <SymptomJournalWidget />
               </motion.div>
             )}
 
