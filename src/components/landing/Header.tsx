@@ -5,11 +5,12 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/client";
+import { LogoMark } from "@/components/branding/LogoMark";
 
 const NAV = [
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "The Team", href: "#team" },
-  { label: "Trust & Safety", href: "#safety" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "The Team", href: "/#team" },
+  { label: "Trust & Safety", href: "/trust" },
   { label: "Pricing", href: "/pricing" },
   { label: "Resources", href: "/resources" },
 ];
@@ -33,10 +34,7 @@ export function Header() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 mr-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold shadow-sm"
-            style={{ background: "linear-gradient(135deg, #56B8FF, #018EF5)" }}>
-            +
-          </div>
+          <LogoMark size={24} />
           <span className="font-[family-name:var(--font-mono)] text-sm font-semibold" style={{ color: "#118CFD" }}>
             MediCrew
           </span>

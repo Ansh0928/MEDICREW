@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogoMark } from "@/components/branding/LogoMark";
 
 const links: Record<string, Array<{ label: string; href: string }>> = {
   Product: [
@@ -32,10 +33,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-sm font-bold shadow-sm"
-                style={{ background: "linear-gradient(180deg, #56B8FF, #018EF5)" }}>
-                +
-              </div>
+              <LogoMark size={28} />
               <span className="font-[family-name:var(--font-mono)] text-sm font-semibold" style={{ color: "#118CFD" }}>
                 MediCrew
               </span>

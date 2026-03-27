@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/client";
 import { LandingVariant } from "@/lib/marketing/landing-variants";
+import { LandingSectionViewTracker } from "@/components/landing/LandingSectionViewTracker";
 
 const ctaCopyByVariant: Record<LandingVariant, { title: string; accent: string; body: string }> = {
   speed: {
@@ -27,7 +28,8 @@ export function CTA({ variant = "specialist" }: { variant?: LandingVariant }) {
   const copy = ctaCopyByVariant[variant];
 
   return (
-    <section className="py-28 px-6" style={{ background: "#E7F3FF" }}>
+    <section id="cta" className="py-28 px-6" style={{ background: "#E7F3FF" }}>
+      <LandingSectionViewTracker sectionId="cta" surface="cta" />
       <div className="max-w-4xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-8"
           style={{ background: "rgba(255,255,255,0.8)", borderColor: "#BFDBFE", color: "#637288" }}>
@@ -63,7 +65,7 @@ export function CTA({ variant = "specialist" }: { variant?: LandingVariant }) {
               })
             }
           >
-            Start Free Consultation
+            Start Free Consultation (Sign in required)
           </Link>
           <Link href="#team"
             className="px-5 py-3 text-sm font-[family-name:var(--font-mono)] hover:opacity-70 transition-opacity"

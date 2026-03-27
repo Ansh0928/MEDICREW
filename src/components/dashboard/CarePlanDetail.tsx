@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, Activity, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 interface CarePlanData {
   monitoringStatus: "active" | "inactive";
@@ -118,7 +119,13 @@ export function CarePlanDetail() {
         <CardContent className="pt-6">
           <div className="text-center py-8 text-muted-foreground">
             <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="text-sm">Start a consultation to begin your care plan</p>
+            <p className="text-sm mb-4">Start a consultation to begin your care plan</p>
+            <Link
+              href="/consult"
+              className="inline-flex rounded-full bg-primary px-5 py-2 text-sm text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Start Your First Consultation
+            </Link>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,6 @@
 export const ANALYTICS_EVENTS = {
   landingViewed: "landing_viewed",
+  landingSectionViewed: "landing_section_viewed",
   landingCtaClick: "landing_cta_click",
   landingSecondaryClick: "landing_secondary_click",
   authIntentClick: "auth_intent_click",

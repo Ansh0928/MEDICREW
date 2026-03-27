@@ -5,7 +5,9 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { MeetTheTeam } from "@/components/landing/MeetTheTeam";
 import { Features } from "@/components/landing/Features";
 import { TrustSection } from "@/components/landing/TrustSection";
+import { ProofSection } from "@/components/landing/ProofSection";
 import { CTA } from "@/components/landing/CTA";
+import { FAQSection } from "@/components/landing/FAQSection";
 import { Footer } from "@/components/landing/Footer";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -47,7 +49,9 @@ export default async function Home({
       <section id="safety">
         <TrustSection />
       </section>
+      <ProofSection />
       <CTA variant={landingVariant} />
+      <FAQSection />
       <Footer />
     </main>
   );

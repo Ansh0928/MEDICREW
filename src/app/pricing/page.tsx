@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title: "Pricing | MediCrew",
@@ -8,7 +10,9 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-5xl px-6 py-16">
+    <>
+      <Header />
+      <main className="mx-auto min-h-screen max-w-5xl px-6 pt-28 pb-16">
       <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Pricing</h1>
       <p className="mt-4 max-w-3xl text-slate-700">
         MediCrew currently offers free patient consultations while we expand our Australia-first care navigation program.
@@ -30,6 +34,8 @@ export default function PricingPage() {
           </Link>
         </section>
       </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

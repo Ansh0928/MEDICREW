@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 const clusters = [
   {
@@ -26,7 +28,9 @@ export const metadata: Metadata = {
 
 export default function ResourcesPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-5xl px-6 py-16">
+    <>
+      <Header />
+      <main className="mx-auto min-h-screen max-w-5xl px-6 pt-28 pb-16">
       <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Care Resources</h1>
       <p className="mt-4 max-w-3xl text-slate-700">
         Our resources are organized by symptom-intent clusters so people can quickly understand urgency, next steps, and how to prepare for GP follow-up.
@@ -40,6 +44,8 @@ export default function ResourcesPage() {
           </article>
         ))}
       </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

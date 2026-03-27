@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { LandingSectionViewTracker } from "@/components/landing/LandingSectionViewTracker";
 
 const dicebear = (seed: string) =>
   `https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${seed}`;
@@ -160,6 +161,7 @@ const steps = [
 export function HowItWorks() {
   return (
     <section id="how-it-works" className="py-24 px-6" style={{ background: "linear-gradient(25deg, #E1E7EA, #DCD9E7)" }}>
+      <LandingSectionViewTracker sectionId="how-it-works" surface="how_it_works" />
       <div className="max-w-6xl mx-auto">
         <div className="mb-16 max-w-xl">
           <p className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-4" style={{ color: "#637288" }}>

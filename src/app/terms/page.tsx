@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title: "Terms of Use | MediCrew",
@@ -7,7 +9,9 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-4xl px-6 py-16">
+    <>
+      <Header />
+      <main className="mx-auto min-h-screen max-w-4xl px-6 pt-28 pb-16">
       <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Terms of Use</h1>
       <p className="mt-4 text-slate-700">
         By using MediCrew, you agree to these terms. MediCrew provides health navigation guidance only.
@@ -31,6 +35,8 @@ export default function TermsPage() {
         <h2 className="text-2xl font-semibold text-slate-900">Service updates</h2>
         <p className="text-slate-700">We may improve, change, or discontinue parts of the service while maintaining safety and compliance obligations.</p>
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

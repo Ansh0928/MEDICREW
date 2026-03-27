@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title: "Trust Center | MediCrew",
@@ -9,7 +11,9 @@ export const metadata: Metadata = {
 
 export default function TrustPage() {
   return (
-    <main className="min-h-screen bg-white">
+    <>
+      <Header />
+      <main className="min-h-screen bg-white pt-20">
       <section className="mx-auto max-w-4xl px-6 py-16">
         <p className="text-sm uppercase tracking-widest text-slate-500">Trust Center</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">Safety, privacy, and clinical boundaries</h1>
@@ -52,6 +56,8 @@ export default function TrustPage() {
           </Link>
         </div>
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

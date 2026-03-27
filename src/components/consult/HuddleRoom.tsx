@@ -254,6 +254,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
 
       case "error":
         addChatMessage("System", event.message, "system");
+        setIsRunning(false);
         break;
     }
   }, [updateAgent, addChatMessage, emitDebugState]);

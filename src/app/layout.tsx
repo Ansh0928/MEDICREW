@@ -46,6 +46,14 @@ export const metadata: Metadata = {
     url: "https://www.medicrew.health",
     siteName: "MediCrew",
     type: "website",
+    images: [
+      {
+        url: "/medicrew-icon.svg",
+        width: 512,
+        height: 512,
+        alt: "MediCrew icon",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -59,6 +67,11 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  icons: {
+    icon: "/medicrew-icon.svg",
+    shortcut: "/medicrew-icon.svg",
+    apple: "/medicrew-icon.svg",
   },
 };
 

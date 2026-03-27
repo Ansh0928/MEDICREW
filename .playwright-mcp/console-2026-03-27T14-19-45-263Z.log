@@ -1,1 +1,28 @@
 [     254ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[ 1238633ms] [ERROR] ./src/app/pricing/page.tsx:39:1
+Parsing ecmascript source code failed
+  37 |     </main>
+  38 |   );
+> 39 | }
+     | ^
+  40 |
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`? @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 1244973ms] [ERROR] ./src/app/trust/page.tsx:61:1
+Parsing ecmascript source code failed
+  59 |     </main>
+  60 |   );
+> 61 | }
+     | ^
+  62 |
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`? @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 1251543ms] [ERROR] ./src/app/resources/page.tsx:49:1
+Parsing ecmascript source code failed
+  47 |     </main>
+  48 |   );
+> 49 | }
+     | ^
+  50 |
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`? @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
