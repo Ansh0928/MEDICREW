@@ -24,6 +24,22 @@ export interface AgentMessage {
   timestamp: Date;
 }
 
+export interface ConsultationPatientInfo {
+  age: string;
+  gender: string;
+  knownConditions?: string;
+  medications?: string[];
+  allergies?: string[];
+  historySummary?: string;
+}
+
+export interface ConsultationInput {
+  symptoms: string;
+  stream?: boolean;
+  swarm?: boolean;
+  patientInfo?: Partial<ConsultationPatientInfo>;
+}
+
 // Consultation state managed by the orchestrator
 export interface ConsultationState {
   // User input

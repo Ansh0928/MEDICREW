@@ -236,6 +236,14 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
         );
         break;
 
+      case "gatekeeper_review":
+        addChatMessage(
+          "Alex AI — GP",
+          `${event.decision === "revise" ? "Final review requested revisions" : "Final review approved"}: ${event.rationale}`,
+          "system"
+        );
+        break;
+
       case "followup_routed":
         setFollowupRouting({ type: event.questionType, roles: event.activatedRoles });
         break;

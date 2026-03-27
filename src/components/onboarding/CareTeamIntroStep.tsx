@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CARE_TEAM } from "@/lib/care-team-config";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 export function CareTeamIntroStep() {
   const router = useRouter();
@@ -46,7 +48,14 @@ export function CareTeamIntroStep() {
         ))}
       </div>
 
-      <Button onClick={() => router.push("/patient")} className="w-full" size="lg">
+      <Button
+        onClick={() => {
+          trackEvent(ANALYTICS_EVENTS.onboardingStepCompleted, { step: "care_team_intro" });
+          router.push("/patient");
+        }}
+        className="w-full"
+        size="lg"
+      >
         Get Started
       </Button>
     </div>

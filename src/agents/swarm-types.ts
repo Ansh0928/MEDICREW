@@ -1,5 +1,6 @@
 // src/agents/swarm-types.ts
 import { UrgencyLevel } from "./types";
+import { ConsultationPatientInfo } from "./types";
 
 export type DoctorRole =
   | "gp"
@@ -73,7 +74,7 @@ export interface SwarmLeadState {
 export interface SwarmState {
   sessionId: string;
   symptoms: string;
-  patientInfo: { age: string; gender: string; knownConditions?: string };
+  patientInfo: ConsultationPatientInfo;
   triage: {
     urgency: UrgencyLevel;
     relevantDoctors: DoctorRole[];
@@ -105,6 +106,13 @@ export type SwarmEvent =
   | { type: "rectification_complete"; role: DoctorRole; summary: string }
   | { type: "mdt_message"; role: DoctorRole; messageType: MdtMessageType; content: string }
   | { type: "synthesis_complete"; data: SwarmSynthesis }
+  | {
+      type: "gatekeeper_review";
+      decision: "approved" | "revise";
+      rationale: string;
+      changed: boolean;
+      approvedUrgency: UrgencyLevel;
+    }
   | { type: "followup_routed"; questionType: "simple" | "complex"; activatedRoles: string[] }
   | { type: "followup_answer"; answer: string }
   | { type: "error"; message: string }

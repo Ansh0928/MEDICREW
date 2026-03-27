@@ -1,0 +1,23 @@
+[    2297ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    2711ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/login/patient/SignIn_clerk_catchall_check_1774620912473:0
+[    2712ms] Error: 
+Clerk: The <SignIn/> component is not configured correctly. The most likely reasons for this error are:
+
+1. The "/login/patient" route is not a catch-all route.
+It is recommended to convert this route to a catch-all route, eg: "/login/patient/[[...rest]]/page.tsx". Alternatively, you can update the <SignIn/> component to use hash-based routing by setting the "routing" prop to "hash".
+
+2. The <SignIn/> component is mounted in a catch-all route, but all routes under "/login/patient" are protected by the middleware.
+To resolve this, ensure that the middleware does not protect the catch-all route or any of its children. If you are using the "createRouteMatcher" helper, consider adding "(.*)" to the end of the route pattern, eg: "/login/patient(.*)". For more information, see: https://clerk.com/docs/reference/nextjs/clerk-middleware#create-route-matcher
+
+    at useEnforceCatchAllRoute.useEffect.error (http://localhost:3000/_next/static/chunks/node_modules_10ec593d._.js:13470:27)
+    at useEnforceCatchAllRoute.useEffect.check (http://localhost:3000/_next/static/chunks/node_modules_10ec593d._.js:13500:29)
+[    2730ms] [WARNING] THREE.THREE.Clock: This module has been deprecated. Please use THREE.Timer instead. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   26979ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://superb-foal-75.clerk.accounts.dev/v1/client/sign_ins/sia_3BX28lkjs5HZppJWM5qw5wxQ3Q6/attempt_second_factor?__clerk_api_version=2025-11-10&_clerk_js_version=6.3.3&__clerk_db_jwt=dvb_3BX25PRUkmiczuKbFYegCJbW2dg:0
+[   26992ms] [ERROR] Sign in failed e: You need to send a verification code before attempting to verify.
+    at t$._baseFetch (https://superb-foal-75.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async tL.execute (https://superb-foal-75.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6639)
+    at async rQ._baseMutate (https://superb-foal-75.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:687)
+    at async handleDemoLogin (http://localhost:3000/_next/static/chunks/src_4973d8e5._.js:740:32) @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  138831ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/login/patient?_rsc=c9944:0
+[  142060ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  142294ms] [WARNING] THREE.THREE.Clock: This module has been deprecated. Please use THREE.Timer instead. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297

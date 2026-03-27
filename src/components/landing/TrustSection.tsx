@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 const pillars = [
   { code: "AUS-01", title: "AHPRA-Aligned", body: "AI agents are named to clearly distinguish them from registered practitioners — e.g. 'Alex AI — GP', never 'Dr. Alex'.", color: "#118CFD" },
   { code: "AUS-02", title: "Privacy Act 1988", body: "All data stored in Sydney (ap-southeast-2). Full APP 12 export and soft-delete on request.", color: "#12CA93" },
@@ -37,6 +39,30 @@ export function TrustSection() {
               <p className="text-sm leading-relaxed" style={{ color: "#637288" }}>{p.body}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Link
+            href="/trust"
+            className="inline-flex items-center rounded-full border px-4 py-2 text-sm transition-opacity hover:opacity-80"
+            style={{ color: "#12181B", borderColor: "rgba(255,255,255,0.9)", background: "rgba(255,255,255,0.7)" }}
+          >
+            Read full trust center
+          </Link>
+          <Link
+            href="/privacy"
+            className="inline-flex items-center rounded-full border px-4 py-2 text-sm transition-opacity hover:opacity-80"
+            style={{ color: "#12181B", borderColor: "rgba(255,255,255,0.9)", background: "rgba(255,255,255,0.7)" }}
+          >
+            Privacy policy
+          </Link>
+          <Link
+            href="/terms"
+            className="inline-flex items-center rounded-full border px-4 py-2 text-sm transition-opacity hover:opacity-80"
+            style={{ color: "#12181B", borderColor: "rgba(255,255,255,0.9)", background: "rgba(255,255,255,0.7)" }}
+          >
+            Terms of use
+          </Link>
         </div>
       </div>
     </section>

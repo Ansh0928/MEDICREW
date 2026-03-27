@@ -13,6 +13,8 @@ import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
 import { CarePlanDetail } from "@/components/dashboard/CarePlanDetail";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
 import { NotificationInbox } from "@/components/notifications/NotificationInbox";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 interface AgentStatus {
   agentName: string;
@@ -93,10 +95,14 @@ export default function PatientPortal() {
       }
 
       const profile = await profileRes.json();
+      if (!profile.onboardingComplete) {
+        router.push("/onboarding?step=1");
+        return;
+      }
 
       const [notificationsRes, checkInsRes] = await Promise.all([
-        fetch(`/api/notifications?patientId=${profile.id}`),
-        fetch(`/api/checkin?patientId=${profile.id}`),
+        fetch("/api/notifications"),
+        fetch("/api/checkin"),
       ]);
 
       const consultationsData = consultationsRes.ok ? await consultationsRes.json() : { consultations: [] };
@@ -115,6 +121,7 @@ export default function PatientPortal() {
         careTeamStatus: careTeamData,
       });
       setCheckIns(Array.isArray(checkInsData) ? checkInsData : []);
+      trackEvent(ANALYTICS_EVENTS.returnVisit, { surface: "patient_portal" });
     } catch {
       setError("Failed to load your dashboard. Please try again.");
     } finally {

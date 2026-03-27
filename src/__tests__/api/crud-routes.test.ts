@@ -16,20 +16,35 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getAuthenticatedPatient: vi.fn(),
+}));
+
+const AUTH_P1 = { patient: { id: "p1" }, error: null };
+const AUTH_NONE = {
+  patient: null,
+  error: new Response(JSON.stringify({ error: "Authentication required" }), {
+    status: 401,
+    headers: { "content-type": "application/json" },
+  }),
+};
+
 describe("GET /api/consultations", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 400 when patientId is missing", async () => {
+  it("returns 401 when not authenticated", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { GET } = await import("@/app/api/consultations/route");
     const res = await GET(new Request("http://localhost/api/consultations") as any);
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toMatch(/Patient ID/i);
+    expect(res.status).toBe(401);
   });
 
-  it("returns 200 with array for valid patientId", async () => {
+  it("returns 200 with array for authenticated patient", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { GET } = await import("@/app/api/consultations/route");
-    const res = await GET(new Request("http://localhost/api/consultations?patientId=p1") as any);
+    const res = await GET(new Request("http://localhost/api/consultations") as any);
     expect(res.status).toBe(200);
     expect(Array.isArray(await res.json())).toBe(true);
   });
@@ -38,17 +53,33 @@ describe("GET /api/consultations", () => {
 describe("POST /api/consultations", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 400 when patientId is missing", async () => {
+  it("returns 401 when not authenticated", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import("@/app/api/consultations/route");
     const res = await POST(new Request("http://localhost/api/consultations", {
       method: "POST",
       body: JSON.stringify({ symptoms: "headache" }),
       headers: { "Content-Type": "application/json" },
     }) as any);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 403 when body patientId does not match authenticated patient", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
+    const { POST } = await import("@/app/api/consultations/route");
+    const res = await POST(new Request("http://localhost/api/consultations", {
+      method: "POST",
+      body: JSON.stringify({ patientId: "p2", symptoms: "headache" }),
+      headers: { "Content-Type": "application/json" },
+    }) as any);
+    expect(res.status).toBe(403);
   });
 
   it("returns 400 when symptoms is missing", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/consultations/route");
     const res = await POST(new Request("http://localhost/api/consultations", {
       method: "POST",
@@ -59,6 +90,8 @@ describe("POST /api/consultations", () => {
   });
 
   it("returns 200/201 with consultation on valid input", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/consultations/route");
     const res = await POST(new Request("http://localhost/api/consultations", {
       method: "POST",
@@ -74,48 +107,23 @@ describe("POST /api/consultations", () => {
 describe("GET /api/patients", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 200 with patient array", async () => {
+  it("returns 410 deprecated", async () => {
     const { GET } = await import("@/app/api/patients/route");
     const res = await GET();
-    expect(res.status).toBe(200);
-    expect(Array.isArray(await res.json())).toBe(true);
+    expect(res.status).toBe(410);
   });
 });
 
 describe("POST /api/patients", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 400 when email is missing", async () => {
-    const { POST } = await import("@/app/api/patients/route");
-    const res = await POST(new Request("http://localhost/api/patients", {
-      method: "POST",
-      body: JSON.stringify({ name: "Alice" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toMatch(/Email/i);
-  });
-
-  it("returns 400 when name is missing", async () => {
-    const { POST } = await import("@/app/api/patients/route");
-    const res = await POST(new Request("http://localhost/api/patients", {
-      method: "POST",
-      body: JSON.stringify({ email: "alice@test.com" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
-    expect(res.status).toBe(400);
-  });
-
-  it("returns 200/201 on valid patient upsert", async () => {
+  it("returns 410 deprecated", async () => {
     const { POST } = await import("@/app/api/patients/route");
     const res = await POST(new Request("http://localhost/api/patients", {
       method: "POST",
       body: JSON.stringify({ email: "alice@test.com", name: "Alice" }),
       headers: { "Content-Type": "application/json" },
     }) as any);
-    expect([200, 201]).toContain(res.status);
-    const body = await res.json();
-    expect(body.email).toBe("alice@test.com");
+    expect(res.status).toBe(410);
   });
 });

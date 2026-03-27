@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, User, Stethoscope, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 export default function LoginPortal() {
   return (
@@ -37,7 +39,10 @@ export default function LoginPortal() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Patient Portal */}
-            <Link href="/login/patient">
+            <Link
+              href="/login/patient"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.authIntentClick, { surface: "login_portal", target: "patient" })}
+            >
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Card className="p-8 h-full cursor-pointer hover:border-blue-400 hover:shadow-lg transition-all group">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
@@ -60,7 +65,10 @@ export default function LoginPortal() {
             </Link>
 
             {/* Doctor Portal */}
-            <Link href="/login/doctor">
+            <Link
+              href="/login/doctor"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.authIntentClick, { surface: "login_portal", target: "doctor" })}
+            >
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Card className="p-8 h-full cursor-pointer hover:border-emerald-400 hover:shadow-lg transition-all group">
                   <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6">
@@ -84,7 +92,15 @@ export default function LoginPortal() {
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
-            New to MediCrew? <Link href="/consult" className="text-blue-600 hover:underline">Start a free consultation</Link> to experience our AI-powered health guidance.
+            New to MediCrew?{" "}
+            <Link
+              href="/consult"
+              className="text-blue-600 hover:underline"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.landingCtaClick, { surface: "login_portal", cta: "start_consultation" })}
+            >
+              Start a free consultation
+            </Link>{" "}
+            to experience our AI-powered health guidance.
           </p>
         </motion.div>
       </main>

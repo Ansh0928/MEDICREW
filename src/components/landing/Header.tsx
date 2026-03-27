@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 const NAV = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "The Team", href: "#team" },
   { label: "Trust & Safety", href: "#safety" },
-  { label: "Pricing", href: "#" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Resources", href: "/resources" },
 ];
 
 export function Header() {
@@ -56,13 +59,17 @@ export function Header() {
         <div className="hidden md:flex items-center gap-3 ml-2">
           <Link href="/login/patient"
             className="font-[family-name:var(--font-mono)] text-xs px-3 py-1.5 rounded-full border transition-colors"
-            style={{ color: "#384248", borderColor: "#D1D5DB" }}>
+            style={{ color: "#384248", borderColor: "#D1D5DB" }}
+            onClick={() => trackEvent(ANALYTICS_EVENTS.authIntentClick, { surface: "header", target: "login_patient" })}
+          >
             Log In
           </Link>
           <Link href="/consult"
             className="font-[family-name:var(--font-mono)] text-xs px-4 py-1.5 rounded-full text-white font-medium shadow-sm hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(180deg, #56B8FF, #018EF5)" }}>
-            Sign Up
+            style={{ background: "linear-gradient(180deg, #56B8FF, #018EF5)" }}
+            onClick={() => trackEvent(ANALYTICS_EVENTS.landingCtaClick, { surface: "header", cta: "start_consultation" })}
+          >
+            Start Consultation
           </Link>
         </div>
 
@@ -86,13 +93,17 @@ export function Header() {
           <div className="flex gap-2 pt-2 border-t border-black/5">
             <Link href="/login/patient"
               className="flex-1 text-center font-[family-name:var(--font-mono)] text-xs px-3 py-2 rounded-full border"
-              style={{ color: "#384248", borderColor: "#D1D5DB" }}>
+              style={{ color: "#384248", borderColor: "#D1D5DB" }}
+              onClick={() => trackEvent(ANALYTICS_EVENTS.authIntentClick, { surface: "header_mobile", target: "login_patient" })}
+            >
               Log In
             </Link>
             <Link href="/consult"
               className="flex-1 text-center font-[family-name:var(--font-mono)] text-xs px-3 py-2 rounded-full text-white font-medium"
-              style={{ background: "linear-gradient(180deg, #56B8FF, #018EF5)" }}>
-              Sign Up
+              style={{ background: "linear-gradient(180deg, #56B8FF, #018EF5)" }}
+              onClick={() => trackEvent(ANALYTICS_EVENTS.landingCtaClick, { surface: "header_mobile", cta: "start_consultation" })}
+            >
+              Start Consultation
             </Link>
           </div>
         </div>

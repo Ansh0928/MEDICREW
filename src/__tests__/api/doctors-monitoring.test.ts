@@ -16,61 +16,48 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+}));
+
 describe("GET /api/doctors", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 200 with doctor array", async () => {
+  it("returns 410 deprecated", async () => {
     const { GET } = await import("@/app/api/doctors/route");
     const res = await GET();
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(Array.isArray(body)).toBe(true);
-    expect(body[0].name).toBe("Dr Smith");
+    expect(res.status).toBe(410);
   });
 });
 
 describe("POST /api/doctors", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 400 when name is missing", async () => {
-    const { POST } = await import("@/app/api/doctors/route");
-    const res = await POST(new Request("http://localhost/api/doctors", {
-      method: "POST",
-      body: JSON.stringify({ email: "jones@test.com", specialty: "Cardiology" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toMatch(/Name|email|specialty/i);
-  });
-
-  it("returns 400 when specialty is missing", async () => {
-    const { POST } = await import("@/app/api/doctors/route");
-    const res = await POST(new Request("http://localhost/api/doctors", {
-      method: "POST",
-      body: JSON.stringify({ name: "Dr Jones", email: "jones@test.com" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
-    expect(res.status).toBe(400);
-  });
-
-  it("returns 200/201 with created doctor on valid input", async () => {
+  it("returns 410 deprecated", async () => {
     const { POST } = await import("@/app/api/doctors/route");
     const res = await POST(new Request("http://localhost/api/doctors", {
       method: "POST",
       body: JSON.stringify({ name: "Dr Jones", email: "jones@test.com", specialty: "Cardiology" }),
       headers: { "Content-Type": "application/json" },
     }) as any);
-    expect([200, 201]).toContain(res.status);
-    const body = await res.json();
-    expect(body.name).toBe("Dr Jones");
+    expect(res.status).toBe(410);
   });
 });
 
 describe("GET /api/doctor/monitoring", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 200 with patient array (monitoring dashboard)", async () => {
+  it("returns 401 when unauthenticated", async () => {
+    const { auth } = await import("@clerk/nextjs/server");
+    vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+    const { GET } = await import("@/app/api/doctor/monitoring/route");
+    const res = await GET();
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 200 with patient array (monitoring dashboard) for authenticated user", async () => {
+    const { auth } = await import("@clerk/nextjs/server");
+    vi.mocked(auth).mockResolvedValue({ userId: "doctor-1" } as any);
     const { GET } = await import("@/app/api/doctor/monitoring/route");
     const res = await GET();
     expect(res.status).toBe(200);

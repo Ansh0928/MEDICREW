@@ -2,10 +2,25 @@
 
 import Link from "next/link";
 
-const links = {
-  Product: ["How It Works", "The Team", "Trust & Safety", "Pricing"],
-  Resources: ["Documentation", "API Reference", "Privacy Policy", "Terms"],
-  Company: ["About", "Blog", "Contact", "Australia"],
+const links: Record<string, Array<{ label: string; href: string }>> = {
+  Product: [
+    { label: "How It Works", href: "/#how-it-works" },
+    { label: "The Team", href: "/#team" },
+    { label: "Trust & Safety", href: "/trust" },
+    { label: "Pricing", href: "/pricing" },
+  ],
+  Resources: [
+    { label: "Care Resources", href: "/resources" },
+    { label: "Partner Program", href: "/partners" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
+  ],
+  Company: [
+    { label: "About MediCrew", href: "/trust" },
+    { label: "Clinical Safety", href: "/trust#clinical-safety" },
+    { label: "Contact", href: "mailto:hello@medicrew.health" },
+    { label: "Australia", href: "/trust#au-data" },
+  ],
 };
 
 export function Footer() {
@@ -39,11 +54,11 @@ export function Footer() {
                 </p>
                 <ul className="flex flex-col gap-2.5">
                   {items.map((item) => (
-                    <li key={item}>
-                      <Link href="#"
+                    <li key={item.label}>
+                      <Link href={item.href}
                         className="text-sm hover:opacity-70 transition-opacity"
                         style={{ color: "#00329D" }}>
-                        {item}
+                        {item.label}
                       </Link>
                     </li>
                   ))}
@@ -60,11 +75,15 @@ export function Footer() {
             © {new Date().getFullYear()} MediCrew. All rights reserved.
           </p>
           <div className="flex gap-5">
-            {["Privacy", "Terms", "Cookies"].map((l) => (
-              <Link key={l} href="#"
+            {[
+              { label: "Privacy", href: "/privacy" },
+              { label: "Terms", href: "/terms" },
+              { label: "Cookies", href: "/cookies" },
+            ].map((l) => (
+              <Link key={l.label} href={l.href}
                 className="font-[family-name:var(--font-mono)] text-xs hover:opacity-70 transition-opacity"
                 style={{ color: "#F7C543", textDecoration: "underline", textDecorationColor: "#F7C543" }}>
-                {l}
+                {l.label}
               </Link>
             ))}
           </div>

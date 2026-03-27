@@ -17,6 +17,12 @@ vi.mock("next/link", () => {
   };
 });
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 vi.mock("@react-three/fiber", () => {
   const React = require("react");
   return {
@@ -48,6 +54,15 @@ vi.mock("@clerk/nextjs", () => {
   const React = require("react");
   return {
     SignIn: () => React.createElement("div", { "data-testid": "clerk-sign-in" }, "Clerk SignIn"),
+    useClerk: () => ({
+      loaded: true,
+      client: {
+        signIn: {
+          create: vi.fn(),
+        },
+      },
+      setActive: vi.fn(),
+    }),
   };
 });
 

@@ -49,24 +49,29 @@ const AUTH_NONE = {
 describe("GET /api/checkin", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns 400 when patientId is missing", async () => {
+  it("returns 401 when not authenticated", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { GET } = await import("@/app/api/checkin/route");
     const res = await GET(new Request("http://localhost/api/checkin") as any);
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toMatch(/patientId/);
+    expect(res.status).toBe(401);
   });
 
-  it("returns 200 with array when patientId present", async () => {
+  it("returns 200 with array for authenticated patient", async () => {
+    const { getAuthenticatedPatient } = await import("@/lib/auth");
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
     (prisma.checkIn.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
       { id: "ci-1", notificationId: "n-1", status: "pending" },
     ]);
     const { GET } = await import("@/app/api/checkin/route");
-    const res = await GET(new Request("http://localhost/api/checkin?patientId=p1") as any);
+    const res = await GET(new Request("http://localhost/api/checkin") as any);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
+    expect(prisma.checkIn.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { patientId: "p1" } })
+    );
   });
 });
 

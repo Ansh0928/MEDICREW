@@ -4,6 +4,7 @@ import { streamSwarm } from "@/agents/swarm";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { SwarmEvent } from "@/agents/swarm-types";
 import { detectEmergency } from "@/lib/emergency-rules";
+import { ConsultationPatientInfoSchema } from "@/lib/consultation-intake";
 
 // 300s max — full consultation: triage + parallel doctors + debate + synthesis
 // Plus up to 2min clarification wait. Vercel Pro/Enterprise supports 300s.
@@ -38,14 +39,13 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Validate patientInfo
-  const age = patientInfo?.age;
-  const gender = patientInfo?.gender;
-  if (!age || typeof age !== "string" || age.trim() === "") {
-    return new Response(JSON.stringify({ error: "patientInfo.age is required" }), { status: 400 });
-  }
-  if (!gender || typeof gender !== "string" || gender.trim() === "") {
-    return new Response(JSON.stringify({ error: "patientInfo.gender is required" }), { status: 400 });
+  // Validate patientInfo using canonical consultation schema
+  const patientInfoResult = ConsultationPatientInfoSchema.safeParse(patientInfo);
+  if (!patientInfoResult.success) {
+    const firstIssue = patientInfoResult.error.issues[0];
+    const path = firstIssue?.path?.join(".");
+    const prefix = path ? `${path}: ` : "";
+    return new Response(JSON.stringify({ error: `${prefix}${firstIssue?.message ?? "Invalid patientInfo"}` }), { status: 400 });
   }
 
   const encoder = new TextEncoder();
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
       try {
-        for await (const event of streamSwarm(symptoms, patientInfo)) {
+        for await (const event of streamSwarm(symptoms, patientInfoResult.data)) {
           send(event);
         }
       } catch (err) {

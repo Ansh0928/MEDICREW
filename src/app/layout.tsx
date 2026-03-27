@@ -23,9 +23,13 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MediCrew - Your AI Health Navigation Team",
+  metadataBase: new URL("https://www.medicrew.health"),
+  title: {
+    default: "MediCrew | AI Health Navigation Team",
+    template: "%s | MediCrew",
+  },
   description:
-    "Skip the wait. Get guidance from a team of AI health specialists. MediCrew brings together AI-powered GP, specialists, and triage experts to help you understand your symptoms and navigate to the right care.",
+    "Australia-first AI health navigation with specialist perspectives, clear next steps, and emergency-first safety boundaries.",
   keywords: [
     "health",
     "AI",
@@ -35,6 +39,27 @@ export const metadata: Metadata = {
     "medical guidance",
     "Australia",
   ],
+  openGraph: {
+    title: "MediCrew | AI Health Navigation Team",
+    description:
+      "Navigate symptoms with AI specialist input, safety-first escalation, and follow-up care summaries.",
+    url: "https://www.medicrew.health",
+    siteName: "MediCrew",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MediCrew | AI Health Navigation Team",
+    description:
+      "AI specialist-guided health navigation designed for Australia-first care pathways.",
+  },
+  alternates: {
+    canonical: "https://www.medicrew.health",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -44,7 +69,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className="scroll-smooth">
+      <html lang="en-AU" className="scroll-smooth">
         <body className={`${inter.variable} ${playfair.variable} ${ibmMono.variable} font-sans antialiased`}>
           <AuthProvider>{children}</AuthProvider>
         </body>

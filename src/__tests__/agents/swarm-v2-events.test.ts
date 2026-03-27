@@ -46,4 +46,15 @@ describe('buildResidentPrompt', () => {
     expect(prompt).toContain('back pain');
     expect(prompt).toContain('23');
   });
+
+  it('includes medications and allergies when present', () => {
+    const prompt = buildResidentPrompt(
+      'investigative',
+      'gp',
+      'dizziness',
+      { age: '40', gender: 'female', medications: ['metformin'], allergies: ['penicillin'] }
+    );
+    expect(prompt).toContain('medications: metformin');
+    expect(prompt).toContain('allergies: penicillin');
+  });
 });

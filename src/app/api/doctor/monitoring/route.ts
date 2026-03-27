@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   // Fetch all active patients (not soft-deleted) with their latest check-in, last consultation, and care team status
   const patients = await prisma.patient.findMany({
     where: { deletedAt: null },

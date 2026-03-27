@@ -9,6 +9,11 @@ import { inngest } from "@/lib/inngest/client";
 import { Prisma } from "@prisma/client";
 import { AgentMessage } from "@/agents/types";
 import { SwarmEvent, SwarmSynthesis } from "@/agents/swarm-types";
+import {
+  ConsultationInputSchema,
+  buildPatientContext,
+  resolveConsultationPatientInfo,
+} from "@/lib/consultation-intake";
 
 interface APIError extends Error {
   status?: number;
@@ -39,14 +44,11 @@ function buildCareTeamStatuses(
 
 export async function POST(request: NextRequest) {
   try {
-    const { symptoms, stream = false, swarm = false, patientInfo } = await request.json();
-
-    if (!symptoms || typeof symptoms !== "string") {
-      return NextResponse.json(
-        { error: "Symptoms are required" },
-        { status: 400 }
-      );
+    const payloadResult = ConsultationInputSchema.safeParse(await request.json());
+    if (!payloadResult.success) {
+      return NextResponse.json({ error: payloadResult.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
     }
+    const { symptoms, stream = false, swarm = false, patientInfo } = payloadResult.data;
 
     // Emergency detection — MUST run before any LLM processing
     const emergency = detectEmergency(symptoms);
@@ -67,11 +69,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Canonical patient context for all consultation pathways.
+    const patientProfile = await prisma.patient.findUnique({
+      where: { id: patientId },
+      select: { name: true, knownConditions: true, medications: true, age: true, gender: true, allergies: true },
+    });
+    const resolvedPatientInfo = resolveConsultationPatientInfo(patientProfile, patientInfo);
+    const patientContext = buildPatientContext(resolvedPatientInfo);
+
     // Swarm streaming path — proxies SwarmEvent SSE from streamSwarm() with auth + DB coverage.
     // HuddleRoom calls this instead of /api/swarm/start so every consultation is persisted
     // and the 48h Inngest check-in is scheduled. patientInfo (age/gender) forwarded from client.
     if (stream && swarm) {
-      const resolvedPatientInfo = patientInfo ?? { age: "unknown", gender: "unknown" };
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
@@ -92,10 +101,6 @@ export async function POST(request: NextRequest) {
 
           // Persist consultation record after stream completes
           try {
-            const patient = await prisma.patient.findUnique({
-              where: { id: patientId },
-              select: { name: true },
-            });
             const consultation = await prisma.consultation.create({
               data: {
                 patientId,
@@ -106,7 +111,7 @@ export async function POST(request: NextRequest) {
             });
             await inngest.send({
               name: "consultation/completed",
-              data: { patientId, consultationId: consultation.id, patientName: patient?.name ?? "there" },
+              data: { patientId, consultationId: consultation.id, patientName: patientProfile?.name ?? "there" },
             });
           } catch (dbErr) {
             console.error("[consult/swarm] DB write failed:", dbErr);
@@ -131,16 +136,6 @@ export async function POST(request: NextRequest) {
           try {
             const allMessages: AgentMessage[] = [];
             let finalResult: { urgencyLevel?: string; recommendation?: unknown } = {};
-
-            // Fetch patient profile for context injection (PROF-02)
-            const patient = await prisma.patient.findUnique({
-              where: { id: patientId },
-              select: { knownConditions: true, medications: true, age: true, gender: true, allergies: true, name: true },
-            });
-
-            const patientContext = patient
-              ? `Patient profile: Age ${patient.age ?? 'unknown'}, ${patient.gender ?? 'unknown'}. Known conditions: ${patient.knownConditions ?? 'none'}. Medications: ${(patient.medications as string[] | null ?? []).join(', ') || 'none'}. Allergies: ${(patient.allergies as string[] | null ?? []).join(', ') || 'none'}.`
-              : '';
 
             for await (const event of streamConsultation(symptoms, undefined, undefined, patientContext)) {
               const data = JSON.stringify(event) + "\n";
@@ -190,7 +185,7 @@ export async function POST(request: NextRequest) {
               data: {
                 patientId,
                 consultationId: consultation.id,
-                patientName: patient?.name ?? "there",
+                patientName: patientProfile?.name ?? "there",
               },
             });
           } catch (error) {
@@ -225,16 +220,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Non-streaming response — fetch patient context (same as streaming path)
-    const nonStreamPatient = await prisma.patient.findUnique({
-      where: { id: patientId },
-      select: { name: true, knownConditions: true, medications: true, age: true, gender: true, allergies: true },
-    });
-    const nonStreamContext = nonStreamPatient
-      ? `Patient profile: Age ${nonStreamPatient.age ?? 'unknown'}, ${nonStreamPatient.gender ?? 'unknown'}. Known conditions: ${nonStreamPatient.knownConditions ?? 'none'}. Medications: ${(nonStreamPatient.medications as string[] | null ?? []).join(', ') || 'none'}. Allergies: ${(nonStreamPatient.allergies as string[] | null ?? []).join(', ') || 'none'}.`
-      : undefined;
-
-    const result = await runConsultation(symptoms, undefined, undefined, nonStreamContext);
+    const result = await runConsultation(symptoms, undefined, undefined, patientContext);
 
     // Write CareTeamStatus after non-streaming consultation completes
     // NOTE: CareTeamStatus table requires REPLICA IDENTITY FULL for Supabase Realtime
@@ -265,7 +251,7 @@ export async function POST(request: NextRequest) {
       data: {
         patientId,
         consultationId: nonStreamingConsultation.id,
-        patientName: nonStreamPatient?.name ?? "there",
+        patientName: patientProfile?.name ?? "there",
       },
     });
 

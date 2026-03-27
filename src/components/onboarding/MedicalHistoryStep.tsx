@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 interface MedicalHistoryStepProps {
   onComplete: () => void;
@@ -96,6 +98,7 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
         throw new Error(data.error || "Failed to save profile");
       }
 
+      trackEvent(ANALYTICS_EVENTS.onboardingStepCompleted, { step: "medical_history" });
       onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save. Please try again.");

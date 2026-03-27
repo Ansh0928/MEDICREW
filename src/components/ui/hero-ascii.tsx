@@ -2,9 +2,40 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
+import { LandingVariant } from "@/lib/marketing/landing-variants";
 
-export default function HeroAscii() {
+const heroCopyByVariant: Record<
+  LandingVariant,
+  { titleLine1: string; titleLine2: string; body: string; cta: string }
+> = {
+  speed: {
+    titleLine1: "Get triaged fast",
+    titleLine2: "with AI care guidance.",
+    body: "Move from symptom uncertainty to clear next steps in minutes, including emergency-first escalation.",
+    cta: "START IN MINUTES",
+  },
+  specialist: {
+    titleLine1: "Navigate your health",
+    titleLine2: "with AI specialists.",
+    body: "Eight AI doctors review your symptoms together. Sign in to save care summaries and follow-up reminders.",
+    cta: "GET STARTED",
+  },
+  reassurance: {
+    titleLine1: "Feel more certain",
+    titleLine2: "about what to do next.",
+    body: "Get calm, structured guidance before your GP visit, with safety boundaries and practical next steps.",
+    cta: "START WITH CONFIDENCE",
+  },
+};
+
+export default function HeroAscii({ variant = "specialist" }: { variant?: LandingVariant }) {
+  const copy = heroCopyByVariant[variant];
+
   useEffect(() => {
+    trackEvent(ANALYTICS_EVENTS.landingViewed, { surface: "hero", variant });
+
     const embedScript = document.createElement('script');
     embedScript.type = 'text/javascript';
     embedScript.textContent = `
@@ -75,7 +106,7 @@ export default function HeroAscii() {
       if (document.head.contains(embedScript)) document.head.removeChild(embedScript);
       if (document.head.contains(style)) document.head.removeChild(style);
     };
-  }, []);
+  }, [variant]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black">
@@ -114,9 +145,9 @@ export default function HeroAscii() {
               <div className="hidden lg:block absolute -left-3 top-0 bottom-0 w-1 opacity-40"
                 style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent 0px, transparent 1px, white 1px, white 2px), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, white 1px, white 2px)', backgroundSize: '3px 3px' }} />
               <h1 className="text-3xl lg:text-5xl font-bold text-white leading-tight font-[family-name:var(--font-display)] tracking-tight" style={{ letterSpacing: '-1px' }}>
-                Navigate your health
+                {copy.titleLine1}
                 <span className="block mt-1" style={{ color: '#118CFD' }}>
-                  with AI specialists.
+                  {copy.titleLine2}
                 </span>
               </h1>
             </div>
@@ -130,21 +161,30 @@ export default function HeroAscii() {
 
             {/* Description */}
             <p className="text-sm lg:text-base mb-8 leading-relaxed font-[family-name:var(--font-mono)] opacity-70" style={{ color: '#D1D5DB' }}>
-              Eight AI doctors — GP, cardiologist, mental health and more —
-              review your symptoms simultaneously. Instantly, for free.
+              {copy.body}
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/consult"
                 className="relative px-6 py-2.5 text-white font-[family-name:var(--font-mono)] text-xs border border-white/30 hover:border-white transition-all duration-200 group text-center"
-                style={{ background: 'linear-gradient(180deg, rgba(86,184,255,0.2), rgba(1,142,245,0.3))' }}>
+                style={{ background: 'linear-gradient(180deg, rgba(86,184,255,0.2), rgba(1,142,245,0.3))' }}
+                onClick={() =>
+                  trackEvent(ANALYTICS_EVENTS.landingCtaClick, {
+                    surface: "hero",
+                    cta: "get_started",
+                    variant,
+                  })
+                }
+              >
                 <span className="hidden lg:block absolute -top-1 -left-1 w-2 h-2 border-t border-l border-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 <span className="hidden lg:block absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                GET STARTED →
+                {copy.cta} →
               </Link>
               <Link href="#team"
-                className="px-6 py-2.5 bg-transparent border border-white/20 text-white/70 font-[family-name:var(--font-mono)] text-xs hover:border-white/50 hover:text-white transition-all duration-200 text-center">
+                className="px-6 py-2.5 bg-transparent border border-white/20 text-white/70 font-[family-name:var(--font-mono)] text-xs hover:border-white/50 hover:text-white transition-all duration-200 text-center"
+                onClick={() => trackEvent(ANALYTICS_EVENTS.landingSecondaryClick, { surface: "hero", cta: "meet_team" })}
+              >
                 MEET THE TEAM
               </Link>
             </div>
@@ -180,7 +220,7 @@ export default function HeroAscii() {
               <div className="w-1 h-1 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
               <div className="w-1 h-1 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
             </div>
-            <span>FREE · NO ACCOUNT</span>
+            <span>FREE TO START · SIGN IN TO SAVE</span>
           </div>
         </div>
       </div>

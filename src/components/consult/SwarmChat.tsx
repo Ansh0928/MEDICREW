@@ -1,15 +1,19 @@
 "use client";
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { DoctorOrbRow } from "./DoctorOrbRow";
 import { LiveFeedLine } from "./LiveFeedLine";
 import { SynthesisCard } from "./SynthesisCard";
 import { SwarmEvent, SwarmSynthesis, DoctorRole } from "@/agents/swarm-types";
 import { agentRegistry } from "@/agents/definitions";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 type OrbStatus = "waiting" | "active" | "done";
 interface OrbState { role: DoctorRole; status: OrbStatus }
 
 export function SwarmChat() {
+  const router = useRouter();
   const [step, setStep] = useState<"info" | "chat">("info");
   const [patientInfo, setPatientInfo] = useState({ age: "", gender: "", knownConditions: "" });
   const [symptoms, setSymptoms] = useState("");
@@ -45,6 +49,7 @@ export function SwarmChat() {
         break;
       case "synthesis_complete":
         setSynthesis(event.data);
+        trackEvent(ANALYTICS_EVENTS.consultationCompleted, { surface: "swarm_chat", urgency: event.data.urgency });
         setIsLoading(false);
         break;
       case "done":
@@ -53,6 +58,7 @@ export function SwarmChat() {
         break;
       case "error":
         setError(event.message);
+        trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", message: event.message });
         break;
     }
   };
@@ -66,19 +72,39 @@ export function SwarmChat() {
     setLiveFeed("");
 
     try {
-      const res = await fetch("/api/swarm/start", {
+      trackEvent(ANALYTICS_EVENTS.consultationStarted, { surface: "swarm_chat", source: "consult_page" });
+
+      const res = await fetch("/api/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symptoms, patientInfo }),
+        body: JSON.stringify({ symptoms, patientInfo, stream: true, swarm: true }),
       });
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({ error: "Request failed" }));
-        const msg = res.status === 429
-          ? `Too many requests. Please wait ${errBody.retryAfter ?? 60} seconds.`
-          : errBody.error ?? "Failed to start consultation.";
+        if (res.status === 403 && errBody.redirectTo) {
+          router.push(errBody.redirectTo);
+          return;
+        }
+
+        const msg =
+          res.status === 429
+            ? `Too many requests. Please wait ${errBody.retryAfter ?? 60} seconds.`
+            : errBody.error ?? "Failed to start consultation.";
         setError(msg);
+        trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", status: res.status, error: msg });
         return;
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const body = await res.json().catch(() => null);
+        if (body?.isEmergency || body?.emergency || body?.message) {
+          setError(body.message ?? "Emergency symptoms detected. Please call 000 now.");
+          trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", error: "emergency_detected" });
+          setIsLoading(false);
+          return;
+        }
       }
 
       const reader = res.body?.getReader();
@@ -112,6 +138,7 @@ export function SwarmChat() {
       decoder.decode();
     } catch (err) {
       setError("Connection issue. Please try again.");
+      trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", error: "connection_issue" });
     } finally {
       setIsLoading(false);
       setLiveFeed("");
@@ -215,7 +242,9 @@ export function SwarmChat() {
               ) : "→"}
             </button>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">Not stored · AI guidance only, not medical advice</p>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            AI guidance only, not medical advice. Consultation summaries are saved to your patient portal.
+          </p>
         </div>
       )}
     </div>

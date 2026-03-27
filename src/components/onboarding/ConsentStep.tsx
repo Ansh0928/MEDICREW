@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/client";
 
 const CONSENT_VERSION = "1.0";
 
@@ -42,6 +44,7 @@ export function ConsentStep({ onComplete }: ConsentStepProps) {
       });
 
       if (!res.ok) throw new Error("Failed to save consent");
+      trackEvent(ANALYTICS_EVENTS.onboardingStepCompleted, { step: "consent" });
       onComplete();
     } catch {
       setError("Failed to save your consent. Please try again.");

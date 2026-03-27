@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const patientId = searchParams.get("patientId");
-  if (!patientId) {
-    return NextResponse.json({ error: "patientId required" }, { status: 400 });
-  }
+  const { patient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+  if (authError) return authError;
+  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  const patientId = patient!.id;
+
   const checkIns = await prisma.checkIn.findMany({
     where: { patientId },
     select: { id: true, notificationId: true, status: true },

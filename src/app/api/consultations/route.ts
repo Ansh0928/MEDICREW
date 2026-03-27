@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedPatient } from "@/lib/auth";
 
 // GET consultations for a patient
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const patientId = searchParams.get("patientId");
-
-        if (!patientId) {
-            return NextResponse.json(
-                { error: "Patient ID is required" },
-                { status: 400 }
-            );
-        }
+        const { patient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+        if (authError) return authError;
+        if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+        const patientId = patient!.id;
 
         const consultations = await prisma.consultation.findMany({
             where: { patientId },
@@ -32,6 +28,11 @@ export async function GET(request: NextRequest) {
 // POST save a consultation
 export async function POST(request: NextRequest) {
     try {
+        const { patient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+        if (authError) return authError;
+        if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+        const authPatientId = patient!.id;
+
         const body = await request.json();
         const {
             patientId,
@@ -44,16 +45,22 @@ export async function POST(request: NextRequest) {
             recommendation,
         } = body;
 
-        if (!patientId || !symptoms) {
+        if (!symptoms) {
             return NextResponse.json(
-                { error: "Patient ID and symptoms are required" },
+                { error: "Symptoms are required" },
                 { status: 400 }
+            );
+        }
+        if (patientId && patientId !== authPatientId) {
+            return NextResponse.json(
+                { error: "Forbidden" },
+                { status: 403 }
             );
         }
 
         const consultation = await prisma.consultation.create({
             data: {
-                patientId,
+                patientId: authPatientId,
                 symptoms,
                 urgencyLevel,
                 redFlags: redFlags ? JSON.stringify(redFlags) : null,
