@@ -2,6 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
   { href: "/doctor", label: "Consultations", icon: "🩺" },
@@ -14,6 +15,12 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+
+  const doctorName = user?.fullName ?? user?.firstName ?? "Doctor";
+  const avatarUrl =
+    user?.imageUrl ??
+    `https://api.dicebear.com/8.x/notionists-neutral/svg?seed=${encodeURIComponent(doctorName)}&size=36`;
 
   return (
     <aside className="w-16 flex flex-col items-center py-4 gap-2 bg-white border-r border-gray-100 flex-shrink-0">
@@ -33,6 +40,21 @@ export function Sidebar() {
           {item.icon}
         </Link>
       ))}
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Doctor profile */}
+      <div className="flex flex-col items-center gap-1 pb-1" title={doctorName}>
+        <img
+          src={avatarUrl}
+          alt={doctorName}
+          className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 object-cover"
+        />
+        <span className="text-[9px] text-gray-400 text-center leading-tight max-w-[52px] truncate">
+          {doctorName}
+        </span>
+      </div>
     </aside>
   );
 }

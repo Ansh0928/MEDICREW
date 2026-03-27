@@ -6,7 +6,8 @@ import { HuddleChatPanel, ChatMessage } from "./HuddleChatPanel";
 import { FollowUpBar } from "./FollowUpBar";
 import { RoutingChip } from "./RoutingChip";
 import { SynthesisCard } from "./SynthesisCard";
-import { SwarmEvent, SwarmSynthesis, SwarmState, SwarmLeadState, DoctorRole } from "@/agents/swarm-types";
+import { SwarmEvent, SwarmSynthesis, SwarmState, SwarmLeadState, SwarmPhase, DoctorRole } from "@/agents/swarm-types";
+import { ProgressSteps } from "./ProgressSteps";
 
 // ── Agent display names ───────────────────────────────────────────────────────
 
@@ -87,9 +88,10 @@ interface HuddleRoomProps {
   patientInfo: PatientInfo;
   onReset?: () => void;
   onSwarmStateChange?: (state: Partial<SwarmState>) => void;
+  onPhaseChange?: (phase: SwarmPhase) => void;
 }
 
-export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: HuddleRoomProps) {
+export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseChange }: HuddleRoomProps) {
   const [agents, setAgents] = useState<Record<string, AgentVisualState>>({});
   const [connections, setConnections] = useState<HuddleConnection[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -97,6 +99,9 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: Huddle
   const [followupAnswer, setFollowupAnswer] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [followupRouting, setFollowupRouting] = useState<{ type: "simple" | "complex"; roles: string[] } | null>(null);
+  const [currentPhase, setCurrentPhase] = useState<SwarmPhase | null>(null);
+  const onPhaseChangeRef = useRef(onPhaseChange);
+  onPhaseChangeRef.current = onPhaseChange;
   const containerRef = useRef<HTMLDivElement>(null);
   // positionsRef holds the latest computed positions so handleEvent (memoised) can read them
   const positionsRef = useRef<Record<string, AgentPosition>>({});
@@ -129,6 +134,8 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: Huddle
   const handleEvent = useCallback((event: SwarmEvent) => {
     switch (event.type) {
       case "phase_changed":
+        setCurrentPhase(event.phase);
+        onPhaseChangeRef.current?.(event.phase);
         emitDebugState({ currentPhase: event.phase });
         break;
 
@@ -251,10 +258,13 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: Huddle
     setSynthesis(null);
     setFollowupRouting(null);
 
-    const response = await fetch("/api/swarm/start", {
+    // C2 fix: route through authenticated /api/consult (stream + swarm flags) so every
+    // consultation is persisted with a Patient record and the 48h Inngest check-in fires.
+    // /api/swarm/start is now internal-only; HuddleRoom no longer calls it directly.
+    const response = await fetch("/api/consult", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ symptoms, patientInfo }),
+      body: JSON.stringify({ symptoms, patientInfo, stream: true, swarm: true }),
     });
 
     if (!response.body) { setIsRunning(false); return; }
@@ -327,7 +337,12 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: Huddle
   positionsRef.current = positions;
 
   return (
-    <div className="flex h-full gap-0">
+    <div className="flex h-full gap-0 flex-col">
+      {/* Progress steps */}
+      <ProgressSteps currentPhase={currentPhase} />
+
+      {/* Huddle circle + chat */}
+      <div className="flex flex-1 overflow-hidden gap-0">
       {/* Huddle circle area */}
       <div className="flex-1 flex flex-col">
         <div
@@ -390,6 +405,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange }: Huddle
       {/* Live chat panel */}
       <div className="w-64 flex-shrink-0">
         <HuddleChatPanel messages={chatMessages} />
+      </div>
       </div>
     </div>
   );
