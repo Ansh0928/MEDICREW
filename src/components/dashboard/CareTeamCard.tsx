@@ -36,8 +36,8 @@ export function CareTeamCard({ patientId, initialStatuses }: CareTeamCardProps) 
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
-    // CareTeamStatus table uses Supabase Realtime postgres_changes subscription
-    // Requires: ALTER TABLE "CareTeamStatus" REPLICA IDENTITY FULL;
+    if (!supabase) return; // Supabase not configured — skip realtime subscription
+
     const channel = supabase
       .channel(`care-status-${patientId}`)
       .on(

@@ -492,17 +492,6 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
   );
 }
 
-const DEMO_CREDENTIALS = {
-  patient: {
-    email: "demo-patient@medicrew.dev",
-    password: "Mc!Cr3w-P4t!ent#2026xQ",
-  },
-  doctor: {
-    email: "demo-doctor@medicrew.dev",
-    password: "Mc!Cr3w-D0ct0r#2026xQ",
-  },
-};
-
 function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
   const clerk = useClerk();
   const router = useRouter();
@@ -515,32 +504,39 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
     setError(null);
 
     try {
-      let signInResult = await clerk.client.signIn.create({
-        identifier: DEMO_CREDENTIALS[role].email,
-        password: DEMO_CREDENTIALS[role].password,
+      // Get a short-lived sign-in token from the backend (bypasses email verification)
+      const tokenRes = await fetch("/api/demo-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
       });
 
-      if (signInResult.status === "needs_second_factor") {
-        // In test mode, Clerk allows bypassing email/SMS verification with the test code "424242"
-        signInResult = await clerk.client.signIn.attemptSecondFactor({
-          strategy: "email_code",
-          code: "424242",
-        });
+      if (!tokenRes.ok) {
+        const err = await tokenRes.json().catch(() => ({}));
+        throw new Error(err.error ?? "Failed to get demo token");
       }
+
+      const { token } = await tokenRes.json();
+
+      const signInResult = await clerk.client.signIn.create({
+        strategy: "ticket",
+        ticket: token,
+      });
 
       if (signInResult.status === "complete" && signInResult.createdSessionId) {
         await clerk.setActive({ session: signInResult.createdSessionId });
         router.push(role === "doctor" ? "/doctor" : "/patient");
       } else {
         console.error("Incomplete sign-in result", signInResult);
-        setError("Incomplete: sign-in requires further steps manually.");
+        setError("Incomplete: sign-in requires further steps.");
       }
     } catch (err: any) {
-      console.error("Sign in failed", err);
+      console.error("Demo login failed", err);
       const message =
         err?.errors?.[0]?.longMessage ||
         err?.errors?.[0]?.message ||
-        "Demo login failed. " + JSON.stringify(err);
+        err?.message ||
+        "Demo login failed.";
       setError(message);
     } finally {
       setLoading(false);
