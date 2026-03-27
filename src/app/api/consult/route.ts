@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedPatient } from "@/lib/auth";
 import { runConsultation, streamConsultation } from "@/agents/orchestrator";
+import { streamSwarm } from "@/agents/swarm";
 import { detectEmergency } from "@/lib/emergency-rules";
 import { checkConsent } from "@/lib/consent-check";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/lib/inngest/client";
 import { Prisma } from "@prisma/client";
 import { AgentMessage } from "@/agents/types";
+import { SwarmEvent, SwarmSynthesis } from "@/agents/swarm-types";
 
 interface APIError extends Error {
   status?: number;
@@ -37,7 +39,7 @@ function buildCareTeamStatuses(
 
 export async function POST(request: NextRequest) {
   try {
-    const { symptoms, stream = false } = await request.json();
+    const { symptoms, stream = false, swarm = false, patientInfo } = await request.json();
 
     if (!symptoms || typeof symptoms !== "string") {
       return NextResponse.json(
@@ -62,6 +64,62 @@ export async function POST(request: NextRequest) {
         { error: "Consent required", redirectTo: "/consent" },
         { status: 403 }
       );
+    }
+
+    // Swarm streaming path — proxies SwarmEvent SSE from streamSwarm() with auth + DB coverage.
+    // HuddleRoom calls this instead of /api/swarm/start so every consultation is persisted
+    // and the 48h Inngest check-in is scheduled. patientInfo (age/gender) forwarded from client.
+    if (stream && swarm) {
+      const resolvedPatientInfo = patientInfo ?? { age: "unknown", gender: "unknown" };
+      const encoder = new TextEncoder();
+      const readable = new ReadableStream({
+        async start(controller) {
+          let synthesis: SwarmSynthesis | null = null;
+          try {
+            for await (const event of streamSwarm(symptoms, resolvedPatientInfo)) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+              if ((event as SwarmEvent).type === "synthesis_complete") {
+                synthesis = (event as Extract<SwarmEvent, { type: "synthesis_complete" }>).data ?? null;
+              }
+            }
+          } catch (err) {
+            const errorEvent: SwarmEvent = { type: "error", message: "Consultation failed. Please try again." };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
+          } finally {
+            controller.close();
+          }
+
+          // Persist consultation record after stream completes
+          try {
+            const patient = await prisma.patient.findUnique({
+              where: { id: patientId },
+              select: { name: true },
+            });
+            const consultation = await prisma.consultation.create({
+              data: {
+                patientId,
+                symptoms,
+                urgencyLevel: synthesis?.urgency ?? null,
+                recommendation: synthesis !== null ? (synthesis as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+              },
+            });
+            await inngest.send({
+              name: "consultation/completed",
+              data: { patientId, consultationId: consultation.id, patientName: patient?.name ?? "there" },
+            });
+          } catch (dbErr) {
+            console.error("[consult/swarm] DB write failed:", dbErr);
+          }
+        },
+      });
+
+      return new Response(readable, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
     }
 
     if (stream) {
@@ -169,7 +227,7 @@ export async function POST(request: NextRequest) {
     // Non-streaming response — fetch patient context (same as streaming path)
     const nonStreamPatient = await prisma.patient.findUnique({
       where: { id: patientId },
-      select: { knownConditions: true, medications: true, age: true, gender: true, allergies: true },
+      select: { name: true, knownConditions: true, medications: true, age: true, gender: true, allergies: true },
     });
     const nonStreamContext = nonStreamPatient
       ? `Patient profile: Age ${nonStreamPatient.age ?? 'unknown'}, ${nonStreamPatient.gender ?? 'unknown'}. Known conditions: ${nonStreamPatient.knownConditions ?? 'none'}. Medications: ${(nonStreamPatient.medications as string[] | null ?? []).join(', ') || 'none'}. Allergies: ${(nonStreamPatient.allergies as string[] | null ?? []).join(', ') || 'none'}.`

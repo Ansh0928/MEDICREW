@@ -111,7 +111,7 @@ Symptoms: ${state.symptoms}`),
 
 // ── L3: Resident sub-agents ──────────────────────────────────────────────────
 
-async function runResident(
+export async function runResident(
   residentRole: ResidentRole,
   specialtyRole: DoctorRole,
   state: SwarmState,
@@ -392,6 +392,60 @@ Respond ONLY with valid JSON:
   emit({ type: "done" });
 }
 
+// ── Async event queue ────────────────────────────────────────────────────────
+
+/**
+ * A lightweight async queue that allows concurrent producers to push events
+ * while a single consumer yields them immediately.
+ *
+ * Usage:
+ *   const q = createEventQueue<SwarmEvent>();
+ *   // producers call q.push(event)
+ *   // when all producers are done: q.done()
+ *   // consumer: for await (const e of q) { yield e; }
+ */
+function createEventQueue<T>() {
+  const pending: T[] = [];
+  const waiters: Array<(value: IteratorResult<T>) => void> = [];
+  let finished = false;
+
+  function push(value: T): void {
+    if (waiters.length > 0) {
+      // A consumer is waiting — hand it the value directly.
+      waiters.shift()!({ value, done: false });
+    } else {
+      pending.push(value);
+    }
+  }
+
+  function done(): void {
+    finished = true;
+    // Drain any waiting consumers.
+    while (waiters.length > 0) {
+      waiters.shift()!({ value: undefined as unknown as T, done: true });
+    }
+  }
+
+  const iterator: AsyncIterableIterator<T> = {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    next(): Promise<IteratorResult<T>> {
+      if (pending.length > 0) {
+        return Promise.resolve({ value: pending.shift()!, done: false });
+      }
+      if (finished) {
+        return Promise.resolve({ value: undefined as unknown as T, done: true });
+      }
+      return new Promise<IteratorResult<T>>((resolve) => {
+        waiters.push(resolve);
+      });
+    },
+  };
+
+  return { push, done, iterator };
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 
 export async function* streamSwarm(
@@ -400,19 +454,22 @@ export async function* streamSwarm(
 ): AsyncGenerator<SwarmEvent> {
   const sessionId = crypto.randomUUID();
   const state = createInitialSwarmState(sessionId, symptoms, patientInfo);
-  const events: SwarmEvent[] = [];
-  const emit = (e: SwarmEvent) => events.push(e);
 
-  const flush = async function* () {
-    while (events.length > 0) yield events.shift()!;
-  };
+  // ── L1: Triage (sequential — must complete before fan-out) ────────────────
+  // Use a simple local queue so events from triage are yielded immediately.
+  {
+    const q = createEventQueue<SwarmEvent>();
+    const triagePromise = runTriage(state, q.push).then(() => q.done());
+    for await (const event of q.iterator) {
+      yield event;
+      triagePromise; // keep reference to avoid GC
+    }
+    await triagePromise;
+  }
 
-  // L1
-  await runTriage(state, emit);
-  yield* flush();
   if (state.currentPhase === "complete") return;
 
-  // L2-L5: RAG retrieval before fan-out
+  // ── RAG retrieval (parallel, best-effort) ────────────────────────────────
   const relevantDoctors = state.triage!.relevantDoctors;
   let ragContext: Partial<Record<DoctorRole, string[]>> = {};
   try {
@@ -421,18 +478,38 @@ export async function* streamSwarm(
     console.error("[RAG] retrieval failed, proceeding without context:", err);
   }
 
-  await Promise.all(
-    relevantDoctors.map((role) =>
-      runLeadSwarm(role, state, emit, ragContext[role] ?? [])
-    )
-  );
-  yield* flush();
+  // ── L2–L5: Lead swarms (parallel fan-out, immediate event delivery) ───────
+  {
+    const q = createEventQueue<SwarmEvent>();
+    const fanOut = Promise.all(
+      relevantDoctors.map((role) =>
+        runLeadSwarm(role, state, q.push, ragContext[role] ?? [])
+      )
+    ).then(() => q.done());
 
-  // L6
-  await runMdt(state, emit);
-  yield* flush();
+    for await (const event of q.iterator) {
+      yield event;
+    }
+    await fanOut;
+  }
 
-  // L7
-  await runSynthesis(state, emit);
-  yield* flush();
+  // ── L6: MDT (sequential, immediate delivery) ──────────────────────────────
+  {
+    const q = createEventQueue<SwarmEvent>();
+    const mdtPromise = runMdt(state, q.push).then(() => q.done());
+    for await (const event of q.iterator) {
+      yield event;
+    }
+    await mdtPromise;
+  }
+
+  // ── L7: Synthesis (sequential, immediate delivery) ────────────────────────
+  {
+    const q = createEventQueue<SwarmEvent>();
+    const synthPromise = runSynthesis(state, q.push).then(() => q.done());
+    for await (const event of q.iterator) {
+      yield event;
+    }
+    await synthPromise;
+  }
 }

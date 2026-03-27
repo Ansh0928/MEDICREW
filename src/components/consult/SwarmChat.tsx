@@ -2,7 +2,6 @@
 import { useState, useCallback } from "react";
 import { DoctorOrbRow } from "./DoctorOrbRow";
 import { LiveFeedLine } from "./LiveFeedLine";
-import { ClarificationBubble } from "./ClarificationBubble";
 import { SynthesisCard } from "./SynthesisCard";
 import { SwarmEvent, SwarmSynthesis, DoctorRole } from "@/agents/swarm-types";
 import { agentRegistry } from "@/agents/definitions";
@@ -17,7 +16,6 @@ export function SwarmChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [liveFeed, setLiveFeed] = useState("");
   const [orbs, setOrbs] = useState<OrbState[]>([]);
-  const [clarifications, setClarifications] = useState<Array<{ clarificationId: string; role: DoctorRole; question: string }>>([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,15 +26,6 @@ export function SwarmChat() {
       return prev.map((o) => o.role === role ? { ...o, status } : o);
     });
   }, []);
-
-  const handleAnswer = async (clarificationId: string, answer: string) => {
-    setClarifications((prev) => prev.filter((c) => c.clarificationId !== clarificationId));
-    await fetch("/api/swarm/answer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clarificationId, answer }),
-    });
-  };
 
   const handleEvent = (event: SwarmEvent) => {
     switch (event.type) {
@@ -50,14 +39,10 @@ export function SwarmChat() {
       case "doctor_complete":
         updateOrb(event.role, "done");
         break;
-      case "question_ready":
-        setClarifications((prev) => [...prev, { clarificationId: event.clarificationId, role: event.role, question: event.question }]);
-        setLiveFeed("Your care team has a question for you...");
-        break;
       case "phase_changed":
         if (event.phase === "debate") setLiveFeed("Your care team is discussing your case...");
         if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
-break;
+        break;
       case "synthesis_complete":
         setSynthesis(event.data);
         setIsLoading(false);
@@ -78,7 +63,6 @@ break;
     setError(null);
     setSynthesis(null);
     setOrbs([]);
-    setClarifications([]);
     setLiveFeed("");
 
     try {
@@ -138,7 +122,6 @@ break;
     setStep("info");
     setSymptoms("");
     setOrbs([]);
-    setClarifications([]);
     setSynthesis(null);
     setError(null);
     setLiveFeed("");
@@ -199,18 +182,6 @@ break;
           <LiveFeedLine text={liveFeed} />
         </div>
       )}
-
-      {/* Clarification questions */}
-      {clarifications.map((c) => (
-        <div key={c.clarificationId} className="mb-4">
-          <ClarificationBubble
-            clarificationId={c.clarificationId}
-            doctorRole={c.role}
-            question={c.question}
-            onAnswer={handleAnswer}
-          />
-        </div>
-      ))}
 
       {/* Synthesis result */}
       {synthesis && <div className="mb-4"><SynthesisCard synthesis={synthesis} onStartNew={handleReset} /></div>}
