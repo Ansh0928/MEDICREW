@@ -151,8 +151,39 @@ export default function PatientPortal() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+        {/* Skeleton header */}
+        <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-8 w-36 bg-blue-100 dark:bg-blue-900/30 rounded animate-pulse" />
+            </div>
+          </div>
+        </header>
+        {/* Skeleton body */}
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Tab row skeleton */}
+            <div className="flex flex-wrap gap-2">
+              {[120, 100, 110, 130].map((w, i) => (
+                <div key={i} className="h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ width: w }} />
+              ))}
+            </div>
+            {/* Card skeletons */}
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-3">
+                <div className="h-5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
