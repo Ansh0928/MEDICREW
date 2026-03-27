@@ -248,3 +248,44 @@ Session D (30 min):
   11. Resources clickable article pages
   12. Social proof section on landing
 ```
+
+---
+
+## Heidi Health Research — Key Findings (2026-03-28)
+
+### Competitive Position
+MediCrew's 7-layer swarm pipeline has NO direct competitor. Heidi, Nabla, Freed, Abridge are ALL doctor-side documentation tools. MediCrew's patient-facing consultation + care team portal is unique.
+
+### Priority Feature Additions (from research)
+
+**P1 — Quick wins:**
+- After-visit summary PDF (table-stakes across all platforms: Abridge, Nabla, Freed)
+- "AI-assisted, not AI-decided" framing on landing/trust page (Hippocratic AI's liability positioning)
+- Trust badge strip: AHPRA-safe naming, AU data residency (ap-southeast-2), no data used for model training
+- Symptom journal UI — SymptomJournal schema already exists in DB
+
+**P2 — Medium term:**
+- Pricing: Free patient tier + $99/mo Pro (mirrors Heidi AU) + Partner/Clinic custom
+- Inline cited evidence in synthesis output (Abridge has "Linked Evidence" with UpToDate/BMJ)
+- Plain-language patient instruction sheet post-consultation (Freed standard feature)
+- ICD-10 code suggestions in doctor portal
+
+**P3 — Longer term:**
+- Voice input for symptoms (Suki, Freed voice dictation)
+- EHR push-to-chart (all major platforms; need AU EHR integrations: Best Practice, MedicalDirector)
+- Lab test upload + AI interpretation (Docus)
+- Hippocratic-style agent marketplace (multi-agent architecture makes this viable)
+
+### Pricing Benchmark
+| Tier | Price | What to include |
+|------|-------|----------------|
+| Free | $0 | 3 consultations/month, basic summary |
+| Pro | $99/mo | Unlimited, PDF exports, journal, priority queue |
+| Partner | Custom | Multi-patient, analytics, EHR integration |
+
+### Trust Stack to Add to Landing Page
+- "AHPRA-safe AI agent naming" badge
+- "Data stored in Australia (Sydney)" badge
+- "AI-assisted, not AI-decided" tagline
+- "Emergency detection runs before every consultation" callout
+- "No data used for model training" statement
