@@ -111,6 +111,22 @@ describe("POST /api/consult/intake", () => {
     expect(res.status).toBe(400);
   });
 
+  it("returns emergency response when answers contain emergency keywords", async () => {
+    const { detectEmergency } = await import("@/lib/emergency-rules");
+    vi.mocked(detectEmergency).mockReturnValueOnce({
+      isEmergency: true,
+      response: { message: "Call 000 immediately", urgency: "emergency", callToAction: "000" as const },
+      category: "cardiac" as const,
+    });
+
+    const res = await POST(makeRequest({
+      answers: [{ questionId: "location", question: "Where?", answer: "crushing chest pain can't breathe" }],
+    }));
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.message).toBe("Call 000 immediately");
+  });
+
   it("returns 401 when not authenticated", async () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValueOnce({

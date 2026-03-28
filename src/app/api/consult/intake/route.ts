@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedPatient } from "@/lib/auth";
+import { detectEmergency } from "@/lib/emergency-rules";
 import { createFastModel } from "@/lib/ai/config";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { IntakeAnswer, IntakeQuestion, INTAKE_QUESTION_IDS } from "@/lib/intake-types";
@@ -124,12 +125,11 @@ Return ONLY valid JSON in this exact format:
 
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
-  const { patient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+  const { needsOnboarding, error: authError } = await getAuthenticatedPatient();
   if (authError) return authError;
   if (needsOnboarding) {
     return NextResponse.json({ error: "Onboarding required" }, { status: 403 });
   }
-  void patient;
 
   const bodyResult = IntakeRequestSchema.safeParse(await request.json().catch(() => null));
   if (!bodyResult.success) {
@@ -147,6 +147,13 @@ export async function POST(request: NextRequest) {
 
   if (answers.length === 0) {
     return NextResponse.json(STATIC_QUESTIONS[0]);
+  }
+
+  // Emergency detection — runs before any LLM call (CLAUDE.md compliance rule)
+  const candidateText = answers.map((a) => a.answer).join(" ");
+  const emergency = detectEmergency(candidateText);
+  if (emergency.isEmergency) {
+    return NextResponse.json(emergency.response, { status: 200 });
   }
 
   try {
