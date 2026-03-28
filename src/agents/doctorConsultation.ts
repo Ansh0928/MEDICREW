@@ -281,7 +281,7 @@ Respond with JSON only.
 
   const agentMessage: AgentMessage = {
     role: "orchestrator",
-    agentName: "MediCrew Coordinator",
+    agentName: "MediCrew AI — Coordinator",
     content: `**Summary:** Based on the team discussion, the most likely differentials are: ${doctorSummary.insights.differentialDiagnosis.join(", ")}. Recommended tests: ${doctorSummary.insights.recommendedTests.join(", ")}.`,
     timestamp: new Date(),
   };

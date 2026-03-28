@@ -275,7 +275,7 @@ Please provide a final recommendation in JSON format:
 
   const agentMessage: AgentMessage = {
     role: "orchestrator",
-    agentName: "MediCrew Coordinator",
+    agentName: "MediCrew AI — Coordinator",
     content: recommendation.summary,
     timestamp: new Date(),
   };
@@ -459,7 +459,7 @@ export async function* streamConsultation(
             step: 'routing',
             data: { relevantSpecialties: triageData.relevantSpecialties },
             eventType: 'routing',
-            agentName: 'MediCrew Coordinator',
+            agentName: 'MediCrew AI — Coordinator',
             agentRole: 'orchestrator',
             specialty: 'Routing',
           };

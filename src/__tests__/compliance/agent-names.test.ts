@@ -4,9 +4,8 @@ import { agentRegistry } from "@/agents/definitions";
 describe("COMP-02: Agent AI naming", () => {
   const agentEntries = Object.entries(agentRegistry);
 
-  test("all agent names contain 'AI' (except orchestrator which is 'MediCrew Coordinator')", () => {
-    for (const [role, agent] of agentEntries) {
-      if (role === "orchestrator") continue;
+  test("all agent names contain 'AI'", () => {
+    for (const [, agent] of agentEntries) {
       expect(agent.name).toContain("AI");
     }
   });

@@ -20,7 +20,7 @@ export const agentRegistry: Record<AgentRole, AgentDefinition> = {
   physiotherapy: physiotherapyAgent,
   orchestrator: {
     role: "orchestrator",
-    name: "MediCrew Coordinator",
+    name: "MediCrew AI \u2014 Coordinator",
     emoji: "🎯",
     description: "Coordinates the consultation flow between specialists",
     specialties: ["coordination", "synthesis", "recommendation"],
