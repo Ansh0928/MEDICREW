@@ -33,7 +33,7 @@ const REGIONS: Region[] = [
   { id: "Left leg",   label: "L. Leg",     x: 28, y: 90,  w: 20, h: 48, view: "front" },
   { id: "Right leg",  label: "R. Leg",     x: 52, y: 90,  w: 20, h: 48, view: "front" },
   { id: "Lower back", label: "Lower back", x: 28, y: 62,  w: 44, h: 28, view: "back" },
-  { id: "Full back",  label: "Upper back", x: 28, y: 34,  w: 44, h: 28, view: "back" },
+  { id: "Full back",  label: "Full back",  x: 28, y: 34,  w: 44, h: 28, view: "back" },
 ];
 
 interface BodyMapProps {
@@ -85,6 +85,13 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
                 onClick={() => onSelect(r.id)}
                 aria-label={r.label}
                 role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelect(r.id);
+                  }
+                }}
               />
               <text
                 x={r.x + r.w / 2}
@@ -102,7 +109,7 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
         })}
       </svg>
 
-      {selected && (
+      {selected && visibleRegions.some((r) => r.id === selected) && (
         <p className="text-xs text-muted-foreground">
           Selected: <span className="text-foreground font-medium">{selected}</span>
         </p>
