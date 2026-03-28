@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getDoctorAuth } from "@/lib/auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId, sessionClaims } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
-  const role = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.role;
-  if (role !== "doctor") {
-    return NextResponse.json({ error: "Doctor access required" }, { status: 403 });
-  }
+  const { error } = await getDoctorAuth();
+  if (error) return error;
 
   const { id } = await params;
 

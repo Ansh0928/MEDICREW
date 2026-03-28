@@ -2,6 +2,27 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export async function getDoctorAuth(): Promise<{
+  userId: string | null;
+  error: NextResponse | null;
+}> {
+  const { userId, sessionClaims } = await auth();
+  if (!userId) {
+    return {
+      userId: null,
+      error: NextResponse.json({ error: "Authentication required" }, { status: 401 }),
+    };
+  }
+  const role = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.role;
+  if (role !== "doctor") {
+    return {
+      userId: null,
+      error: NextResponse.json({ error: "Doctor access required" }, { status: 403 }),
+    };
+  }
+  return { userId, error: null };
+}
+
 export async function getAuthenticatedPatient() {
   const { userId } = await auth();
   if (!userId) {

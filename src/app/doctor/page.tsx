@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { Suspense, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
@@ -51,7 +51,7 @@ interface SelectedPatient {
   latestConsultation: { id: string; symptoms: string; urgencyLevel: string | null } | null;
 }
 
-export default function DoctorPage() {
+function DoctorPageContent() {
   const searchParams = useSearchParams();
   const patientId = searchParams.get("patient");
 
@@ -192,7 +192,7 @@ export default function DoctorPage() {
 
           {activeTab === "notes" && (
             <div className="h-full">
-              <NotesPanel />
+              <NotesPanel consultationId={latestConsultId} />
             </div>
           )}
         </div>
@@ -208,5 +208,13 @@ export default function DoctorPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+export default function DoctorPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-sm text-gray-500">Loading doctor workspace...</div>}>
+      <DoctorPageContent />
+    </Suspense>
   );
 }

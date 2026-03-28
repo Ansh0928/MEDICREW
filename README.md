@@ -98,6 +98,18 @@ medicrew/
 npx tsx src/evals/run_evals.ts
 ```
 
+## ✅ Push Validation
+
+```bash
+# Standard push gate (used by pre-push hook and CI)
+bun run validate:push
+
+# Strict mode (includes lint)
+bun run validate:push:strict
+```
+
+The repository installs a local `pre-push` hook on dependency install. Pushes are blocked if `validate:push` fails.
+
 This tests:
 - **Triage Accuracy**: Urgency level classification
 - **Safety Detection**: Red flag and emergency identification

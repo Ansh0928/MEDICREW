@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/install-git-hooks.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "validate:push": "node scripts/run-push-validation.mjs",
+    "validate:push:strict": "node scripts/run-push-validation.mjs --strict"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",

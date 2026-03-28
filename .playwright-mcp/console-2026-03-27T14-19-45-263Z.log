@@ -26,3 +26,5 @@ Parsing ecmascript source code failed
   50 |
 
 Unexpected token. Did you mean `{'}'}` or `&rbrace;`? @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 2169969ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/patient?_rsc=11ofn:0
+[ 2171314ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/patient:0

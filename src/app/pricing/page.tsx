@@ -31,7 +31,7 @@ const tiers = [
     price: "$29",
     period: "/ month",
     tagline: "For patients with ongoing care needs",
-    cta: { label: "Get Pro — coming soon", href: "#" },
+    cta: { label: "Join Pro waitlist", href: "/consult" },
     ctaVariant: "primary" as const,
     features: [
       "Unlimited AI consultations",

@@ -72,6 +72,7 @@ model Doctor {
   name          String
   email         String   @unique
   specialty     String
+  clerkUserId   String?  @unique
   createdAt     DateTime @default(now())
 
   notifications Notification[]
@@ -123,6 +124,15 @@ model CareTeamStatus {
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   statuses  Json     @db.JsonB
   updatedAt DateTime @updatedAt
+}
+
+// ReferralToken model - signed token for unauthenticated GP referral letter access
+model ReferralToken {
+  id             String   @id @default(cuid())
+  token          String   @unique @default(cuid())
+  consultationId String
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
 }
 
 // CheckIn model - Phase 3 proactive care loop check-ins

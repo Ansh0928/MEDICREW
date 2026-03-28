@@ -46,9 +46,7 @@ export default async function Home({
       <section id="team">
         <MeetTheTeam />
       </section>
-      <section id="safety">
-        <TrustSection />
-      </section>
+      <TrustSection />
       <ProofSection />
       <CTA variant={landingVariant} />
       <FAQSection />

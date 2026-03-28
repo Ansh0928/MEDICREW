@@ -96,6 +96,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
   const [connections, setConnections] = useState<HuddleConnection[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
+  const [redFlags, setRedFlags] = useState<string[]>([]);
   const [followupAnswer, setFollowupAnswer] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [followupRouting, setFollowupRouting] = useState<{ type: "simple" | "complex"; roles: string[] } | null>(null);
@@ -133,6 +134,11 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
 
   const handleEvent = useCallback((event: SwarmEvent) => {
     switch (event.type) {
+      case "triage_complete":
+        setRedFlags(event.data.redFlags ?? []);
+        emitDebugState({ triage: event.data });
+        break;
+
       case "phase_changed":
         setCurrentPhase(event.phase);
         onPhaseChangeRef.current?.(event.phase);
@@ -214,6 +220,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
         break;
 
       case "mdt_message":
+        updateAgent(event.role, "speaking", event.content.slice(0, 60));
         addChatMessage(getAgentDisplayName(event.role), event.content, "mdt", event.messageType as ChatMessage["messageType"]);
         emitDebugState({
           mdtMessages: [
@@ -265,6 +272,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
     setConnections([]);
     setChatMessages([]);
     setSynthesis(null);
+    setRedFlags([]);
     setFollowupRouting(null);
 
     // C2 fix: route through authenticated /api/consult (stream + swarm flags) so every
@@ -389,7 +397,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
 
         {synthesis && (
           <div className="px-4 pb-2">
-            <SynthesisCard synthesis={synthesis} />
+            <SynthesisCard synthesis={synthesis} redFlags={redFlags.length > 0 ? redFlags : undefined} />
           </div>
         )}
 

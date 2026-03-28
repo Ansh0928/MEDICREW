@@ -30,6 +30,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Server-side AEST today-guard: one entry per calendar day
+  const todayAEST = new Date().toLocaleDateString("en-AU", { timeZone: "Australia/Sydney" });
+  const latestEntry = await prisma.symptomJournal.findFirst({
+    where: { patientId },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true },
+  });
+  if (latestEntry) {
+    const latestAEST = new Date(latestEntry.createdAt).toLocaleDateString("en-AU", {
+      timeZone: "Australia/Sydney",
+    });
+    if (latestAEST === todayAEST) {
+      return NextResponse.json({ error: "Only one journal entry per day is allowed" }, { status: 409 });
+    }
+  }
+
   const entry = await prisma.symptomJournal.create({
     data: {
       patientId,

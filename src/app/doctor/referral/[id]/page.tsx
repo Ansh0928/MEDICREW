@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, Link2, Check } from "lucide-react";
 import Link from "next/link";
+import { formatAuDate } from "@/lib/format";
 
 interface SwarmSynthesis {
   urgency: string;
@@ -33,15 +34,6 @@ interface PatientDetail {
   allergies: string[];
 }
 
-function formatAuDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Australia/Sydney",
-  });
-}
-
 function calcAge(dob: string | null): string {
   if (!dob) return "Not recorded";
   const diff = Date.now() - new Date(dob).getTime();
@@ -54,33 +46,39 @@ export default function ReferralLetterPage() {
   const [patient, setPatient] = useState<PatientDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const handleCopyShareLink = useCallback(async () => {
+    try {
+      const res = await fetch("/api/doctor/referral/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consultationId: id }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { url: string };
+        await navigator.clipboard.writeText(data.url);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 3000);
+      }
+    } catch { /* ignore */ }
+  }, [id]);
 
   useEffect(() => {
     async function load() {
       try {
-        // Fetch consultation detail via doctor patients API — we need the patientId first
-        // Use the doctor patients endpoint to get consultation, then patient
-        const consultRes = await fetch(`/api/patient/consultations/${id}`).catch(() => null);
-
-        // The consultation API is patient-scoped. For doctor view, try doctor route.
-        // Fallback: we'll resolve patient from the monitoring endpoint.
-        if (consultRes?.ok) {
-          const c = await consultRes.json();
-          setConsultation(c);
-          // Now find which patient owns this consultation via doctor patients list
-          const patientsRes = await fetch("/api/doctor/patients");
-          if (patientsRes.ok) {
-            const patients: Array<{ id: string; latestConsultation: { id: string } | null }> =
-              await patientsRes.json();
-            const owner = patients.find((p) => p.latestConsultation?.id === id);
-            if (owner) {
-              const pRes = await fetch(`/api/doctor/patients/${owner.id}`);
-              if (pRes.ok) setPatient(await pRes.json());
-            }
-          }
-        } else {
+        // Use doctor-scoped endpoint — avoids 403 from patient auth check
+        const consultRes = await fetch(`/api/doctor/consultations/${id}`);
+        if (!consultRes.ok) {
           setError(true);
+          return;
         }
+        const c = await consultRes.json();
+        setConsultation(c);
+
+        // Fetch patient details using patientId returned by the doctor endpoint
+        const pRes = await fetch(`/api/doctor/patients/${c.patientId}`);
+        if (pRes.ok) setPatient(await pRes.json());
       } catch {
         setError(true);
       } finally {
@@ -121,13 +119,22 @@ export default function ReferralLetterPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to portal
         </Link>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-        >
-          <Printer className="w-4 h-4" />
-          Print / Save as PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopyShareLink}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            {linkCopied ? <Check className="w-4 h-4 text-green-500" /> : <Link2 className="w-4 h-4" />}
+            {linkCopied ? "Link copied!" : "Copy share link"}
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Print / Save as PDF
+          </button>
+        </div>
       </div>
 
       {/* Letter body */}

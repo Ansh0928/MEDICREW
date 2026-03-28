@@ -29,7 +29,7 @@ export function NotesPanel({ consultationId }: NotesPanelProps) {
     setError(null);
 
     try {
-      const res = await fetch("/api/portal/notes/generate", {
+      const res = await fetch("/api/doctor/notes/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ consultationId }),

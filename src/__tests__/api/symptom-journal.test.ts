@@ -5,6 +5,7 @@ vi.mock('@/lib/prisma', () => ({
     symptomJournal: {
       create: vi.fn(),
       findMany: vi.fn(),
+      findFirst: vi.fn().mockResolvedValue(null), // no prior entry by default
     },
   },
 }));

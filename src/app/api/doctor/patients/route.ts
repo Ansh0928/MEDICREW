@@ -1,21 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getDoctorAuth } from "@/lib/auth";
 
-export async function GET() {
-  const { userId, sessionClaims } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
-  // Only doctors may access this endpoint
-  const role = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.role;
-  if (role !== "doctor") {
-    return NextResponse.json({ error: "Doctor access required" }, { status: 403 });
-  }
+export async function GET(request: NextRequest) {
+  const { error } = await getDoctorAuth();
+  if (error) return error;
+
+  const url = new URL(request.url);
+  const take = Math.min(parseInt(url.searchParams.get("take") ?? "50", 10), 100);
+  const skip = Math.max(parseInt(url.searchParams.get("skip") ?? "0", 10), 0);
 
   const patients = await prisma.patient.findMany({
     where: { deletedAt: null },
     orderBy: { createdAt: "desc" },
+    take,
+    skip,
     select: {
       id: true,
       name: true,

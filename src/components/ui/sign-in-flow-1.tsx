@@ -497,6 +497,39 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availability, setAvailability] = useState<"checking" | "ready" | "disabled">("checking");
+  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const checkAvailability = async () => {
+      try {
+        const res = await fetch(`/api/demo-token?role=${role}`);
+        if (!res.ok) throw new Error("status check failed");
+        const data = (await res.json()) as { ready?: boolean; reason?: string };
+        if (!active) return;
+        if (data.ready) {
+          setAvailability("ready");
+          setAvailabilityMessage(null);
+        } else {
+          setAvailability("disabled");
+          setAvailabilityMessage(
+            data.reason === "disabled_by_env"
+              ? "Demo login is disabled in this environment."
+              : "Demo login is not configured in this environment."
+          );
+        }
+      } catch {
+        if (!active) return;
+        setAvailability("disabled");
+        setAvailabilityMessage("Demo login is currently unavailable.");
+      }
+    };
+    checkAvailability();
+    return () => {
+      active = false;
+    };
+  }, [role]);
 
   const handleDemoLogin = async () => {
     if (!clerk.loaded) return;
@@ -559,38 +592,46 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
         <div className="flex-1 h-px bg-slate-300" />
       </div>
 
-      <button
-        onClick={handleDemoLogin}
-        disabled={loading || !clerk.loaded}
-        className={`w-full px-5 py-2.5 rounded-lg text-white text-sm font-medium shadow-md transition-all duration-200 focus:outline-none focus:ring-2 ${ringColor} focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed ${btnBg}`}
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg
-              className="animate-spin h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-            Signing in…
-          </span>
-        ) : (
-          `Demo ${isDoctor ? "Doctor" : "Patient"} Login`
-        )}
-      </button>
+      {availability === "ready" ? (
+        <button
+          onClick={handleDemoLogin}
+          disabled={loading || !clerk.loaded}
+          className={`w-full px-5 py-2.5 rounded-lg text-white text-sm font-medium shadow-md transition-all duration-200 focus:outline-none focus:ring-2 ${ringColor} focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed ${btnBg}`}
+        >
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg
+                className="animate-spin h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Signing in…
+            </span>
+          ) : (
+            `Demo ${isDoctor ? "Doctor" : "Patient"} Login`
+          )}
+        </button>
+      ) : (
+        <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-center text-xs text-slate-500">
+          {availability === "checking"
+            ? "Checking demo login availability..."
+            : availabilityMessage}
+        </div>
+      )}
 
       {error && (
         <p className="text-xs text-red-500 text-center mt-1 px-2">{error}</p>
