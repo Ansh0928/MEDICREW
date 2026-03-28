@@ -83,7 +83,7 @@ export function SwarmChat() {
           age: patientInfo.age,
           gender: patientInfo.gender,
           knownConditions: patientInfo.knownConditions || undefined,
-          historySummary: summaryOverride ?? historySummary || undefined,
+          historySummary: (summaryOverride ?? historySummary) || undefined,
         },
         stream: true,
         swarm: true,
