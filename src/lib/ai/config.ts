@@ -47,7 +47,7 @@ class FallbackModel extends BaseChatModel {
 
   _llmType() { return "fallback"; }
 
-  async _generate(messages: import("@langchain/core/messages").BaseMessage[], options: import("@langchain/core/language_models/base").BaseLLMCallOptions) {
+  async _generate(messages: import("@langchain/core/messages").BaseMessage[], options: import("@langchain/core/language_models/base").BaseLanguageModelCallOptions) {
     try {
       return await this.primary._generate(messages, options);
     } catch (err) {
