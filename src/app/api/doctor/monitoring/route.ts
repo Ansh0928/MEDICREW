@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getDoctorAuth } from "@/lib/auth";
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const { doctor, error } = await getDoctorAuth();
+  if (error) return error;
+
+  if (!doctor!.clinicId) {
+    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
   }
 
-  // Fetch all active patients (not soft-deleted) with their latest check-in, last consultation, and care team status
+  // Fetch active patients scoped to this doctor's clinic
   const patients = await prisma.patient.findMany({
-    where: { deletedAt: null },
+    where: { deletedAt: null, clinicId: doctor!.clinicId },
     select: {
       id: true,
       name: true,

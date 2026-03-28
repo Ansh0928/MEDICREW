@@ -1,14 +1,23 @@
 // Tests: /api/doctors and /api/doctor/monitoring validation
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockDoctor = {
+  id: "doctor-1",
+  name: "Dr Smith",
+  email: "smith@test.com",
+  specialty: "GP",
+  clerkUserId: "user-1",
+  clinicId: "clinic-1",
+  createdAt: new Date(),
+};
+
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     doctor: {
-      findMany: vi.fn().mockResolvedValue([
-        { id: "d1", name: "Dr Smith", email: "smith@test.com", specialty: "GP" },
-      ]),
+      findMany: vi.fn().mockResolvedValue([mockDoctor]),
       create: vi.fn().mockResolvedValue({ id: "d2", name: "Dr Jones", email: "jones@test.com", specialty: "Cardiology" }),
       upsert: vi.fn().mockResolvedValue({ id: "d2", name: "Dr Jones", email: "jones@test.com", specialty: "Cardiology" }),
+      findUnique: vi.fn().mockResolvedValue(mockDoctor),
     },
     patient: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -55,13 +64,43 @@ describe("GET /api/doctor/monitoring", () => {
     expect(res.status).toBe(401);
   });
 
-  it("returns 200 with patient array (monitoring dashboard) for authenticated user", async () => {
+  it("returns 403 when role is not doctor", async () => {
     const { auth } = await import("@clerk/nextjs/server");
-    vi.mocked(auth).mockResolvedValue({ userId: "doctor-1" } as any);
+    vi.mocked(auth).mockResolvedValue({
+      userId: "user-1",
+      sessionClaims: { publicMetadata: { role: "patient" } },
+    } as any);
+    const { GET } = await import("@/app/api/doctor/monitoring/route");
+    const res = await GET();
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 200 with patient array for authenticated doctor with clinic", async () => {
+    const { auth } = await import("@clerk/nextjs/server");
+    vi.mocked(auth).mockResolvedValue({
+      userId: "user-1",
+      sessionClaims: { publicMetadata: { role: "doctor" } },
+    } as any);
     const { GET } = await import("@/app/api/doctor/monitoring/route");
     const res = await GET();
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
+  });
+
+  it("returns 403 when doctor has no clinic assigned", async () => {
+    const { auth } = await import("@clerk/nextjs/server");
+    vi.mocked(auth).mockResolvedValue({
+      userId: "user-1",
+      sessionClaims: { publicMetadata: { role: "doctor" } },
+    } as any);
+    const { prisma } = await import("@/lib/prisma");
+    vi.mocked(prisma.doctor.findUnique).mockResolvedValueOnce({
+      ...mockDoctor,
+      clinicId: null,
+    });
+    const { GET } = await import("@/app/api/doctor/monitoring/route");
+    const res = await GET();
+    expect(res.status).toBe(403);
   });
 });

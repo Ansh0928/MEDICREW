@@ -3,15 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { getDoctorAuth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
-  const { error } = await getDoctorAuth();
+  const { doctor, error } = await getDoctorAuth();
   if (error) return error;
+
+  if (!doctor!.clinicId) {
+    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+  }
 
   const url = new URL(request.url);
   const take = Math.min(parseInt(url.searchParams.get("take") ?? "50", 10), 100);
   const skip = Math.max(parseInt(url.searchParams.get("skip") ?? "0", 10), 0);
 
   const patients = await prisma.patient.findMany({
-    where: { deletedAt: null },
+    where: { deletedAt: null, clinicId: doctor!.clinicId },
     orderBy: { createdAt: "desc" },
     take,
     skip,

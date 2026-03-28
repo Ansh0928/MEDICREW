@@ -6,8 +6,12 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await getDoctorAuth();
+  const { doctor, error } = await getDoctorAuth();
   if (error) return error;
+
+  if (!doctor!.clinicId) {
+    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+  }
 
   const { id } = await params;
 
@@ -21,11 +25,27 @@ export async function GET(
       redFlags: true,
       recommendation: true,
       createdAt: true,
+      patient: { select: { clinicId: true } },
     },
   });
 
   if (!consultation) {
     return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+  }
+
+  const patientClinicId = consultation.patient.clinicId;
+
+  // Reject if patient belongs to a different clinic
+  if (patientClinicId && patientClinicId !== doctor!.clinicId) {
+    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+  }
+
+  // Auto-assign unassigned patient to this doctor's clinic on first consultation view
+  if (!patientClinicId) {
+    await prisma.patient.update({
+      where: { id: consultation.patientId },
+      data: { clinicId: doctor!.clinicId },
+    });
   }
 
   // Parse redFlags from stored JSON string to array
@@ -39,8 +59,10 @@ export async function GET(
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { patient: _patient, ...consultationData } = consultation;
   return NextResponse.json({
-    ...consultation,
+    ...consultationData,
     redFlags,
     createdAt: consultation.createdAt.toISOString(),
   });

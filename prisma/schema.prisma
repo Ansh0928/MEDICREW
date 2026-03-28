@@ -36,6 +36,9 @@ model Patient {
 
   checkInsOptOut     Boolean        @default(false)
 
+  clinicId           String?
+  clinic             Clinic?        @relation(fields: [clinicId], references: [id])
+
   consultations      Consultation[]
   notifications      Notification[]
   consents           PatientConsent[]
@@ -66,6 +69,16 @@ model Consultation {
   checkIns      CheckIn[]
 }
 
+// Clinic model - org/practice that groups doctors and patients
+model Clinic {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  doctors   Doctor[]
+  patients  Patient[]
+}
+
 // Doctor model - for demo, simple doctor profiles
 model Doctor {
   id            String   @id @default(cuid())
@@ -74,6 +87,9 @@ model Doctor {
   specialty     String
   clerkUserId   String?  @unique
   createdAt     DateTime @default(now())
+
+  clinicId      String?
+  clinic        Clinic?  @relation(fields: [clinicId], references: [id])
 
   notifications Notification[]
 }

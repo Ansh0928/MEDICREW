@@ -6,8 +6,12 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await getDoctorAuth();
+  const { doctor, error } = await getDoctorAuth();
   if (error) return error;
+
+  if (!doctor!.clinicId) {
+    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+  }
 
   const { id } = await params;
 
@@ -23,6 +27,7 @@ export async function GET(
       medications: true,
       allergies: true,
       onboardingComplete: true,
+      clinicId: true,
       consultations: {
         orderBy: { createdAt: "desc" },
         take: 10,
@@ -42,5 +47,20 @@ export async function GET(
     return NextResponse.json({ error: "Patient not found" }, { status: 404 });
   }
 
-  return NextResponse.json(patient);
+  // Reject if patient belongs to a different clinic
+  if (patient.clinicId && patient.clinicId !== doctor!.clinicId) {
+    return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+  }
+
+  // Auto-assign unassigned patient to this doctor's clinic on first view
+  if (!patient.clinicId) {
+    await prisma.patient.update({
+      where: { id },
+      data: { clinicId: doctor!.clinicId },
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { clinicId: _clinicId, ...patientData } = patient;
+  return NextResponse.json(patientData);
 }

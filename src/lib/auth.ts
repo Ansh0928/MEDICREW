@@ -1,26 +1,34 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Doctor } from "@prisma/client";
 
 export async function getDoctorAuth(): Promise<{
-  userId: string | null;
+  doctor: Doctor | null;
   error: NextResponse | null;
 }> {
   const { userId, sessionClaims } = await auth();
   if (!userId) {
     return {
-      userId: null,
+      doctor: null,
       error: NextResponse.json({ error: "Authentication required" }, { status: 401 }),
     };
   }
   const role = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.role;
   if (role !== "doctor") {
     return {
-      userId: null,
+      doctor: null,
       error: NextResponse.json({ error: "Doctor access required" }, { status: 403 }),
     };
   }
-  return { userId, error: null };
+  const doctor = await prisma.doctor.findUnique({ where: { clerkUserId: userId } });
+  if (!doctor) {
+    return {
+      doctor: null,
+      error: NextResponse.json({ error: "Doctor profile not found" }, { status: 403 }),
+    };
+  }
+  return { doctor, error: null };
 }
 
 export async function getAuthenticatedPatient() {

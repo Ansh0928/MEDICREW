@@ -6,8 +6,12 @@ import { getDoctorAuth } from "@/lib/auth";
 // Body: { consultationId: string }
 // Returns: { token: string; url: string; expiresAt: string }
 export async function POST(request: NextRequest) {
-  const { error } = await getDoctorAuth();
+  const { doctor, error } = await getDoctorAuth();
   if (error) return error;
+
+  if (!doctor!.clinicId) {
+    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+  }
 
   let consultationId: string;
   try {
@@ -21,12 +25,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "consultationId is required" }, { status: 400 });
   }
 
-  const exists = await prisma.consultation.findUnique({
+  const consultation = await prisma.consultation.findUnique({
     where: { id: consultationId },
-    select: { id: true },
+    select: { id: true, patientId: true, patient: { select: { clinicId: true } } },
   });
-  if (!exists) {
+  if (!consultation) {
     return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+  }
+
+  const patientClinicId = consultation.patient.clinicId;
+  if (patientClinicId && patientClinicId !== doctor!.clinicId) {
+    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+  }
+  if (!patientClinicId) {
+    await prisma.patient.update({
+      where: { id: consultation.patientId },
+      data: { clinicId: doctor!.clinicId },
+    });
   }
 
   // 30-day expiry
