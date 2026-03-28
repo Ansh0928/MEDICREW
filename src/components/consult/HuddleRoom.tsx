@@ -328,12 +328,13 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
   const handleFollowUp = useCallback(async (question: string) => {
     setFollowupRouting(null);
     setFollowupAnswer(null);
+    const synthesisContext = synthesis
+      ? `${synthesis.primaryRecommendation}\nNext steps: ${synthesis.nextSteps.join("; ")}`
+      : undefined;
     const response = await fetch("/api/swarm/followup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // MVP: "current" is accepted by the backend as any non-empty string.
-      // Phase 2: capture real sessionId from a session_id SSE event emitted by /api/swarm/start.
-      body: JSON.stringify({ sessionId: "current", question }),
+      body: JSON.stringify({ sessionId: "current", question, synthesisContext }),
     });
     if (!response.body) return;
     const reader = response.body.getReader();
@@ -354,7 +355,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
         } catch { /* ignore */ }
       }
     }
-  }, [handleEvent]);
+  }, [handleEvent, synthesis]);
 
   const allRoles = Object.keys(agents);
   const primaryLead = allRoles.find((r) => agents[r]?.state === "done") ?? allRoles[0];

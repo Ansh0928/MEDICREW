@@ -36,7 +36,29 @@ const createOllamaModel = (temperature = 0.3): BaseChatModel => {
   });
 };
 
-// Main model factory - creates model based on configured provider
+// Proxy model that falls back from Groq → Ollama on failure
+class FallbackModel extends BaseChatModel {
+  constructor(
+    private primary: BaseChatModel,
+    private fallback: BaseChatModel,
+  ) {
+    super({});
+  }
+
+  _llmType() { return "fallback"; }
+
+  async _generate(messages: import("@langchain/core/messages").BaseMessage[], options: import("@langchain/core/language_models/base").BaseLLMCallOptions) {
+    try {
+      return await this.primary._generate(messages, options);
+    } catch (err) {
+      console.warn("[LLM] Primary provider failed, falling back to Ollama:", (err as Error).message);
+      return this.fallback._generate(messages, options);
+    }
+  }
+}
+
+// Main model factory - creates model based on configured provider.
+// If provider is groq, wraps with Ollama fallback so outages degrade gracefully.
 export const createModel = (temperature = 0.3): BaseChatModel => {
   const provider = getLLMProvider();
 
@@ -44,7 +66,7 @@ export const createModel = (temperature = 0.3): BaseChatModel => {
     return createOllamaModel(temperature);
   }
 
-  return createGroqModel(temperature);
+  return new FallbackModel(createGroqModel(temperature), createOllamaModel(temperature));
 };
 
 // Faster model for simple tasks
@@ -52,7 +74,6 @@ export const createFastModel = (): BaseChatModel => {
   const provider = getLLMProvider();
 
   if (provider === "ollama") {
-    // Use same model for Ollama (local models don't have instant variants)
     return createOllamaModel(0.1);
   }
 
@@ -62,12 +83,14 @@ export const createFastModel = (): BaseChatModel => {
     throw new Error("GROQ_API_KEY environment variable is not set");
   }
 
-  return new ChatGroq({
+  const groqFast = new ChatGroq({
     model: "llama-3.1-8b-instant",
     temperature: 0.1,
     maxTokens: 1024,
     apiKey,
   });
+
+  return new FallbackModel(groqFast, createOllamaModel(0.1));
 };
 
 // Create Groq model with JSON mode forced (for triage)
