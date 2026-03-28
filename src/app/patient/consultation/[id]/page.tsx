@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   CheckCircle,
   Clock,
+  Download,
   ExternalLink,
   Phone,
 } from "lucide-react";
@@ -61,6 +62,96 @@ export default function ConsultationSummaryPage() {
   const [consultation, setConsultation] = useState<ConsultationDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!consultation) return;
+    setPdfLoading(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const rec = consultation.recommendation;
+      const urgency = consultation.urgencyLevel ?? "routine";
+      const margin = 20;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const contentWidth = pageWidth - margin * 2;
+      let y = margin;
+
+      const addText = (text: string, opts: { size?: number; bold?: boolean; color?: [number, number, number]; wrap?: boolean } = {}) => {
+        doc.setFontSize(opts.size ?? 10);
+        doc.setFont("helvetica", opts.bold ? "bold" : "normal");
+        if (opts.color) doc.setTextColor(...opts.color);
+        else doc.setTextColor(30, 30, 30);
+        if (opts.wrap) {
+          const lines = doc.splitTextToSize(text, contentWidth) as string[];
+          doc.text(lines, margin, y);
+          y += lines.length * (opts.size ?? 10) * 0.4 + 2;
+        } else {
+          doc.text(text, margin, y);
+          y += (opts.size ?? 10) * 0.4 + 2;
+        }
+      };
+
+      const addSpacer = (h = 4) => { y += h; };
+      const addDivider = () => {
+        doc.setDrawColor(220, 220, 220);
+        doc.line(margin, y, pageWidth - margin, y);
+        addSpacer(4);
+      };
+
+      // Header
+      addText("MediCrew Consultation Summary", { size: 16, bold: true, color: [29, 78, 216] });
+      addSpacer(2);
+      addText(formatAuDate(consultation.createdAt), { size: 9, color: [100, 100, 100] });
+      addDivider();
+
+      // Urgency
+      const urgencyLabel = URGENCY_CONFIG[urgency]?.label ?? urgency;
+      addText(`Urgency: ${urgencyLabel}`, { size: 11, bold: true });
+      addSpacer();
+
+      // Chief complaint
+      addText("Chief Complaint", { size: 11, bold: true });
+      addText(consultation.symptoms, { wrap: true });
+      addSpacer();
+
+      // Red flags
+      if (consultation.redFlags.length > 0) {
+        addDivider();
+        addText("Warning Signs Detected", { size: 11, bold: true, color: [194, 65, 12] });
+        consultation.redFlags.forEach((f) => addText(`• ${f}`, { wrap: true }));
+        addSpacer();
+      }
+
+      // Assessment
+      if (rec?.primaryRecommendation) {
+        addDivider();
+        addText("Care Team Assessment", { size: 11, bold: true });
+        addText(rec.primaryRecommendation, { wrap: true });
+        addSpacer();
+      }
+
+      // Next steps
+      if (rec?.nextSteps && rec.nextSteps.length > 0) {
+        addDivider();
+        addText("Recommended Next Steps", { size: 11, bold: true });
+        rec.nextSteps.forEach((step, i) => addText(`${i + 1}. ${step}`, { wrap: true }));
+        addSpacer();
+      }
+
+      // Disclaimer
+      addDivider();
+      addText(
+        rec?.disclaimer ??
+          "This summary is for informational purposes only and does not constitute a medical diagnosis or treatment plan. Always consult a qualified healthcare professional.",
+        { size: 8, color: [100, 100, 100], wrap: true }
+      );
+
+      doc.save(`medicrew-consultation-${consultation.id.slice(0, 8)}.pdf`);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetch(`/api/patient/consultations/${id}`)
@@ -121,9 +212,21 @@ export default function ConsultationSummaryPage() {
             </Link>
             <h1 className="text-lg font-semibold text-blue-700">Consultation Summary</h1>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Clock className="w-3.5 h-3.5" />
-            {formatAuDate(consultation.createdAt)}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              {formatAuDate(consultation.createdAt)}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPdf}
+              disabled={pdfLoading}
+              className="text-xs"
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              {pdfLoading ? "Generating..." : "Download PDF"}
+            </Button>
           </div>
         </div>
       </header>

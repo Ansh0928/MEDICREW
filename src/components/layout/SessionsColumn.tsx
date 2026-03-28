@@ -41,27 +41,53 @@ export function SessionsColumn({ activePatientId }: { activePatientId?: string }
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("patient") ?? activePatientId;
 
+  const PAGE_SIZE = 20;
   const [tab, setTab] = useState<"upcoming" | "recent">("upcoming");
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [skip, setSkip] = useState(0);
+
+  async function fetchPage(currentSkip: number, append: boolean) {
+    const url = `/api/doctor/patients?skip=${currentSkip}&take=${PAGE_SIZE}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json() as PatientRecord[];
+    if (append) {
+      setPatients((prev) => [...prev, ...data]);
+    } else {
+      setPatients(data);
+    }
+    setHasMore(data.length === PAGE_SIZE);
+    setSkip(currentSkip + data.length);
+  }
 
   useEffect(() => {
     let cancelled = false;
-    async function fetchPatients() {
+    async function init() {
       try {
-        const res = await fetch("/api/doctor/patients");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json() as PatientRecord[];
-        if (!cancelled) setPatients(data);
+        await fetchPage(0, false);
       } catch (err) {
-        console.error("SessionsColumn: failed to fetch patients", err);
+        if (!cancelled) console.error("SessionsColumn: failed to fetch patients", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-    void fetchPatients();
+    void init();
     return () => { cancelled = true; };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function loadMore() {
+    setLoadingMore(true);
+    try {
+      await fetchPage(skip, true);
+    } catch (err) {
+      console.error("SessionsColumn: failed to load more", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   function selectPatient(id: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -143,6 +169,16 @@ export function SessionsColumn({ activePatientId }: { activePatientId?: string }
             </button>
           );
         })}
+
+        {!loading && hasMore && (
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="w-full py-2 text-[11px] text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-100 disabled:opacity-50"
+          >
+            {loadingMore ? "Loading…" : "Load more"}
+          </button>
+        )}
       </div>
     </div>
   );
