@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { BodyMap, BodyRegion } from "./BodyMap";
 import { IntakeAnswer, IntakeQuestion, buildSymptomsFromAnswers, buildHistorySummaryFromAnswers } from "@/lib/intake-types";
 
@@ -14,7 +14,14 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchNextQuestion = useCallback(async (answersToSend: IntakeAnswer[]) => {
+    // Cancel any in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setError(null);
     setCurrentAnswer("");
@@ -24,11 +31,13 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: answersToSend }),
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error(`intake API error ${res.status}`);
       const question: IntakeQuestion = await res.json();
       setCurrentQuestion(question);
-    } catch {
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return; // ignore cancelled requests
       setError("Connection issue — please try again.");
     } finally {
       setIsLoading(false);
@@ -38,13 +47,19 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
   // Fetch first question on mount
   useEffect(() => { fetchNextQuestion([]); }, [fetchNextQuestion]);
 
-  const handleNext = useCallback(() => {
-    if (!currentQuestion) return;
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
+  const handleNext = useCallback((overrideAnswer?: string) => {
+    const answer = (overrideAnswer ?? currentAnswer).trim();
+    if (!currentQuestion || (!answer && currentQuestion.type !== "confirm")) return;
 
     const newAnswer: IntakeAnswer = {
       questionId: currentQuestion.questionId,
       question: currentQuestion.question,
-      answer: currentAnswer.trim(),
+      answer,
     };
     const updatedAnswers = [...answers, newAnswer];
     setAnswers(updatedAnswers);
@@ -111,7 +126,7 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
       {/* Input by type */}
       {currentQuestion.type === "body-map" && (
         <BodyMap
-          selected={currentAnswer as BodyRegion | null}
+          selected={(currentAnswer as BodyRegion) || null}
           onSelect={(region) => setCurrentAnswer(region)}
         />
       )}
@@ -131,22 +146,9 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
               key={opt}
               onClick={() => {
                 setCurrentAnswer(opt);
-                // Auto-advance on chip/emotional selection
-                const newAnswer: IntakeAnswer = {
-                  questionId: currentQuestion.questionId,
-                  question: currentQuestion.question,
-                  answer: opt,
-                };
-                const updatedAnswers = [...answers, newAnswer];
-                setAnswers(updatedAnswers);
-                if (currentQuestion.done) {
-                  const symptoms = buildSymptomsFromAnswers(updatedAnswers);
-                  const historySummary = buildHistorySummaryFromAnswers(updatedAnswers);
-                  onComplete(updatedAnswers, symptoms, historySummary);
-                } else {
-                  fetchNextQuestion(updatedAnswers);
-                }
+                handleNext(opt);
               }}
+              disabled={isLoading}
               className={`px-4 py-2 rounded-full border text-sm transition-colors ${
                 currentAnswer === opt
                   ? "border-primary bg-primary/10 text-primary"
@@ -199,7 +201,7 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
           </button>
         )}
         <button
-          onClick={handleNext}
+          onClick={() => handleNext()}
           disabled={
             isLoading ||
             (currentQuestion.type !== "confirm" && !currentAnswer.trim()) ||
@@ -240,9 +242,10 @@ function SliderInput({
 
   // Set default on first render via useEffect
   useEffect(() => {
-    if (!value) onChange(defaultVal);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!value) {
+      onChange(defaultVal);
+    }
+  }, [value, defaultVal, onChange]);
 
   return (
     <div className="space-y-2">
