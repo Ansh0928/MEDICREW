@@ -6,6 +6,7 @@ import { HuddleChatPanel, ChatMessage } from "./HuddleChatPanel";
 import { FollowUpBar } from "./FollowUpBar";
 import { RoutingChip } from "./RoutingChip";
 import { SynthesisCard } from "./SynthesisCard";
+import { TriageTransparencyPanel, OrbState } from "./TriageTransparencyPanel";
 import { SwarmEvent, SwarmSynthesis, SwarmState, SwarmLeadState, SwarmPhase, DoctorRole } from "@/agents/swarm-types";
 import { ProgressSteps } from "./ProgressSteps";
 
@@ -99,6 +100,8 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
   const [redFlags, setRedFlags] = useState<string[]>([]);
   const [followupAnswer, setFollowupAnswer] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [orbState, setOrbState] = useState<OrbState[]>([]);
+  const [liveFeedText, setLiveFeedText] = useState("");
   const [followupRouting, setFollowupRouting] = useState<{ type: "simple" | "complex"; roles: string[] } | null>(null);
   const [currentPhase, setCurrentPhase] = useState<SwarmPhase | null>(null);
   const onPhaseChangeRef = useRef(onPhaseChange);
@@ -147,6 +150,12 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
 
       case "doctor_activated":
         updateAgent(event.role, "active");
+        setOrbState((prev) => {
+          const exists = prev.find((o) => o.role === event.role);
+          if (!exists) return [...prev, { role: event.role as DoctorRole, status: "active" }];
+          return prev.map((o) => o.role === event.role ? { ...o, status: "active" } : o);
+        });
+        setLiveFeedText(`${leadNames[event.role] ?? event.role} is reviewing...`);
         emitDebugState({
           leadSwarms: {
             ...swarmDebugRef.current.leadSwarms,
@@ -232,6 +241,9 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
 
       case "doctor_complete":
         updateAgent(event.role, "done");
+        setOrbState((prev) =>
+          prev.map((o) => o.role === event.role ? { ...o, status: "done" as const } : o)
+        );
         break;
 
       case "synthesis_complete":
@@ -241,6 +253,7 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
             Object.entries(prev).map(([r, a]) => [r, { ...a, state: "done" as AgentState, bubbleText: undefined }])
           )
         );
+        setLiveFeedText("");
         break;
 
       case "gatekeeper_review":
@@ -355,6 +368,11 @@ export function HuddleRoom({ symptoms, patientInfo, onSwarmStateChange, onPhaseC
 
   return (
     <div className="flex h-full gap-0 flex-col">
+      <TriageTransparencyPanel
+        orbs={orbState}
+        liveFeed={liveFeedText}
+        isVisible={orbState.length > 0 || isRunning}
+      />
       {/* Progress steps */}
       <ProgressSteps currentPhase={currentPhase} />
 
