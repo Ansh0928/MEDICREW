@@ -1,3 +1,4 @@
+// "use client" required — DoctorOrbRow and LiveFeedLine use framer-motion animations
 "use client";
 import { DoctorOrbRow } from "./DoctorOrbRow";
 import { LiveFeedLine } from "./LiveFeedLine";

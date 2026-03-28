@@ -4,12 +4,16 @@ import { render, screen } from "@testing-library/react";
 import { TriageTransparencyPanel } from "@/components/consult/TriageTransparencyPanel";
 import type { OrbState } from "@/components/consult/TriageTransparencyPanel";
 
-// Mock framer-motion to avoid animation complexity in jsdom
-vi.mock("framer-motion", () => ({
-  motion: {
-    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
-  },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+vi.mock("@/components/consult/DoctorOrbRow", () => ({
+  DoctorOrbRow: ({ orbs }: { orbs: Array<{ role: string; status: string }> }) => (
+    <div data-testid="doctor-orb-row" data-orb-count={orbs.length} />
+  ),
+}));
+
+vi.mock("@/components/consult/LiveFeedLine", () => ({
+  LiveFeedLine: ({ text }: { text: string }) => (
+    <div data-testid="live-feed-line">{text}</div>
+  ),
 }));
 
 describe("TriageTransparencyPanel", () => {
@@ -26,7 +30,9 @@ describe("TriageTransparencyPanel", () => {
       { role: "cardiology", status: "waiting" },
     ];
     render(<TriageTransparencyPanel orbs={orbs} liveFeed="" isVisible={true} />);
-    expect(screen.getByLabelText(/alex ai.*thinking/i)).toBeInTheDocument();
+    const orbRow = screen.getByTestId("doctor-orb-row");
+    expect(orbRow).toBeInTheDocument();
+    expect(orbRow.getAttribute("data-orb-count")).toBe("2");
   });
 
   it("renders live feed text when provided", () => {
@@ -37,7 +43,7 @@ describe("TriageTransparencyPanel", () => {
         isVisible={true}
       />
     );
-    expect(screen.getByText("Jordan AI is reviewing your symptoms...")).toBeInTheDocument();
+    expect(screen.getByTestId("live-feed-line")).toHaveTextContent(/jordan ai is reviewing/i);
   });
 
   it("renders 'Your care team' heading", () => {
