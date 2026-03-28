@@ -4,13 +4,68 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, CheckCircle } from "lucide-react";
+import { BookOpen, CheckCircle, TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 interface JournalEntry {
   id: string;
   severity: number;
   notes: string | null;
   createdAt: string;
+}
+
+interface TrendPoint {
+  date: string;
+  severity: number;
+}
+
+function SeverityTrendChart({ points }: { points: TrendPoint[] }) {
+  if (points.length < 2) return null;
+  const W = 320, H = 80, pad = 8;
+  const minSev = 1, maxSev = 5;
+  const xs = points.map((_, i) => pad + (i / (points.length - 1)) * (W - pad * 2));
+  const ys = points.map((p) => pad + ((maxSev - p.severity) / (maxSev - minSev)) * (H - pad * 2));
+  const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  const areaD = `${pathD} L${xs[xs.length - 1].toFixed(1)},${H - pad} L${xs[0].toFixed(1)},${H - pad} Z`;
+
+  // Trend direction from first half avg vs second half avg
+  const mid = Math.floor(points.length / 2);
+  const firstAvg = points.slice(0, mid).reduce((s, p) => s + p.severity, 0) / mid;
+  const lastAvg = points.slice(mid).reduce((s, p) => s + p.severity, 0) / (points.length - mid);
+  const diff = lastAvg - firstAvg;
+  const TrendIcon = diff < -0.3 ? TrendingDown : diff > 0.3 ? TrendingUp : Minus;
+  const trendColor = diff < -0.3 ? "text-green-600" : diff > 0.3 ? "text-red-500" : "text-yellow-500";
+  const trendLabel = diff < -0.3 ? "Improving" : diff > 0.3 ? "Worsening" : "Stable";
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-muted-foreground">Last {points.length} entries</span>
+        <span className={`flex items-center gap-1 text-xs font-medium ${trendColor}`}>
+          <TrendIcon className="w-3 h-3" />
+          {trendLabel}
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-16" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sev-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaD} fill="url(#sev-grad)" />
+        <path d={pathD} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((p, i) => (
+          <circle key={i} cx={xs[i]} cy={ys[i]} r="3" fill="white" stroke="#3b82f6" strokeWidth="1.5">
+            <title>{`${new Date(p.date).toLocaleDateString("en-AU")} — Severity ${p.severity}`}</title>
+          </circle>
+        ))}
+      </svg>
+      <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
+        <span>{new Date(points[0].date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</span>
+        <span>{new Date(points[points.length - 1].date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</span>
+      </div>
+    </div>
+  );
 }
 
 const SEVERITY_LABELS: Record<number, { label: string; color: string }> = {
@@ -32,6 +87,7 @@ function formatRelative(iso: string) {
 
 export function SymptomJournalWidget() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [trendPoints, setTrendPoints] = useState<TrendPoint[]>([]);
   const [severity, setSeverity] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,11 +96,20 @@ export function SymptomJournalWidget() {
 
   const loadEntries = useCallback(async () => {
     try {
-      const res = await fetch("/api/patient/journal");
-      if (res.ok) {
-        const data = await res.json();
+      const [journalRes, trendsRes] = await Promise.all([
+        fetch("/api/patient/journal"),
+        fetch("/api/patient/journal/trends"),
+      ]);
+      if (journalRes.ok) {
+        const data = await journalRes.json();
         const arr = Array.isArray(data) ? data : (data.entries ?? []);
         setEntries(arr.slice(0, 7));
+      }
+      if (trendsRes.ok) {
+        const trendData = await trendsRes.json() as TrendPoint[];
+        if (Array.isArray(trendData) && trendData.length > 1) {
+          setTrendPoints(trendData.slice(-30));
+        }
       }
     } catch {
       // silent
@@ -157,6 +222,18 @@ export function SymptomJournalWidget() {
           )}
         </CardContent>
       </Card>
+
+      {/* Trend chart */}
+      {trendPoints.length > 1 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Wellbeing Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SeverityTrendChart points={trendPoints} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sparkline history */}
       <Card>

@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Clock, CheckCircle, Activity, AlertCircle, ExternalLink, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface CarePlanData {
   monitoringStatus: "active" | "inactive";
   nextCheckIn: {
+    id: string;
     scheduledFor: string;
     status: string;
   } | null;
@@ -21,9 +23,11 @@ interface CarePlanData {
   } | null;
   actionItems: string[];
   recentCheckIns: Array<{
+    id: string;
     status: string;
     response: string | null;
     respondedAt: string | null;
+    createdAt: string;
   }>;
   lastAgentActivity: {
     agentName: string;
@@ -74,27 +78,52 @@ function getResponseBadgeVariant(
   return "secondary";
 }
 
+const RESPONSE_OPTIONS: { value: "better" | "same" | "worse"; label: string; color: string }[] = [
+  { value: "better", label: "Better", color: "bg-green-100 text-green-700 hover:bg-green-200 border-green-300" },
+  { value: "same", label: "Same", color: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-300" },
+  { value: "worse", label: "Worse", color: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300" },
+];
+
 export function CarePlanDetail() {
   const [carePlan, setCarePlan] = useState<CarePlanData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+
+  const fetchCarePlan = useCallback(async () => {
+    try {
+      const res = await fetch("/api/patient/care-plan");
+      if (res.ok) {
+        const data = await res.json();
+        setCarePlan(data);
+      }
+    } catch {
+      console.error("Failed to load care plan");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchCarePlan = async () => {
-      try {
-        const res = await fetch("/api/patient/care-plan");
-        if (res.ok) {
-          const data = await res.json();
-          setCarePlan(data);
-        }
-      } catch {
-        console.error("Failed to load care plan");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCarePlan();
-  }, []);
+  }, [fetchCarePlan]);
+
+  const handleCheckInResponse = async (checkInId: string, response: "better" | "same" | "worse") => {
+    setRespondingId(checkInId);
+    try {
+      const res = await fetch("/api/checkin/respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checkInId, response }),
+      });
+      if (res.ok) {
+        await fetchCarePlan();
+      }
+    } catch {
+      console.error("Failed to submit check-in response");
+    } finally {
+      setRespondingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -190,17 +219,35 @@ export function CarePlanDetail() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {carePlan.nextCheckIn ? (
-            <>
-              <p className="text-sm font-medium">
-                Scheduled for{" "}
-                {formatAuDate(carePlan.nextCheckIn.scheduledFor)}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your care team will check in with you
-              </p>
-            </>
-          ) : (
+          {carePlan.nextCheckIn ? (() => {
+            const isPast = new Date(carePlan.nextCheckIn!.scheduledFor) <= new Date();
+            return (
+              <>
+                <p className="text-sm font-medium">
+                  {isPast ? "Your care team is checking in:" : `Scheduled for ${formatAuDate(carePlan.nextCheckIn!.scheduledFor)}`}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 mb-3">
+                  {isPast ? "How are your symptoms compared to your last consultation?" : "Your care team will check in with you"}
+                </p>
+                {isPast && (
+                  <div className="flex gap-2 flex-wrap">
+                    {RESPONSE_OPTIONS.map((opt) => (
+                      <Button
+                        key={opt.value}
+                        variant="outline"
+                        size="sm"
+                        disabled={respondingId === carePlan.nextCheckIn!.id}
+                        onClick={() => handleCheckInResponse(carePlan.nextCheckIn!.id, opt.value)}
+                        className={`text-xs border ${opt.color}`}
+                      >
+                        {respondingId === carePlan.nextCheckIn!.id ? "Saving…" : opt.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })() : (
             <p className="text-sm text-muted-foreground">
               No check-ins currently scheduled
             </p>
@@ -299,27 +346,40 @@ export function CarePlanDetail() {
         </CardHeader>
         <CardContent>
           {carePlan.recentCheckIns.length > 0 ? (
-            <ul className="space-y-2">
-              {carePlan.recentCheckIns.map((checkIn, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-center gap-2 text-sm"
-                >
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {checkIn.status}
-                  </Badge>
-                  {checkIn.response && (
-                    <Badge
-                      variant={getResponseBadgeVariant(checkIn.response)}
-                      className={`text-xs capitalize ${getResponseColor(checkIn.response)}`}
-                    >
-                      {checkIn.response}
+            <ul className="space-y-3">
+              {carePlan.recentCheckIns.map((checkIn) => (
+                <li key={checkIn.id} className="text-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {checkIn.status}
                     </Badge>
-                  )}
-                  {checkIn.respondedAt && (
+                    {checkIn.response && (
+                      <Badge
+                        variant={getResponseBadgeVariant(checkIn.response)}
+                        className={`text-xs capitalize ${getResponseColor(checkIn.response)}`}
+                      >
+                        {checkIn.response}
+                      </Badge>
+                    )}
                     <span className="text-xs text-muted-foreground ml-auto">
-                      {formatRelativeTime(checkIn.respondedAt)}
+                      {formatRelativeTime(checkIn.respondedAt ?? checkIn.createdAt)}
                     </span>
+                  </div>
+                  {checkIn.status === "pending" && (
+                    <div className="flex gap-2 flex-wrap mt-1.5">
+                      {RESPONSE_OPTIONS.map((opt) => (
+                        <Button
+                          key={opt.value}
+                          variant="outline"
+                          size="sm"
+                          disabled={respondingId === checkIn.id}
+                          onClick={() => handleCheckInResponse(checkIn.id, opt.value)}
+                          className={`text-xs border ${opt.color}`}
+                        >
+                          {respondingId === checkIn.id ? "Saving…" : opt.label}
+                        </Button>
+                      ))}
+                    </div>
                   )}
                 </li>
               ))}

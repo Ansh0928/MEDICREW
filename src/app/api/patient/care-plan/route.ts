@@ -104,6 +104,7 @@ export async function GET(_request: NextRequest) {
     monitoringStatus,
     nextCheckIn: nextCheckIn
       ? {
+          id: nextCheckIn.id,
           scheduledFor: nextCheckIn.scheduledFor,
           status: nextCheckIn.status,
         }
@@ -125,9 +126,11 @@ export async function GET(_request: NextRequest) {
       : null,
     actionItems,
     recentCheckIns: recentCheckIns.map((c) => ({
+      id: c.id,
       status: c.status,
       response: c.response,
       respondedAt: c.respondedAt,
+      createdAt: c.createdAt,
     })),
     lastAgentActivity,
   });
