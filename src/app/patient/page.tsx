@@ -244,17 +244,19 @@ export default function PatientPortal() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Home
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3">
+                <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Home</span>
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-blue-600">Patient Portal</h1>
+            <h1 className="text-base sm:text-xl font-bold text-blue-600">
+              Patient Portal
+            </h1>
             {patient && (
-              <span className="text-sm text-muted-foreground">
+              <span className="hidden md:block text-sm text-muted-foreground">
                 Welcome, {patient.name}
               </span>
             )}
@@ -262,7 +264,7 @@ export default function PatientPortal() {
               <Badge className="bg-sky-600 text-white text-xs">Pro</Badge>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
             {patient?.stripeCustomerId && (
               <button
                 onClick={async () => {
@@ -272,7 +274,7 @@ export default function PatientPortal() {
                   const data = await res.json();
                   if (data.url) window.location.href = data.url;
                 }}
-                className="text-sm text-slate-500 hover:text-slate-700 underline"
+                className="hidden sm:block text-sm text-slate-500 hover:text-slate-700 underline"
               >
                 Manage billing
               </button>
@@ -281,23 +283,30 @@ export default function PatientPortal() {
               patient?.subscriptionPlan === "free" && (
                 <a
                   href="/pricing"
-                  className="text-sm text-sky-600 hover:underline font-medium"
+                  className="hidden sm:block text-sm text-sky-600 hover:underline font-medium"
                 >
                   Upgrade to Pro
                 </a>
               )}
             <Link href="/patient/profile">
-              <Button variant="outline" size="sm">
-                <User className="w-4 h-4 mr-2" />
-                Profile
+              <Button variant="outline" size="sm" className="px-2 sm:px-3">
+                <User className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Profile</span>
               </Button>
             </Link>
             <Link href="/consult">
-              <Button>New Consultation</Button>
+              <Button size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
+                <span className="hidden sm:inline">New </span>Consultation
+              </Button>
             </Link>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="px-2 sm:px-3"
+            >
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>

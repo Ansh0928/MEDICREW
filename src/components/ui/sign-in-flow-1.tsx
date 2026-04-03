@@ -687,7 +687,7 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
 
       <div className="relative z-10 flex flex-col flex-1">
         <MiniNavbar role={role} />
-        <div className="flex flex-1 flex-col justify-center items-center mt-[150px] pb-16">
+        <div className="flex flex-1 flex-col justify-center items-center mt-[100px] sm:mt-[150px] pb-16 px-4">
           <SignIn
             forceRedirectUrl={role === "doctor" ? "/doctor" : "/patient"}
           />
