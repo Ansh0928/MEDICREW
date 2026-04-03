@@ -70,6 +70,10 @@ model Consultation {
   recommendation    Json?
   notes             Json?
 
+  // Pro feature: LLM-generated GP referral letter (plain text)
+  referralLetter    String?
+  referralLetterAt  DateTime?
+
   createdAt     DateTime @default(now())
   checkIns      CheckIn[]
 }
