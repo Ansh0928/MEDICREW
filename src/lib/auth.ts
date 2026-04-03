@@ -84,7 +84,22 @@ export async function getAuthenticatedPatient(): Promise<{
     return { patient: DEMO_PATIENT, needsOnboarding: false, error: null };
   }
 
-  const { userId } = await auth();
+  let userId: string | null = null;
+  try {
+    const authResult = await auth();
+    userId = authResult.userId;
+  } catch (err) {
+    console.error("[auth] auth() threw:", err);
+    return {
+      patient: null,
+      needsOnboarding: false,
+      error: NextResponse.json(
+        { error: "Authentication error" },
+        { status: 500 },
+      ),
+    };
+  }
+
   if (!userId) {
     return {
       patient: null,
@@ -96,35 +111,45 @@ export async function getAuthenticatedPatient(): Promise<{
     };
   }
 
-  let patient = await prisma.patient.findFirst({
-    where: { clerkUserId: userId },
-  });
+  let patient: Patient | null = null;
+  try {
+    patient = await prisma.patient.findFirst({
+      where: { clerkUserId: userId },
+    });
+  } catch (err) {
+    console.error("[auth] prisma.patient.findFirst threw:", err);
+    return {
+      patient: null,
+      needsOnboarding: false,
+      error: NextResponse.json({ error: "Database error" }, { status: 500 }),
+    };
+  }
 
   if (!patient) {
     // Belt-and-suspenders: webhook may have missed — auto-create the Patient row
     // on the first authenticated request so the user is never stuck.
-    const clerkUser = await currentUser();
-    if (clerkUser) {
-      const name =
-        `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
-        (clerkUser.emailAddresses[0]?.emailAddress ?? "Patient");
-      const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
+    try {
+      const clerkUser = await currentUser();
+      if (clerkUser) {
+        const name =
+          `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
+          (clerkUser.emailAddresses[0]?.emailAddress ?? "Patient");
+        const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
 
-      try {
-        patient = await prisma.patient.create({
-          data: {
-            clerkUserId: userId,
-            name,
-            email,
-          },
-        });
-      } catch {
-        // Race condition: another request created the row between our findUnique
-        // and create — fetch it now.
-        patient = await prisma.patient.findFirst({
-          where: { clerkUserId: userId },
-        });
+        try {
+          patient = await prisma.patient.create({
+            data: { clerkUserId: userId, name, email },
+          });
+        } catch (createErr) {
+          console.error("[auth] prisma.patient.create threw:", createErr);
+          // Race condition or email conflict — try fetching by userId
+          patient = await prisma.patient.findFirst({
+            where: { clerkUserId: userId },
+          });
+        }
       }
+    } catch (err) {
+      console.error("[auth] currentUser() or create flow threw:", err);
     }
   }
 
