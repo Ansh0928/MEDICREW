@@ -3,9 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
 export async function GET(_request: NextRequest) {
-  const { patient: authPatient, needsOnboarding, error } = await getAuthenticatedPatient();
+  const {
+    patient: authPatient,
+    needsOnboarding,
+    error,
+  } = await getAuthenticatedPatient();
   if (error) return error;
-  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding)
+    return NextResponse.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = authPatient!.id;
 
   const patient = await prisma.patient.findUnique({
@@ -22,6 +30,10 @@ export async function GET(_request: NextRequest) {
       gpDetails: true,
       onboardingComplete: true,
       checkInsOptOut: true,
+      subscriptionPlan: true,
+      subscriptionStatus: true,
+      subscriptionPeriodEnd: true,
+      stripeCustomerId: true,
     },
   });
 
@@ -33,9 +45,17 @@ export async function GET(_request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { patient: authPatient2, needsOnboarding: needsOnboarding2, error: authError2 } = await getAuthenticatedPatient();
+  const {
+    patient: authPatient2,
+    needsOnboarding: needsOnboarding2,
+    error: authError2,
+  } = await getAuthenticatedPatient();
   if (authError2) return authError2;
-  if (needsOnboarding2) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding2)
+    return NextResponse.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = authPatient2!.id;
 
   let body: unknown;
@@ -65,13 +85,13 @@ export async function PATCH(request: NextRequest) {
   if (medications !== undefined && !Array.isArray(medications)) {
     return NextResponse.json(
       { error: "medications must be an array of strings" },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (allergies !== undefined && !Array.isArray(allergies)) {
     return NextResponse.json(
       { error: "allergies must be an array of strings" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -79,13 +99,19 @@ export async function PATCH(request: NextRequest) {
     where: { id: patientId },
     data: {
       ...(knownConditions !== undefined && { knownConditions }),
-      ...(medications !== undefined && { medications }),
-      ...(allergies !== undefined && { allergies }),
+      ...(medications !== undefined && {
+        medications: JSON.stringify(medications),
+      }),
+      ...(allergies !== undefined && { allergies: JSON.stringify(allergies) }),
       ...(emergencyContact !== undefined && {
-        emergencyContact: emergencyContact as Parameters<typeof prisma.patient.update>[0]["data"]["emergencyContact"],
+        emergencyContact: emergencyContact as Parameters<
+          typeof prisma.patient.update
+        >[0]["data"]["emergencyContact"],
       }),
       ...(gpDetails !== undefined && {
-        gpDetails: gpDetails as Parameters<typeof prisma.patient.update>[0]["data"]["gpDetails"],
+        gpDetails: gpDetails as Parameters<
+          typeof prisma.patient.update
+        >[0]["data"]["gpDetails"],
       }),
       ...(typeof checkInsOptOut === "boolean" && { checkInsOptOut }),
     },

@@ -14,6 +14,7 @@ import {
   buildPatientContext,
   resolveConsultationPatientInfo,
 } from "@/lib/consultation-intake";
+import { canStartConsultation } from "@/lib/subscription";
 
 interface APIError extends Error {
   status?: number;
@@ -23,9 +24,12 @@ interface APIError extends Error {
 // Build CareTeamStatus JSONB from agent messages
 function buildCareTeamStatuses(
   messages: AgentMessage[],
-  symptoms: string
+  symptoms: string,
 ): Record<string, { agentName: string; message: string; updatedAt: string }> {
-  const statuses: Record<string, { agentName: string; message: string; updatedAt: string }> = {};
+  const statuses: Record<
+    string,
+    { agentName: string; message: string; updatedAt: string }
+  > = {};
   const seen = new Set<string>();
 
   for (const msg of messages) {
@@ -44,11 +48,21 @@ function buildCareTeamStatuses(
 
 export async function POST(request: NextRequest) {
   try {
-    const payloadResult = ConsultationInputSchema.safeParse(await request.json());
+    const payloadResult = ConsultationInputSchema.safeParse(
+      await request.json(),
+    );
     if (!payloadResult.success) {
-      return NextResponse.json({ error: payloadResult.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
+      return NextResponse.json(
+        { error: payloadResult.error.issues[0]?.message ?? "Invalid request" },
+        { status: 400 },
+      );
     }
-    const { symptoms, stream = false, swarm = false, patientInfo } = payloadResult.data;
+    const {
+      symptoms,
+      stream = false,
+      swarm = false,
+      patientInfo,
+    } = payloadResult.data;
 
     // Emergency detection — MUST run before any LLM processing
     const emergency = detectEmergency(symptoms);
@@ -57,24 +71,55 @@ export async function POST(request: NextRequest) {
     }
 
     // Consent gate — must have valid consent before processing health data
-    const { patient: authPatient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+    const {
+      patient: authPatient,
+      needsOnboarding,
+      error: authError,
+    } = await getAuthenticatedPatient();
     if (authError) return authError;
-    if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+    if (needsOnboarding)
+      return NextResponse.json(
+        { error: "Onboarding required", redirect: "/onboarding" },
+        { status: 403 },
+      );
     const patientId = authPatient!.id;
     const hasConsent = await checkConsent(patientId);
     if (!hasConsent) {
       return NextResponse.json(
         { error: "Consent required", redirectTo: "/consent" },
-        { status: 403 }
+        { status: 403 },
+      );
+    }
+
+    // Subscription quota gate — Free tier is limited to 3 consultations/month
+    const quotaCheck = await canStartConsultation(patientId);
+    if (!quotaCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: quotaCheck.reason,
+          upgradeUrl: quotaCheck.upgradeUrl,
+          limitReached: true,
+        },
+        { status: 402 },
       );
     }
 
     // Canonical patient context for all consultation pathways.
     const patientProfile = await prisma.patient.findUnique({
       where: { id: patientId },
-      select: { name: true, knownConditions: true, medications: true, age: true, gender: true, allergies: true },
+      select: {
+        name: true,
+        knownConditions: true,
+        medications: true,
+        age: true,
+        gender: true,
+        allergies: true,
+      },
     });
-    const resolvedPatientInfo = resolveConsultationPatientInfo(patientProfile, patientInfo);
+    const resolvedPatientInfo = resolveConsultationPatientInfo(
+      patientProfile,
+      patientInfo,
+    );
     const patientContext = buildPatientContext(resolvedPatientInfo);
 
     // Swarm streaming path — proxies SwarmEvent SSE from streamSwarm() with auth + DB coverage.
@@ -86,15 +131,27 @@ export async function POST(request: NextRequest) {
         async start(controller) {
           let synthesis: SwarmSynthesis | null = null;
           try {
-            for await (const event of streamSwarm(symptoms, resolvedPatientInfo)) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+            for await (const event of streamSwarm(
+              symptoms,
+              resolvedPatientInfo,
+            )) {
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+              );
               if ((event as SwarmEvent).type === "synthesis_complete") {
-                synthesis = (event as Extract<SwarmEvent, { type: "synthesis_complete" }>).data ?? null;
+                synthesis =
+                  (event as Extract<SwarmEvent, { type: "synthesis_complete" }>)
+                    .data ?? null;
               }
             }
           } catch (err) {
-            const errorEvent: SwarmEvent = { type: "error", message: "Consultation failed. Please try again." };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
+            const errorEvent: SwarmEvent = {
+              type: "error",
+              message: "Consultation failed. Please try again.",
+            };
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`),
+            );
           } finally {
             controller.close();
           }
@@ -106,12 +163,19 @@ export async function POST(request: NextRequest) {
                 patientId,
                 symptoms,
                 urgencyLevel: synthesis?.urgency ?? null,
-                recommendation: synthesis !== null ? (synthesis as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+                recommendation:
+                  synthesis !== null
+                    ? (synthesis as unknown as Prisma.InputJsonValue)
+                    : Prisma.JsonNull,
               },
             });
             await inngest.send({
               name: "consultation/completed",
-              data: { patientId, consultationId: consultation.id, patientName: patientProfile?.name ?? "there" },
+              data: {
+                patientId,
+                consultationId: consultation.id,
+                patientName: patientProfile?.name ?? "there",
+              },
             });
           } catch (dbErr) {
             console.error("[consult/swarm] DB write failed:", dbErr);
@@ -135,9 +199,17 @@ export async function POST(request: NextRequest) {
         async start(controller) {
           try {
             const allMessages: AgentMessage[] = [];
-            let finalResult: { urgencyLevel?: string; recommendation?: unknown } = {};
+            let finalResult: {
+              urgencyLevel?: string;
+              recommendation?: unknown;
+            } = {};
 
-            for await (const event of streamConsultation(symptoms, undefined, undefined, patientContext)) {
+            for await (const event of streamConsultation(
+              symptoms,
+              undefined,
+              undefined,
+              patientContext,
+            )) {
               const data = JSON.stringify(event) + "\n";
               controller.enqueue(encoder.encode(`data: ${data}\n`));
 
@@ -173,9 +245,10 @@ export async function POST(request: NextRequest) {
                 patientId,
                 symptoms,
                 urgencyLevel: finalResult.urgencyLevel ?? null,
-                recommendation: finalResult.recommendation !== undefined
-                  ? (finalResult.recommendation as Prisma.InputJsonValue)
-                  : Prisma.JsonNull,
+                recommendation:
+                  finalResult.recommendation !== undefined
+                    ? (finalResult.recommendation as Prisma.InputJsonValue)
+                    : Prisma.JsonNull,
               },
             });
 
@@ -194,16 +267,22 @@ export async function POST(request: NextRequest) {
 
             // Send error event to client
             let errorMessage = "Something went wrong. Please try again.";
-            if (err.status === 429 || err.message?.includes("429") || err.message?.includes("quota")) {
-              errorMessage = "Our AI doctors are very busy right now. Please wait 30 seconds and try again.";
+            if (
+              err.status === 429 ||
+              err.message?.includes("429") ||
+              err.message?.includes("quota")
+            ) {
+              errorMessage =
+                "Our AI doctors are very busy right now. Please wait 30 seconds and try again.";
             } else if (err.message?.includes("API key")) {
-              errorMessage = "Service configuration error. Please contact support.";
+              errorMessage =
+                "Service configuration error. Please contact support.";
             }
 
             const errorEvent = JSON.stringify({
               error: true,
               message: errorMessage,
-              retryAfter: err.status === 429 ? 30 : undefined
+              retryAfter: err.status === 429 ? 30 : undefined,
             });
             controller.enqueue(encoder.encode(`data: ${errorEvent}\n\n`));
             controller.close();
@@ -220,7 +299,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const result = await runConsultation(symptoms, undefined, undefined, patientContext);
+    const result = await runConsultation(
+      symptoms,
+      undefined,
+      undefined,
+      patientContext,
+    );
 
     // Write CareTeamStatus after non-streaming consultation completes
     // NOTE: CareTeamStatus table requires REPLICA IDENTITY FULL for Supabase Realtime
@@ -239,9 +323,10 @@ export async function POST(request: NextRequest) {
         patientId,
         symptoms,
         urgencyLevel: result.urgencyLevel ?? null,
-        recommendation: result.recommendation !== undefined
-          ? (result.recommendation as unknown as Prisma.InputJsonValue)
-          : Prisma.JsonNull,
+        recommendation:
+          result.recommendation !== undefined
+            ? (result.recommendation as unknown as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
       },
     });
 
@@ -264,17 +349,19 @@ export async function POST(request: NextRequest) {
     let errorMessage = "Something went wrong. Please try again.";
     let statusCode = 500;
 
-    if (err.status === 429 || err.message?.includes("429") || err.message?.includes("quota")) {
-      errorMessage = "Our AI doctors are very busy right now. Please wait 30 seconds and try again.";
+    if (
+      err.status === 429 ||
+      err.message?.includes("429") ||
+      err.message?.includes("quota")
+    ) {
+      errorMessage =
+        "Our AI doctors are very busy right now. Please wait 30 seconds and try again.";
       statusCode = 429;
     } else if (err.message?.includes("API key")) {
       errorMessage = "Service configuration error. Please contact support.";
       statusCode = 503;
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: statusCode }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }

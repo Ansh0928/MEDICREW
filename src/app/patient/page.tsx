@@ -8,7 +8,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, FileText, User, AlertCircle, LogOut, Users, HeartPulse, BookOpen } from "lucide-react";
+import {
+  ArrowLeft,
+  Bell,
+  FileText,
+  User,
+  AlertCircle,
+  LogOut,
+  Users,
+  HeartPulse,
+  BookOpen,
+} from "lucide-react";
 import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
 import { CarePlanDetail } from "@/components/dashboard/CarePlanDetail";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
@@ -32,6 +42,9 @@ interface Patient {
   consultations: Consultation[];
   notifications: Notification[];
   careTeamStatus?: { statuses: Record<string, AgentStatus> } | null;
+  subscriptionPlan?: string;
+  subscriptionStatus?: string;
+  stripeCustomerId?: string | null;
 }
 
 interface Consultation {
@@ -59,17 +72,27 @@ export default function PatientPortal() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"care-team" | "care-plan" | "history" | "journal" | "notifications">("care-team");
-  const [checkIns, setCheckIns] = useState<Array<{ id: string; notificationId: string | null; status: string }>>([]);
+  const [activeTab, setActiveTab] = useState<
+    "care-team" | "care-plan" | "history" | "journal" | "notifications"
+  >("care-team");
+  const [checkIns, setCheckIns] = useState<
+    Array<{ id: string; notificationId: string | null; status: string }>
+  >([]);
 
   useEffect(() => {
+    // Local development bypass
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      loadDashboard();
+      return;
+    }
+
     if (!isLoaded) return;
     if (!user) {
       router.push("/login/patient");
       return;
     }
     loadDashboard();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user]);
 
   const loadDashboard = async () => {
@@ -106,20 +129,27 @@ export default function PatientPortal() {
         fetch("/api/checkin"),
       ]);
 
-      const consultationsData = consultationsRes.ok ? await consultationsRes.json() : { consultations: [] };
+      const consultationsData = consultationsRes.ok
+        ? await consultationsRes.json()
+        : { consultations: [] };
       const careTeamData = careTeamRes.ok ? await careTeamRes.json() : null;
-      const notifications = notificationsRes.ok ? await notificationsRes.json() : [];
+      const notifications = notificationsRes.ok
+        ? await notificationsRes.json()
+        : [];
       const checkInsData = checkInsRes.ok ? await checkInsRes.json() : [];
 
       setPatient({
         id: profile.id,
         name: profile.name,
-        email: user?.emailAddresses[0]?.emailAddress ?? "",
+        email: user?.emailAddresses[0]?.emailAddress ?? "patient@demo.com",
         gender: profile.gender ?? null,
         knownConditions: profile.knownConditions ?? null,
         consultations: consultationsData.consultations ?? [],
         notifications: Array.isArray(notifications) ? notifications : [],
         careTeamStatus: careTeamData,
+        subscriptionPlan: profile.subscriptionPlan ?? "free",
+        subscriptionStatus: profile.subscriptionStatus ?? "active",
+        stripeCustomerId: profile.stripeCustomerId ?? null,
       });
       setCheckIns(Array.isArray(checkInsData) ? checkInsData : []);
       trackEvent(ANALYTICS_EVENTS.returnVisit, { surface: "patient_portal" });
@@ -172,12 +202,19 @@ export default function PatientPortal() {
             {/* Tab row skeleton */}
             <div className="flex flex-wrap gap-2">
               {[120, 100, 110, 130].map((w, i) => (
-                <div key={i} className="h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ width: w }} />
+                <div
+                  key={i}
+                  className="h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                  style={{ width: w }}
+                />
               ))}
             </div>
             {/* Card skeletons */}
             {[1, 2].map((i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-3">
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-3"
+              >
                 <div className="h-5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
@@ -221,8 +258,34 @@ export default function PatientPortal() {
                 Welcome, {patient.name}
               </span>
             )}
+            {patient?.subscriptionPlan === "pro" && (
+              <Badge className="bg-sky-600 text-white text-xs">Pro</Badge>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            {patient?.stripeCustomerId && (
+              <button
+                onClick={async () => {
+                  const res = await fetch("/api/billing/portal", {
+                    method: "POST",
+                  });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                }}
+                className="text-sm text-slate-500 hover:text-slate-700 underline"
+              >
+                Manage billing
+              </button>
+            )}
+            {!patient?.stripeCustomerId &&
+              patient?.subscriptionPlan === "free" && (
+                <a
+                  href="/pricing"
+                  className="text-sm text-sky-600 hover:underline font-medium"
+                >
+                  Upgrade to Pro
+                </a>
+              )}
             <Link href="/patient/profile">
               <Button variant="outline" size="sm">
                 <User className="w-4 h-4 mr-2" />
@@ -337,15 +400,19 @@ export default function PatientPortal() {
                 exit={{ opacity: 0, y: -20 }}
               >
                 <Card className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Consultation History</h2>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Consultation History
+                  </h2>
                   <ConsultationHistoryList
-                    consultations={patient?.consultations.map((c) => ({
-                      id: c.id,
-                      symptoms: c.symptoms,
-                      urgencyLevel: c.urgencyLevel,
-                      recommendation: c.recommendation,
-                      createdAt: c.createdAt,
-                    })) ?? []}
+                    consultations={
+                      patient?.consultations.map((c) => ({
+                        id: c.id,
+                        symptoms: c.symptoms,
+                        urgencyLevel: c.urgencyLevel,
+                        recommendation: c.recommendation,
+                        createdAt: c.createdAt,
+                      })) ?? []
+                    }
                   />
                 </Card>
               </motion.div>

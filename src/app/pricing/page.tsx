@@ -3,10 +3,12 @@ import Link from "next/link";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { Check } from "lucide-react";
+import { UpgradeButton } from "@/components/billing/UpgradeButton";
 
 export const metadata: Metadata = {
   title: "Pricing | MediCrew",
-  description: "MediCrew pricing — free for patients, Pro for power users, Partner for clinics.",
+  description:
+    "MediCrew pricing — free for patients, Pro for power users, Partner for clinics.",
 };
 
 const tiers = [
@@ -31,7 +33,7 @@ const tiers = [
     price: "$29",
     period: "/ month",
     tagline: "For patients with ongoing care needs",
-    cta: { label: "Join Pro waitlist", href: "/consult" },
+    cta: { label: "Upgrade to Pro — $29/mo", href: "/api/billing/checkout" },
     ctaVariant: "primary" as const,
     features: [
       "Unlimited AI consultations",
@@ -74,7 +76,7 @@ const faqs = [
   },
   {
     q: "When is Pro available?",
-    a: "We're in beta. Pro tiers are coming in Q3 2026. Join the waitlist by signing up for free.",
+    a: "Pro is available now at $29/month. Subscribe from your patient portal or this pricing page.",
   },
   {
     q: "Can a clinic trial the platform?",
@@ -89,12 +91,15 @@ export default function PricingPage() {
       <main className="min-h-screen bg-white">
         {/* Hero */}
         <section className="mx-auto max-w-3xl px-6 pt-32 pb-12 text-center">
-          <p className="font-mono text-xs tracking-widest uppercase text-slate-500 mb-4">Pricing</p>
+          <p className="font-mono text-xs tracking-widest uppercase text-slate-500 mb-4">
+            Pricing
+          </p>
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
             Care navigation that scales with you
           </h1>
           <p className="mt-4 text-lg text-slate-600">
-            Free to start. Pro when you need more. Partner when your clinic is ready.
+            Free to start. Pro when you need more. Partner when your clinic is
+            ready.
           </p>
         </section>
 
@@ -120,51 +125,64 @@ export default function PricingPage() {
                     {tier.name}
                   </h2>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-slate-900">{tier.price}</span>
+                    <span className="text-4xl font-bold text-slate-900">
+                      {tier.price}
+                    </span>
                     {tier.period && (
-                      <span className="text-slate-500 text-sm">{tier.period}</span>
+                      <span className="text-slate-500 text-sm">
+                        {tier.period}
+                      </span>
                     )}
                   </div>
-                  <p className="mt-1.5 text-sm text-slate-500">{tier.tagline}</p>
+                  <p className="mt-1.5 text-sm text-slate-500">
+                    {tier.tagline}
+                  </p>
                 </div>
 
                 <ul className="space-y-3 mb-8 flex-1">
                   {tier.features.map((f) => (
                     <li key={f} className="flex items-start gap-2.5">
-                      <Check className={`w-4 h-4 mt-0.5 flex-shrink-0 ${tier.highlight ? "text-sky-600" : "text-green-600"}`} />
+                      <Check
+                        className={`w-4 h-4 mt-0.5 flex-shrink-0 ${tier.highlight ? "text-sky-600" : "text-green-600"}`}
+                      />
                       <span className="text-sm text-slate-700">{f}</span>
                     </li>
                   ))}
                 </ul>
 
-                <Link
-                  href={tier.cta.href}
-                  className={`w-full text-center rounded-full py-2.5 text-sm font-medium transition-colors ${
-                    tier.ctaVariant === "primary"
-                      ? "bg-sky-600 text-white hover:bg-sky-700"
-                      : "border border-slate-300 text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  {tier.cta.label}
-                </Link>
+                {tier.ctaVariant === "primary" ? (
+                  <UpgradeButton className="w-full text-center rounded-full py-2.5 text-sm font-medium transition-colors bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-60" />
+                ) : (
+                  <Link
+                    href={tier.cta.href}
+                    className="w-full text-center rounded-full py-2.5 text-sm font-medium transition-colors border border-slate-300 text-slate-700 hover:bg-slate-50"
+                  >
+                    {tier.cta.label}
+                  </Link>
+                )}
               </div>
             ))}
           </div>
 
           <p className="mt-8 text-center text-xs text-slate-400">
-            All tiers include emergency-first escalation, AHPRA-compliant AI agent naming, and AU data residency.
+            All tiers include emergency-first escalation, AHPRA-compliant AI
+            agent naming, and AU data residency.
           </p>
         </section>
 
         {/* FAQ */}
         <section className="bg-slate-50 py-16 px-6">
           <div className="mx-auto max-w-2xl">
-            <h2 className="text-2xl font-semibold text-slate-900 mb-8">Common questions</h2>
+            <h2 className="text-2xl font-semibold text-slate-900 mb-8">
+              Common questions
+            </h2>
             <div className="space-y-6">
               {faqs.map((faq) => (
                 <div key={faq.q}>
                   <p className="font-medium text-slate-900 mb-1">{faq.q}</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">{faq.a}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {faq.a}
+                  </p>
                 </div>
               ))}
             </div>
