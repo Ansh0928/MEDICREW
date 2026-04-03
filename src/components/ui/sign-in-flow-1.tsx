@@ -557,9 +557,9 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
 
       const { token } = (await tokenRes.json()) as { token: string };
 
-      // Clerk v7: use ticket() then finalize() to create an active session
-      const { error: ticketError } = await signIn.ticket({ ticket: token });
-      if (ticketError) throw ticketError;
+      // Clerk v7: create sign-in with ticket field, then finalize to activate session
+      const { error: createError } = await signIn.create({ ticket: token });
+      if (createError) throw createError;
 
       if (signIn.status === "complete") {
         const { error: finalizeError } = await signIn.finalize();
