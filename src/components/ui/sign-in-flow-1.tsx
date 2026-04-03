@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { SignIn, useClerk } from "@clerk/nextjs";
+import { SignIn, useSignIn } from "@clerk/nextjs";
 
 type Uniforms = {
   [key: string]: {
@@ -273,7 +273,7 @@ const ShaderMaterial = ({
         case "uniform3fv":
           preparedUniforms[uniformName] = {
             value: uniform.value.map((v: number[]) =>
-              new THREE.Vector3().fromArray(v)
+              new THREE.Vector3().fromArray(v),
             ),
             type: "3fv",
           };
@@ -493,12 +493,16 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
 }
 
 function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
-  const clerk = useClerk();
+  const { signIn, fetchStatus } = useSignIn();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [availability, setAvailability] = useState<"checking" | "ready" | "disabled">("checking");
-  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(null);
+  const [availability, setAvailability] = useState<
+    "checking" | "ready" | "disabled"
+  >("checking");
+  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     let active = true;
@@ -516,7 +520,7 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
           setAvailabilityMessage(
             data.reason === "disabled_by_env"
               ? "Demo login is disabled in this environment."
-              : "Demo login is not configured in this environment."
+              : "Demo login is not configured in this environment.",
           );
         }
       } catch {
@@ -532,7 +536,7 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
   }, [role]);
 
   const handleDemoLogin = async () => {
-    if (!clerk.loaded) return;
+    if (fetchStatus === "fetching") return;
     setLoading(true);
     setError(null);
 
@@ -546,29 +550,37 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
 
       if (!tokenRes.ok) {
         const err = await tokenRes.json().catch(() => ({}));
-        throw new Error(err.error ?? "Failed to get demo token");
+        throw new Error(
+          (err as { error?: string }).error ?? "Failed to get demo token",
+        );
       }
 
-      const { token } = await tokenRes.json();
+      const { token } = (await tokenRes.json()) as { token: string };
 
-      const signInResult = await clerk.client.signIn.create({
-        strategy: "ticket",
-        ticket: token,
-      });
+      // Clerk v7: use ticket() then finalize() to create an active session
+      const { error: ticketError } = await signIn.ticket({ ticket: token });
+      if (ticketError) throw ticketError;
 
-      if (signInResult.status === "complete" && signInResult.createdSessionId) {
-        await clerk.setActive({ session: signInResult.createdSessionId });
+      if (signIn.status === "complete") {
+        const { error: finalizeError } = await signIn.finalize();
+        if (finalizeError) throw finalizeError;
         router.push(role === "doctor" ? "/doctor" : "/patient");
       } else {
-        console.error("Incomplete sign-in result", signInResult);
-        setError("Incomplete: sign-in requires further steps.");
+        console.error("Unexpected sign-in status", signIn.status);
+        setError("Sign-in requires additional steps. Please try again.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Demo login failed", err);
+      const clerkErr = err as {
+        errors?: { longMessage?: string; message?: string }[];
+        message?: string;
+        longMessage?: string;
+      };
       const message =
-        err?.errors?.[0]?.longMessage ||
-        err?.errors?.[0]?.message ||
-        err?.message ||
+        clerkErr?.longMessage ||
+        clerkErr?.errors?.[0]?.longMessage ||
+        clerkErr?.errors?.[0]?.message ||
+        clerkErr?.message ||
         "Demo login failed.";
       setError(message);
     } finally {
@@ -595,7 +607,7 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
       {availability === "ready" ? (
         <button
           onClick={handleDemoLogin}
-          disabled={loading || !clerk.loaded}
+          disabled={loading || fetchStatus === "fetching"}
           className={`w-full px-5 py-2.5 rounded-lg text-white text-sm font-medium shadow-md transition-all duration-200 focus:outline-none focus:ring-2 ${ringColor} focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed ${btnBg}`}
         >
           {loading ? (
@@ -654,7 +666,7 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
     <div
       className={cn(
         `flex w-[100%] flex-col min-h-screen relative ${pageBg}`,
-        className
+        className,
       )}
     >
       <div className="absolute inset-0 z-0">
@@ -676,11 +688,12 @@ export const SignInPage = ({ role, className }: SignInPageProps) => {
       <div className="relative z-10 flex flex-col flex-1">
         <MiniNavbar role={role} />
         <div className="flex flex-1 flex-col justify-center items-center mt-[150px] pb-16">
-          <SignIn forceRedirectUrl={role === "doctor" ? "/doctor" : "/patient"} />
+          <SignIn
+            forceRedirectUrl={role === "doctor" ? "/doctor" : "/patient"}
+          />
           <DemoLoginButton role={role} />
         </div>
       </div>
     </div>
   );
 };
-

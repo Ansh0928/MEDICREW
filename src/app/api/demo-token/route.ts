@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // Clerk user IDs for the shared demo accounts
 const DEMO_USER_IDS: Record<"patient" | "doctor", string> = {
   patient: "user_3BWy2YDbESIkylb67hOPsXLiZFe",
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
       role: validRole ? role : null,
       environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
     },
-    { status: 200 }
+    { status: 200 },
   );
 }
 
@@ -52,14 +54,17 @@ export async function POST(request: NextRequest) {
 
   const role = body.role;
   if (role !== "patient" && role !== "doctor") {
-    return NextResponse.json({ error: "role must be patient or doctor" }, { status: 400 });
+    return NextResponse.json(
+      { error: "role must be patient or doctor" },
+      { status: 400 },
+    );
   }
 
   const status = getDemoLoginStatus();
   if (!status.ready) {
     return NextResponse.json(
       { error: "Demo login unavailable", reason: status.reason },
-      { status: 503 }
+      { status: 503 },
     );
   }
   const secretKey = process.env.CLERK_SECRET_KEY!;
@@ -79,7 +84,10 @@ export async function POST(request: NextRequest) {
   if (!res.ok) {
     const err = await res.text();
     console.error("[demo-token] Clerk error:", err);
-    return NextResponse.json({ error: "Failed to generate demo token" }, { status: 502 });
+    return NextResponse.json(
+      { error: "Failed to generate demo token" },
+      { status: 502 },
+    );
   }
 
   const { token } = await res.json();

@@ -33,8 +33,16 @@ vi.mock("@react-three/fiber", () => {
 });
 
 vi.mock("three", () => {
-  function Vector2() { return {}; }
-  function Vector3() { return { fromArray() { return this; } }; }
+  function Vector2() {
+    return {};
+  }
+  function Vector3() {
+    return {
+      fromArray() {
+        return this;
+      },
+    };
+  }
   function ShaderMaterial() {
     return { uniforms: { u_time: { value: 0 }, u_resolution: { value: {} } } };
   }
@@ -52,16 +60,22 @@ vi.mock("three", () => {
 
 vi.mock("@clerk/nextjs", () => {
   const React = require("react");
+  const mockSignIn = {
+    status: "idle",
+    createdSessionId: null,
+    ticket: vi.fn().mockResolvedValue({ error: null }),
+    finalize: vi.fn().mockResolvedValue({ error: null }),
+  };
   return {
-    SignIn: () => React.createElement("div", { "data-testid": "clerk-sign-in" }, "Clerk SignIn"),
-    useClerk: () => ({
-      loaded: true,
-      client: {
-        signIn: {
-          create: vi.fn(),
-        },
-      },
-      setActive: vi.fn(),
+    SignIn: () =>
+      React.createElement(
+        "div",
+        { "data-testid": "clerk-sign-in" },
+        "Clerk SignIn",
+      ),
+    useSignIn: () => ({
+      signIn: mockSignIn,
+      fetchStatus: "idle",
     }),
   };
 });
