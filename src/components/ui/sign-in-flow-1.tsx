@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { SignIn, useSignIn } from "@clerk/nextjs";
+import { SignIn, useClerk } from "@clerk/nextjs";
 
 type Uniforms = {
   [key: string]: {
@@ -493,7 +493,7 @@ function MiniNavbar({ role }: { role: "patient" | "doctor" }) {
 }
 
 function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
-  const { signIn, fetchStatus } = useSignIn();
+  const clerk = useClerk();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -536,7 +536,8 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
   }, [role]);
 
   const handleDemoLogin = async () => {
-    if (fetchStatus === "fetching") return;
+    // clerk.client is the classic SignInResource — supports ticket strategy
+    if (!clerk.loaded || !clerk.client) return;
     setLoading(true);
     setError(null);
 
@@ -557,16 +558,18 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
 
       const { token } = (await tokenRes.json()) as { token: string };
 
-      // Clerk v7: create sign-in with ticket field, then finalize to activate session
-      const { error: createError } = await signIn.create({ ticket: token });
-      if (createError) throw createError;
+      // Classic Clerk SignInResource — fully supports strategy: 'ticket'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const signInResult = await (clerk.client.signIn as any).create({
+        strategy: "ticket",
+        ticket: token,
+      });
 
-      if (signIn.status === "complete") {
-        const { error: finalizeError } = await signIn.finalize();
-        if (finalizeError) throw finalizeError;
+      if (signInResult.status === "complete" && signInResult.createdSessionId) {
+        await clerk.setActive({ session: signInResult.createdSessionId });
         router.push(role === "doctor" ? "/doctor" : "/patient");
       } else {
-        console.error("Unexpected sign-in status", signIn.status);
+        console.error("Unexpected sign-in status", signInResult.status);
         setError("Sign-in requires additional steps. Please try again.");
       }
     } catch (err: unknown) {
@@ -607,7 +610,7 @@ function DemoLoginButton({ role }: { role: "patient" | "doctor" }) {
       {availability === "ready" ? (
         <button
           onClick={handleDemoLogin}
-          disabled={loading || fetchStatus === "fetching"}
+          disabled={loading || !clerk.loaded}
           className={`w-full px-5 py-2.5 rounded-lg text-white text-sm font-medium shadow-md transition-all duration-200 focus:outline-none focus:ring-2 ${ringColor} focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed ${btnBg}`}
         >
           {loading ? (

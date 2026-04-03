@@ -60,12 +60,6 @@ vi.mock("three", () => {
 
 vi.mock("@clerk/nextjs", () => {
   const React = require("react");
-  const mockSignIn = {
-    status: "idle",
-    createdSessionId: null,
-    ticket: vi.fn().mockResolvedValue({ error: null }),
-    finalize: vi.fn().mockResolvedValue({ error: null }),
-  };
   return {
     SignIn: () =>
       React.createElement(
@@ -73,9 +67,19 @@ vi.mock("@clerk/nextjs", () => {
         { "data-testid": "clerk-sign-in" },
         "Clerk SignIn",
       ),
-    useSignIn: () => ({
-      signIn: mockSignIn,
-      fetchStatus: "idle",
+    useClerk: () => ({
+      loaded: true,
+      client: {
+        signIn: {
+          create: vi
+            .fn()
+            .mockResolvedValue({
+              status: "complete",
+              createdSessionId: "sess_123",
+            }),
+        },
+      },
+      setActive: vi.fn(),
     }),
   };
 });
