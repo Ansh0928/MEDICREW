@@ -29,7 +29,8 @@ interface ProgressStepsProps {
 }
 
 export function ProgressSteps({ currentPhase }: ProgressStepsProps) {
-  const activeIndex = currentPhase != null ? PHASE_TO_STEP_INDEX[currentPhase] : -1;
+  const activeIndex =
+    currentPhase != null ? PHASE_TO_STEP_INDEX[currentPhase] : -1;
 
   return (
     <div className="flex items-center gap-0 px-4 py-3 bg-white border-b border-gray-100">
@@ -48,8 +49,8 @@ export function ProgressSteps({ currentPhase }: ProgressStepsProps) {
                   isComplete
                     ? "bg-blue-600 text-white"
                     : isActive
-                    ? "bg-blue-100 border-2 border-blue-600 text-blue-700"
-                    : "bg-gray-100 text-gray-400"
+                      ? "bg-blue-100 border-2 border-blue-600 text-blue-700"
+                      : "bg-gray-100 text-gray-400"
                 }`}
               >
                 {isComplete ? "✓" : i + 1}
@@ -60,8 +61,8 @@ export function ProgressSteps({ currentPhase }: ProgressStepsProps) {
                   isActive
                     ? "text-blue-700"
                     : isComplete
-                    ? "text-blue-600"
-                    : "text-gray-400"
+                      ? "text-blue-600"
+                      : "text-gray-400"
                 }`}
               >
                 {step.label}

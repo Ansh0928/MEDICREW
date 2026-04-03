@@ -12,7 +12,10 @@ interface CareRecommendation {
   disclaimer: string;
 }
 
-const urgencyVariants: Record<string, "destructive" | "default" | "secondary" | "outline"> = {
+const urgencyVariants: Record<
+  string,
+  "destructive" | "default" | "secondary" | "outline"
+> = {
   emergency: "destructive",
   urgent: "default",
   routine: "secondary",
@@ -26,18 +29,21 @@ const urgencyLabels: Record<string, string> = {
   self_care: "Self Care",
 };
 
-export function CareSummary({ recommendation }: { recommendation: CareRecommendation }) {
+export function CareSummary({
+  recommendation,
+}: {
+  recommendation: CareRecommendation;
+}) {
   const urgencyVariant = urgencyVariants[recommendation.urgency] ?? "secondary";
-  const urgencyLabel = urgencyLabels[recommendation.urgency] ?? recommendation.urgency;
+  const urgencyLabel =
+    urgencyLabels[recommendation.urgency] ?? recommendation.urgency;
 
   return (
     <Card className="mt-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Care Summary
-          <Badge variant={urgencyVariant}>
-            {urgencyLabel}
-          </Badge>
+          <Badge variant={urgencyVariant}>{urgencyLabel}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -56,7 +62,9 @@ export function CareSummary({ recommendation }: { recommendation: CareRecommenda
 
         {recommendation.questionsForDoctor.length > 0 && (
           <div>
-            <h4 className="font-medium text-sm mb-1">Questions for Your Doctor</h4>
+            <h4 className="font-medium text-sm mb-1">
+              Questions for Your Doctor
+            </h4>
             <ul className="list-disc list-inside space-y-1 text-sm">
               {recommendation.questionsForDoctor.map((q, i) => (
                 <li key={i}>{q}</li>

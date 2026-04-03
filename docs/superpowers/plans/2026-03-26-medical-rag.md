@@ -16,21 +16,22 @@
 
 ## File Map
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/lib/rag/embed.ts` | Create | Nomic API call → 768-dim vector |
-| `src/lib/rag/retrieve.ts` | Create | pgvector similarity search → chunks per specialty |
-| `src/agents/swarm.ts` | Modify (line ~408) | Inject RAG context before lead swarm fan-out |
-| `src/__tests__/lib/rag/embed.test.ts` | Create | Unit tests for embed.ts |
-| `src/__tests__/lib/rag/retrieve.test.ts` | Create | Unit tests for retrieve.ts |
-| `scripts/embed-corpus.ts` | Create | One-time corpus build script |
-| `prisma/migrations/YYYYMMDD_medical_chunks/migration.sql` | Create | Add medical_chunks table |
+| File                                                      | Action             | Purpose                                           |
+| --------------------------------------------------------- | ------------------ | ------------------------------------------------- |
+| `src/lib/rag/embed.ts`                                    | Create             | Nomic API call → 768-dim vector                   |
+| `src/lib/rag/retrieve.ts`                                 | Create             | pgvector similarity search → chunks per specialty |
+| `src/agents/swarm.ts`                                     | Modify (line ~408) | Inject RAG context before lead swarm fan-out      |
+| `src/__tests__/lib/rag/embed.test.ts`                     | Create             | Unit tests for embed.ts                           |
+| `src/__tests__/lib/rag/retrieve.test.ts`                  | Create             | Unit tests for retrieve.ts                        |
+| `scripts/embed-corpus.ts`                                 | Create             | One-time corpus build script                      |
+| `prisma/migrations/YYYYMMDD_medical_chunks/migration.sql` | Create             | Add medical_chunks table                          |
 
 ---
 
 ## Task 1: Database Migration
 
 **Files:**
+
 - Create: `prisma/migrations/20260326000000_medical_chunks/migration.sql`
 
 - [ ] **Step 1: Create the migration SQL file**
@@ -82,6 +83,7 @@ git commit -m "feat(rag): add medical_chunks pgvector migration"
 ## Task 2: Embed Helper
 
 **Files:**
+
 - Create: `src/lib/rag/embed.ts`
 - Create: `src/__tests__/lib/rag/embed.test.ts`
 
@@ -117,7 +119,9 @@ describe("embedText", () => {
       statusText: "Unauthorized",
     } as Response);
 
-    await expect(embedText("chest pain")).rejects.toThrow("Nomic embed failed: 401");
+    await expect(embedText("chest pain")).rejects.toThrow(
+      "Nomic embed failed: 401",
+    );
   });
 
   test("calls Nomic API with correct model and auth header", async () => {
@@ -137,7 +141,7 @@ describe("embedText", () => {
           Authorization: "Bearer test-key",
         }),
         body: expect.stringContaining("nomic-embed-text-v1.5"),
-      })
+      }),
     );
   });
 });
@@ -195,6 +199,7 @@ git commit -m "feat(rag): add Nomic embed helper with res.ok guard"
 ## Task 3: Retrieve Helper
 
 **Files:**
+
 - Create: `src/lib/rag/retrieve.ts`
 - Create: `src/__tests__/lib/rag/retrieve.test.ts`
 
@@ -205,6 +210,7 @@ cat /Users/tasmanstar/Desktop/projects/medicrew/package.json | grep neondatabase
 ```
 
 If not listed, install it:
+
 ```bash
 bun add @neondatabase/serverless
 ```
@@ -224,10 +230,12 @@ vi.mock("@/lib/rag/embed", () => ({
 // Mock @neondatabase/serverless
 vi.mock("@neondatabase/serverless", () => ({
   neon: vi.fn(() =>
-    vi.fn().mockResolvedValue([
-      { content: "cardiac assessment chunk" },
-      { content: "heart failure context" },
-    ])
+    vi
+      .fn()
+      .mockResolvedValue([
+        { content: "cardiac assessment chunk" },
+        { content: "heart failure context" },
+      ]),
   ),
 }));
 
@@ -249,7 +257,10 @@ describe("retrieveMedicalContext", () => {
   });
 
   test("queries each specialty in parallel", async () => {
-    const result = await retrieveMedicalContext("fever and rash", ["gp", "dermatology"]);
+    const result = await retrieveMedicalContext("fever and rash", [
+      "gp",
+      "dermatology",
+    ]);
     expect(Object.keys(result)).toContain("gp");
     expect(Object.keys(result)).toContain("dermatology");
   });
@@ -277,7 +288,7 @@ const AU_DISCLAIMER =
 
 export async function retrieveMedicalContext(
   symptoms: string,
-  specialties: DoctorRole[]
+  specialties: DoctorRole[],
 ): Promise<Partial<Record<DoctorRole, string[]>>> {
   let vector: number[];
   try {
@@ -299,7 +310,7 @@ export async function retrieveMedicalContext(
       `;
       const chunks = rows.map((r) => AU_DISCLAIMER + (r.content as string));
       return [role, chunks] as [DoctorRole, string[]];
-    })
+    }),
   );
 
   return Object.fromEntries(results);
@@ -334,6 +345,7 @@ git commit -m "feat(rag): add pgvector retrieve helper with AU disclaimer and fa
 ## Task 4: Wire RAG into swarm.ts
 
 **Files:**
+
 - Modify: `src/agents/swarm.ts`
 
 The injection point is in `streamSwarm` at approximately line 408, between the triage flush and the `Promise.all(runLeadSwarm)` call. RAG context is passed into `runLeadSwarm`, then into `buildResidentPrompt`.
@@ -348,13 +360,14 @@ export function buildResidentPrompt(
   specialtyRole: DoctorRole,
   symptoms: string,
   patientInfo: SwarmState["patientInfo"],
-  ragChunks: string[] = []   // <-- add this parameter
+  ragChunks: string[] = [], // <-- add this parameter
 ): string {
   const base = residentDefinitions[residentRole].systemPrompt;
   const context = `\n\n## Specialty Context\nYou are embedded in the ${specialtyRole} specialty team.\nPatient: ${patientInfo.age}y ${patientInfo.gender}${patientInfo.knownConditions ? `, conditions: ${patientInfo.knownConditions}` : ""}\nSymptoms: ${symptoms}`;
-  const ragSection = ragChunks.length > 0
-    ? `\n\n## Relevant Medical Reference\n${ragChunks.join("\n\n---\n\n")}`
-    : "";
+  const ragSection =
+    ragChunks.length > 0
+      ? `\n\n## Relevant Medical Reference\n${ragChunks.join("\n\n---\n\n")}`
+      : "";
   return base + context + ragSection;
 }
 ```
@@ -404,6 +417,7 @@ async function runLeadSwarm(
 - [ ] **Step 4: Add RAG retrieval in `streamSwarm`**
 
 Add import at top of file:
+
 ```typescript
 import { retrieveMedicalContext } from "@/lib/rag/retrieve";
 ```
@@ -411,26 +425,26 @@ import { retrieveMedicalContext } from "@/lib/rag/retrieve";
 Find the `streamSwarm` function body (around line 403) and add the RAG call between triage and the lead swarm fan-out:
 
 ```typescript
-  // L1
-  await runTriage(state, emit);
-  yield* flush();
-  if (state.currentPhase === "complete") return;
+// L1
+await runTriage(state, emit);
+yield * flush();
+if (state.currentPhase === "complete") return;
 
-  // L2-L5: RAG retrieval before fan-out
-  const relevantDoctors = state.triage!.relevantDoctors;
-  let ragContext: Partial<Record<DoctorRole, string[]>> = {};
-  try {
-    ragContext = await retrieveMedicalContext(state.symptoms, relevantDoctors);
-  } catch (err) {
-    console.error("[RAG] retrieval failed, proceeding without context:", err);
-  }
+// L2-L5: RAG retrieval before fan-out
+const relevantDoctors = state.triage!.relevantDoctors;
+let ragContext: Partial<Record<DoctorRole, string[]>> = {};
+try {
+  ragContext = await retrieveMedicalContext(state.symptoms, relevantDoctors);
+} catch (err) {
+  console.error("[RAG] retrieval failed, proceeding without context:", err);
+}
 
-  await Promise.all(
-    relevantDoctors.map((role) =>
-      runLeadSwarm(role, state, emit, ragContext[role] ?? [])  // <-- pass chunks
-    )
-  );
-  yield* flush();
+await Promise.all(
+  relevantDoctors.map(
+    (role) => runLeadSwarm(role, state, emit, ragContext[role] ?? []), // <-- pass chunks
+  ),
+);
+yield * flush();
 ```
 
 - [ ] **Step 5: Run full test suite**
@@ -461,6 +475,7 @@ git commit -m "feat(rag): wire RAG context into swarm resident prompts"
 ## Task 5: Corpus Build Script
 
 **Files:**
+
 - Create: `scripts/embed-corpus.ts`
 
 This script runs **once locally** against production Neon. It is NOT deployed to Vercel.
@@ -489,16 +504,75 @@ const AU_NOTE =
 // ── Keyword → specialty mapping ──────────────────────────────────────────────
 
 const SPECIALTY_KEYWORDS: Record<string, string[]> = {
-  cardiology: ["cardiac", "heart", "chest pain", "arrhythmia", "hypertension", "ecg", "coronary", "myocardial"],
-  mental_health: ["depression", "anxiety", "psychiatric", "mood", "ptsd", "bipolar", "schizophrenia", "self-harm"],
-  dermatology: ["skin", "rash", "lesion", "eczema", "psoriasis", "melanoma", "dermatitis", "acne"],
-  orthopedic: ["bone", "joint", "fracture", "spine", "musculoskeletal", "knee", "hip", "osteoporosis"],
-  gastro: ["abdominal", "bowel", "liver", "gastric", "colon", "nausea", "diarrhea", "ibs", "crohn"],
-  physiotherapy: ["movement", "rehabilitation", "physiotherapy", "exercise", "mobility", "muscle", "tendon"],
+  cardiology: [
+    "cardiac",
+    "heart",
+    "chest pain",
+    "arrhythmia",
+    "hypertension",
+    "ecg",
+    "coronary",
+    "myocardial",
+  ],
+  mental_health: [
+    "depression",
+    "anxiety",
+    "psychiatric",
+    "mood",
+    "ptsd",
+    "bipolar",
+    "schizophrenia",
+    "self-harm",
+  ],
+  dermatology: [
+    "skin",
+    "rash",
+    "lesion",
+    "eczema",
+    "psoriasis",
+    "melanoma",
+    "dermatitis",
+    "acne",
+  ],
+  orthopedic: [
+    "bone",
+    "joint",
+    "fracture",
+    "spine",
+    "musculoskeletal",
+    "knee",
+    "hip",
+    "osteoporosis",
+  ],
+  gastro: [
+    "abdominal",
+    "bowel",
+    "liver",
+    "gastric",
+    "colon",
+    "nausea",
+    "diarrhea",
+    "ibs",
+    "crohn",
+  ],
+  physiotherapy: [
+    "movement",
+    "rehabilitation",
+    "physiotherapy",
+    "exercise",
+    "mobility",
+    "muscle",
+    "tendon",
+  ],
 };
 
 // Words that should never be in injected content — reclassified as 'general'
-const SAFETY_EXCLUSIONS = ["suicid", "kill myself", "end my life", "self-harm method"];
+const SAFETY_EXCLUSIONS = [
+  "suicid",
+  "kill myself",
+  "end my life",
+  "self-harm method",
+];
 
 function tagSpecialty(text: string): string {
   const lower = text.toLowerCase();
@@ -530,7 +604,12 @@ async function embedBatch(texts: string[]): Promise<number[][]> {
 // Duplicate rows are skipped rather than inserted.
 
 async function insertBatch(
-  chunks: Array<{ content: string; specialty: string; source: string; embedding: number[] }>
+  chunks: Array<{
+    content: string;
+    specialty: string;
+    source: string;
+    embedding: number[];
+  }>,
 ): Promise<void> {
   for (const chunk of chunks) {
     await sql`
@@ -548,7 +627,9 @@ async function insertBatch(
 
 // ── Dataset: MedQA-USMLE ─────────────────────────────────────────────────────
 
-async function loadMedQA(): Promise<Array<{ content: string; source: string }>> {
+async function loadMedQA(): Promise<
+  Array<{ content: string; source: string }>
+> {
   console.log("Downloading MedQA-USMLE from HuggingFace...");
   const url =
     "https://huggingface.co/datasets/GBaker/MedQA-USMLE-4-options/resolve/main/data/train.jsonl";
@@ -558,14 +639,16 @@ async function loadMedQA(): Promise<Array<{ content: string; source: string }>> 
   const lines = text.trim().split("\n").slice(0, 5000); // cap at 5k for first run
   return lines.map((line) => {
     const item = JSON.parse(line);
-    const content = `Q: ${item.question}\nA: ${item.answer_idx ? item.options?.[item.answer_idx] ?? "" : ""}`;
+    const content = `Q: ${item.question}\nA: ${item.answer_idx ? (item.options?.[item.answer_idx] ?? "") : ""}`;
     return { content, source: "medqa" };
   });
 }
 
 // ── Dataset: PubMedQA ────────────────────────────────────────────────────────
 
-async function loadPubMedQA(): Promise<Array<{ content: string; source: string }>> {
+async function loadPubMedQA(): Promise<
+  Array<{ content: string; source: string }>
+> {
   console.log("Downloading PubMedQA from HuggingFace...");
   const url =
     "https://huggingface.co/datasets/qiaojin/PubMedQA/resolve/main/data/pqa_labeled/train.jsonl";
@@ -587,10 +670,7 @@ async function main() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL not set");
   if (!NOMIC_API_KEY) throw new Error("NOMIC_API_KEY not set");
 
-  const datasets = [
-    ...(await loadMedQA()),
-    ...(await loadPubMedQA()),
-  ];
+  const datasets = [...(await loadMedQA()), ...(await loadPubMedQA())];
 
   console.log(`Total chunks to embed: ${datasets.length}`);
 
@@ -614,7 +694,7 @@ async function main() {
 
   console.log("All chunks inserted. Now create the index:");
   console.log(
-    "  bunx prisma db execute --stdin <<< \"CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);\""
+    '  bunx prisma db execute --stdin <<< "CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);"',
   );
 }
 
@@ -681,6 +761,7 @@ bun run dev
 ```
 
 Navigate to http://localhost:3000/consult, submit "I have chest pain and shortness of breath", verify:
+
 - Triage fires
 - Orbs animate (lead swarms activating)
 - Synthesis card renders with recommendation
@@ -689,6 +770,7 @@ Navigate to http://localhost:3000/consult, submit "I have chest pain and shortne
 - [ ] **Step 4: Verify RAG is injecting (dev mode)**
 
 Add a temporary `console.log` in `retrieve.ts`:
+
 ```typescript
 console.log(`[RAG] ${role}: ${chunks.length} chunks retrieved`);
 ```
@@ -705,13 +787,14 @@ import { buildResidentPrompt } from "@/agents/swarm";
 
 describe("RAG integration: AU disclaimer in resident prompts", () => {
   test("AU_DISCLAIMER prefix appears in prompt when ragChunks provided", () => {
-    const chunk = "[Reference material — US clinical guidelines. Apply Australian clinical standards where they differ.]\n\ncardiac assessment content";
+    const chunk =
+      "[Reference material — US clinical guidelines. Apply Australian clinical standards where they differ.]\n\ncardiac assessment content";
     const prompt = buildResidentPrompt(
       "investigative",
       "cardiology",
       "chest pain",
       { age: 45, gender: "male" },
-      [chunk]
+      [chunk],
     );
     expect(prompt).toContain("Australian clinical standards");
     expect(prompt).toContain("Relevant Medical Reference");
@@ -724,7 +807,7 @@ describe("RAG integration: AU disclaimer in resident prompts", () => {
       "cardiology",
       "chest pain",
       { age: 45, gender: "male" },
-      []
+      [],
     );
     expect(prompt).not.toContain("Relevant Medical Reference");
   });

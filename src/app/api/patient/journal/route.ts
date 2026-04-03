@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   const { patient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding)
+    return NextResponse.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = patient!.id;
 
   let body: unknown;
@@ -26,23 +32,31 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json(
       { error: "severity must be an integer 1-5" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   // Server-side AEST today-guard: one entry per calendar day
-  const todayAEST = new Date().toLocaleDateString("en-AU", { timeZone: "Australia/Sydney" });
+  const todayAEST = new Date().toLocaleDateString("en-AU", {
+    timeZone: "Australia/Sydney",
+  });
   const latestEntry = await prisma.symptomJournal.findFirst({
     where: { patientId },
     orderBy: { createdAt: "desc" },
     select: { createdAt: true },
   });
   if (latestEntry) {
-    const latestAEST = new Date(latestEntry.createdAt).toLocaleDateString("en-AU", {
-      timeZone: "Australia/Sydney",
-    });
+    const latestAEST = new Date(latestEntry.createdAt).toLocaleDateString(
+      "en-AU",
+      {
+        timeZone: "Australia/Sydney",
+      },
+    );
     if (latestAEST === todayAEST) {
-      return NextResponse.json({ error: "Only one journal entry per day is allowed" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Only one journal entry per day is allowed" },
+        { status: 409 },
+      );
     }
   }
 
@@ -58,9 +72,17 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(_request: NextRequest) {
-  const { patient: authPatient, needsOnboarding: needsOnboarding2, error: authError } = await getAuthenticatedPatient();
+  const {
+    patient: authPatient,
+    needsOnboarding: needsOnboarding2,
+    error: authError,
+  } = await getAuthenticatedPatient();
   if (authError) return authError;
-  if (needsOnboarding2) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding2)
+    return NextResponse.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = authPatient!.id;
 
   const entries = await prisma.symptomJournal.findMany({

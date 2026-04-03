@@ -46,7 +46,7 @@ export function TeamPanel({ activeAgents, currentAgent }: TeamPanelProps) {
               className={cn(
                 "flex items-center gap-2 p-2 rounded-lg transition-colors",
                 isCurrent && "bg-primary/10",
-                isActive && !isCurrent && "bg-muted/50"
+                isActive && !isCurrent && "bg-muted/50",
               )}
             >
               <span className="text-xl">{agent.emoji}</span>
@@ -54,7 +54,7 @@ export function TeamPanel({ activeAgents, currentAgent }: TeamPanelProps) {
                 <p
                   className={cn(
                     "text-sm font-medium truncate",
-                    !isActive && "text-muted-foreground"
+                    !isActive && "text-muted-foreground",
                   )}
                 >
                   {agent.name}

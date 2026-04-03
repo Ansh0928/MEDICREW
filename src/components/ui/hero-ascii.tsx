@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import Link from 'next/link';
+import { useEffect } from "react";
+import Link from "next/link";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/client";
 import { LandingVariant } from "@/lib/marketing/landing-variants";
@@ -30,14 +30,18 @@ const heroCopyByVariant: Record<
   },
 };
 
-export default function HeroAscii({ variant = "specialist" }: { variant?: LandingVariant }) {
+export default function HeroAscii({
+  variant = "specialist",
+}: {
+  variant?: LandingVariant;
+}) {
   const copy = heroCopyByVariant[variant];
 
   useEffect(() => {
     trackEvent(ANALYTICS_EVENTS.landingViewed, { surface: "hero", variant });
 
-    const embedScript = document.createElement('script');
-    embedScript.type = 'text/javascript';
+    const embedScript = document.createElement("script");
+    embedScript.type = "text/javascript";
     embedScript.textContent = `
       !function(){
         if(!window.UnicornStudio){
@@ -53,7 +57,7 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
     `;
     document.head.appendChild(embedScript);
 
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       [data-us-project] {
         position: relative !important;
@@ -83,13 +87,13 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
     document.head.appendChild(style);
 
     const hideBranding = () => {
-      const projectDiv = document.querySelector('[data-us-project]');
+      const projectDiv = document.querySelector("[data-us-project]");
       if (projectDiv) {
-        const allElements = projectDiv.querySelectorAll('*');
-        allElements.forEach(el => {
-          const text = (el.textContent || '').toLowerCase();
-          if (text.includes('made with') || text.includes('unicorn')) {
-            (el as HTMLElement).style.display = 'none';
+        const allElements = projectDiv.querySelectorAll("*");
+        allElements.forEach((el) => {
+          const text = (el.textContent || "").toLowerCase();
+          if (text.includes("made with") || text.includes("unicorn")) {
+            (el as HTMLElement).style.display = "none";
           }
         });
       }
@@ -103,7 +107,8 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
 
     return () => {
       clearInterval(interval);
-      if (document.head.contains(embedScript)) document.head.removeChild(embedScript);
+      if (document.head.contains(embedScript))
+        document.head.removeChild(embedScript);
       if (document.head.contains(style)) document.head.removeChild(style);
     };
   }, [variant]);
@@ -114,14 +119,18 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
       <div className="absolute inset-0 w-full h-full hidden lg:block">
         <div
           data-us-project="whwOGlfJ5Rz2rHaEUgHl"
-          style={{ width: '100%', height: '100%', minHeight: '100vh' }}
+          style={{ width: "100%", height: "100%", minHeight: "100vh" }}
         />
       </div>
 
       {/* Mobile fallback background */}
-      <div className="absolute inset-0 w-full h-full lg:hidden" style={{
-        background: 'radial-gradient(ellipse at 30% 50%, rgba(17,140,253,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(18,202,147,0.1) 0%, transparent 60%), #000'
-      }} />
+      <div
+        className="absolute inset-0 w-full h-full lg:hidden"
+        style={{
+          background:
+            "radial-gradient(ellipse at 30% 50%, rgba(17,140,253,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(18,202,147,0.1) 0%, transparent 60%), #000",
+        }}
+      />
 
       {/* Corner accents */}
       <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 border-white/20 z-20" />
@@ -136,17 +145,28 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
             {/* Eyebrow line */}
             <div className="flex items-center gap-2 mb-4 opacity-60">
               <div className="w-8 h-px bg-white" />
-              <span className="text-white text-[10px] font-[family-name:var(--font-mono)] tracking-wider">001</span>
+              <span className="text-white text-[10px] font-[family-name:var(--font-mono)] tracking-wider">
+                001
+              </span>
               <div className="flex-1 h-px bg-white" />
             </div>
 
             {/* Heading */}
             <div className="relative mb-6">
-              <div className="hidden lg:block absolute -left-3 top-0 bottom-0 w-1 opacity-40"
-                style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent 0px, transparent 1px, white 1px, white 2px), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, white 1px, white 2px)', backgroundSize: '3px 3px' }} />
-              <h1 className="text-3xl lg:text-5xl font-bold text-white leading-tight font-[family-name:var(--font-display)] tracking-tight" style={{ letterSpacing: '-1px' }}>
+              <div
+                className="hidden lg:block absolute -left-3 top-0 bottom-0 w-1 opacity-40"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(0deg, transparent 0px, transparent 1px, white 1px, white 2px), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, white 1px, white 2px)",
+                  backgroundSize: "3px 3px",
+                }}
+              />
+              <h1
+                className="text-3xl lg:text-5xl font-bold text-white leading-tight font-[family-name:var(--font-display)] tracking-tight"
+                style={{ letterSpacing: "-1px" }}
+              >
                 {copy.titleLine1}
-                <span className="block mt-1" style={{ color: '#118CFD' }}>
+                <span className="block mt-1" style={{ color: "#118CFD" }}>
                   {copy.titleLine2}
                 </span>
               </h1>
@@ -160,15 +180,22 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
             </div>
 
             {/* Description */}
-            <p className="text-sm lg:text-base mb-8 leading-relaxed font-[family-name:var(--font-mono)] opacity-70" style={{ color: '#D1D5DB' }}>
+            <p
+              className="text-sm lg:text-base mb-8 leading-relaxed font-[family-name:var(--font-mono)] opacity-70"
+              style={{ color: "#D1D5DB" }}
+            >
               {copy.body}
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/consult"
+              <Link
+                href="/consult"
                 className="relative px-6 py-2.5 text-white font-[family-name:var(--font-mono)] text-xs border border-white/30 hover:border-white transition-all duration-200 group text-center"
-                style={{ background: 'linear-gradient(180deg, rgba(86,184,255,0.2), rgba(1,142,245,0.3))' }}
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(86,184,255,0.2), rgba(1,142,245,0.3))",
+                }}
                 onClick={() =>
                   trackEvent(ANALYTICS_EVENTS.landingCtaClick, {
                     surface: "hero",
@@ -181,9 +208,15 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
                 <span className="hidden lg:block absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 {copy.cta} →
               </Link>
-              <Link href="#team"
+              <Link
+                href="#team"
                 className="px-6 py-2.5 bg-transparent border border-white/20 text-white/70 font-[family-name:var(--font-mono)] text-xs hover:border-white/50 hover:text-white transition-all duration-200 text-center"
-                onClick={() => trackEvent(ANALYTICS_EVENTS.landingSecondaryClick, { surface: "hero", cta: "meet_team" })}
+                onClick={() =>
+                  trackEvent(ANALYTICS_EVENTS.landingSecondaryClick, {
+                    surface: "hero",
+                    cta: "meet_team",
+                  })
+                }
               >
                 MEET THE TEAM
               </Link>
@@ -191,24 +224,37 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
 
             {/* Bottom notation */}
             <div className="hidden lg:flex items-center gap-2 mt-8 opacity-30">
-              <span className="text-white text-[9px] font-[family-name:var(--font-mono)]">AHPRA</span>
+              <span className="text-white text-[9px] font-[family-name:var(--font-mono)]">
+                AHPRA
+              </span>
               <div className="flex-1 h-px bg-white" />
-              <span className="text-white text-[9px] font-[family-name:var(--font-mono)]">PRIVACY ACT 1988</span>
+              <span className="text-white text-[9px] font-[family-name:var(--font-mono)]">
+                PRIVACY ACT 1988
+              </span>
               <div className="flex-1 h-px bg-white" />
-              <span className="text-white text-[9px] font-[family-name:var(--font-mono)]">AUS</span>
+              <span className="text-white text-[9px] font-[family-name:var(--font-mono)]">
+                AUS
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom bar */}
-      <div className="absolute left-0 right-0 z-20 border-t border-white/10 bg-black/40 backdrop-blur-sm" style={{ bottom: '5vh' }}>
+      <div
+        className="absolute left-0 right-0 z-20 border-t border-white/10 bg-black/40 backdrop-blur-sm"
+        style={{ bottom: "5vh" }}
+      >
         <div className="container mx-auto px-6 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-4 text-[9px] font-[family-name:var(--font-mono)] text-white/40">
             <span>SYSTEM.ACTIVE</span>
             <div className="hidden lg:flex gap-1">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="w-1 bg-white/20" style={{ height: `${(i % 3 + 1) * 4}px` }} />
+                <div
+                  key={i}
+                  className="w-1 bg-white/20"
+                  style={{ height: `${((i % 3) + 1) * 4}px` }}
+                />
               ))}
             </div>
             <span>8 AI SPECIALISTS</span>
@@ -217,8 +263,14 @@ export default function HeroAscii({ variant = "specialist" }: { variant?: Landin
             <span className="hidden lg:inline">◐ READY</span>
             <div className="flex gap-1">
               <div className="w-1 h-1 bg-white/60 rounded-full animate-pulse" />
-              <div className="w-1 h-1 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-              <div className="w-1 h-1 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+              <div
+                className="w-1 h-1 bg-white/40 rounded-full animate-pulse"
+                style={{ animationDelay: "0.2s" }}
+              />
+              <div
+                className="w-1 h-1 bg-white/20 rounded-full animate-pulse"
+                style={{ animationDelay: "0.4s" }}
+              />
             </div>
             <span>FREE TO START · SIGN IN TO SAVE</span>
           </div>

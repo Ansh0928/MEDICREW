@@ -1,619 +1,906 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediCrew — Swarm Architecture</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f0f4f8;
-    color: #1e293b;
-    min-height: 100vh;
-    padding: 32px 24px;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCrew — Swarm Architecture</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f0f4f8;
+        color: #1e293b;
+        min-height: 100vh;
+        padding: 32px 24px;
+      }
 
-  h1 {
-    text-align: center;
-    font-size: 22px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 4px;
-  }
-  .subtitle {
-    text-align: center;
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 36px;
-  }
+      h1 {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      .subtitle {
+        text-align: center;
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 36px;
+      }
 
-  .page { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+      .page {
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
 
-  /* ── Section headers ── */
-  .section-label {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: #94a3b8;
-    margin-bottom: 10px;
-  }
+      /* ── Section headers ── */
+      .section-label {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 10px;
+      }
 
-  /* ── Patient Input ── */
-  .patient-input {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .patient-avatar {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; flex-shrink: 0;
-  }
-  .patient-bubble {
-    background: #f1f5f9;
-    border-radius: 12px 12px 12px 2px;
-    padding: 12px 16px;
-    font-size: 14px;
-    color: #334155;
-    line-height: 1.5;
-    flex: 1;
-  }
-  .patient-bubble strong { color: #0f172a; }
+      /* ── Patient Input ── */
+      .patient-input {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .patient-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+      }
+      .patient-bubble {
+        background: #f1f5f9;
+        border-radius: 12px 12px 12px 2px;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.5;
+        flex: 1;
+      }
+      .patient-bubble strong {
+        color: #0f172a;
+      }
 
-  /* ── Triage ── */
-  .triage-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .triage-avatar {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; flex-shrink: 0;
-  }
-  .triage-info { flex: 1; }
-  .triage-name { font-size: 14px; font-weight: 700; color: #4c1d95; }
-  .triage-result { font-size: 13px; color: #64748b; margin-top: 4px; }
-  .triage-result strong { color: #0f172a; }
-  .urgency-badge {
-    background: #dcfce7; color: #15803d;
-    font-size: 11px; font-weight: 700;
-    padding: 4px 12px; border-radius: 20px;
-    flex-shrink: 0;
-  }
+      /* ── Triage ── */
+      .triage-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .triage-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+      }
+      .triage-info {
+        flex: 1;
+      }
+      .triage-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #4c1d95;
+      }
+      .triage-result {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 4px;
+      }
+      .triage-result strong {
+        color: #0f172a;
+      }
+      .urgency-badge {
+        background: #dcfce7;
+        color: #15803d;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        flex-shrink: 0;
+      }
 
-  /* ── Arrow connector ── */
-  .connector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 28px;
-    color: #cbd5e1;
-    font-size: 20px;
-  }
+      /* ── Arrow connector ── */
+      .connector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 28px;
+        color: #cbd5e1;
+        font-size: 20px;
+      }
 
-  /* ── Lead Specialist ── */
-  .lead-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 2px 12px rgba(16,185,129,0.12);
-    border: 2px solid #a7f3d0;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-  }
-  .lead-badge {
-    position: absolute; top: -10px; left: 24px;
-    background: #10b981; color: white;
-    font-size: 10px; font-weight: 800;
-    padding: 2px 10px; border-radius: 20px;
-    letter-spacing: 0.8px; text-transform: uppercase;
-  }
-  .lead-avatar {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ecfdf5, #a7f3d0);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 34px; flex-shrink: 0;
-    border: 3px solid #6ee7b7;
-  }
-  .lead-info { flex: 1; }
-  .lead-name { font-size: 16px; font-weight: 800; color: #064e3b; }
-  .lead-specialty { font-size: 12px; color: #6ee7b7; font-weight: 600; margin-top: 2px; }
-  .lead-status {
-    font-size: 12px; color: #059669;
-    display: flex; align-items: center; gap: 6px;
-    margin-top: 6px;
-  }
-  .pulse {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #10b981;
-    animation: pulse 1.4s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-  }
+      /* ── Lead Specialist ── */
+      .lead-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.12);
+        border: 2px solid #a7f3d0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+      }
+      .lead-badge {
+        position: absolute;
+        top: -10px;
+        left: 24px;
+        background: #10b981;
+        color: white;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+      }
+      .lead-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ecfdf5, #a7f3d0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        flex-shrink: 0;
+        border: 3px solid #6ee7b7;
+      }
+      .lead-info {
+        flex: 1;
+      }
+      .lead-name {
+        font-size: 16px;
+        font-weight: 800;
+        color: #064e3b;
+      }
+      .lead-specialty {
+        font-size: 12px;
+        color: #6ee7b7;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+      .lead-status {
+        font-size: 12px;
+        color: #059669;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 1.4s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(1.3);
+        }
+      }
 
-  /* ── Resident grid ── */
-  .residents-section {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
+      /* ── Resident grid ── */
+      .residents-section {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      }
 
-  .residents-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .residents-title { font-size: 14px; font-weight: 700; color: #0f172a; }
-  .parallel-badge {
-    background: #fef9c3; color: #854d0e;
-    font-size: 10px; font-weight: 700;
-    padding: 3px 10px; border-radius: 20px;
-    letter-spacing: 0.5px;
-  }
+      .residents-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .residents-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .parallel-badge {
+        background: #fef9c3;
+        color: #854d0e;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+      }
 
-  .residents-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
+      .residents-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
 
-  .resident-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px 12px;
-    text-align: center;
-    transition: box-shadow 0.2s;
-  }
+      .resident-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 12px;
+        text-align: center;
+        transition: box-shadow 0.2s;
+      }
 
-  .resident-avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    margin: 0 auto 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
-    position: relative;
-  }
-  .resident-avatar .status-dot {
-    position: absolute; bottom: 1px; right: 1px;
-    width: 10px; height: 10px; border-radius: 50%;
-    border: 2px solid #f8fafc;
-  }
+      .resident-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin: 0 auto 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        position: relative;
+      }
+      .resident-avatar .status-dot {
+        position: absolute;
+        bottom: 1px;
+        right: 1px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid #f8fafc;
+      }
 
-  .r-conservative .resident-avatar { background: #ecfdf5; }
-  .r-conservative .status-dot { background: #10b981; }
-  .r-pharma .resident-avatar { background: #eff6ff; }
-  .r-pharma .status-dot { background: #3b82f6; }
-  .r-investigative .resident-avatar { background: #fffbeb; }
-  .r-investigative .status-dot { background: #f59e0b; }
-  .r-redflag .resident-avatar { background: #fef2f2; }
-  .r-redflag .status-dot { background: #ef4444; }
+      .r-conservative .resident-avatar {
+        background: #ecfdf5;
+      }
+      .r-conservative .status-dot {
+        background: #10b981;
+      }
+      .r-pharma .resident-avatar {
+        background: #eff6ff;
+      }
+      .r-pharma .status-dot {
+        background: #3b82f6;
+      }
+      .r-investigative .resident-avatar {
+        background: #fffbeb;
+      }
+      .r-investigative .status-dot {
+        background: #f59e0b;
+      }
+      .r-redflag .resident-avatar {
+        background: #fef2f2;
+      }
+      .r-redflag .status-dot {
+        background: #ef4444;
+      }
 
-  .resident-name { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 3px; }
-  .resident-role { font-size: 10px; color: #9ca3af; margin-bottom: 8px; }
-  .resident-finding {
-    font-size: 11px; color: #4b5563;
-    background: white;
-    border-radius: 8px;
-    padding: 8px;
-    text-align: left;
-    line-height: 1.4;
-    border: 1px solid #f1f5f9;
-  }
-  .resident-confidence {
-    font-size: 10px; font-weight: 700;
-    margin-top: 6px;
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-  }
-  .r-conservative .resident-confidence { background: #dcfce7; color: #15803d; }
-  .r-pharma .resident-confidence { background: #dbeafe; color: #1d4ed8; }
-  .r-investigative .resident-confidence { background: #fef9c3; color: #854d0e; }
-  .r-redflag .resident-confidence { background: #fee2e2; color: #dc2626; }
+      .resident-name {
+        font-size: 11px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 3px;
+      }
+      .resident-role {
+        font-size: 10px;
+        color: #9ca3af;
+        margin-bottom: 8px;
+      }
+      .resident-finding {
+        font-size: 11px;
+        color: #4b5563;
+        background: white;
+        border-radius: 8px;
+        padding: 8px;
+        text-align: left;
+        line-height: 1.4;
+        border: 1px solid #f1f5f9;
+      }
+      .resident-confidence {
+        font-size: 10px;
+        font-weight: 700;
+        margin-top: 6px;
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+      }
+      .r-conservative .resident-confidence {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .r-pharma .resident-confidence {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .r-investigative .resident-confidence {
+        background: #fef9c3;
+        color: #854d0e;
+      }
+      .r-redflag .resident-confidence {
+        background: #fee2e2;
+        color: #dc2626;
+      }
 
-  /* ── Debate ── */
-  .debate-section {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
+      /* ── Debate ── */
+      .debate-section {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      }
 
-  .debate-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 12px;
-  }
+      .debate-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 12px;
+      }
 
-  .debate-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
+      .debate-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
 
-  .debate-avatar {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
-  }
+      .debate-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
 
-  .debate-bubble {
-    border-radius: 10px;
-    padding: 9px 12px;
-    font-size: 12px;
-    line-height: 1.5;
-    flex: 1;
-  }
+      .debate-bubble {
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 12px;
+        line-height: 1.5;
+        flex: 1;
+      }
 
-  .bubble-challenge { background: #fff1f2; border: 1px solid #fecdd3; color: #881337; }
-  .bubble-agree { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
-  .bubble-add { background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; }
+      .bubble-challenge {
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        color: #881337;
+      }
+      .bubble-agree {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #14532d;
+      }
+      .bubble-add {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+      }
 
-  .debate-tag {
-    font-size: 9px; font-weight: 800;
-    letter-spacing: 0.8px; text-transform: uppercase;
-    display: block; margin-bottom: 3px;
-  }
-  .tag-c { color: #e11d48; }
-  .tag-a { color: #16a34a; }
-  .tag-n { color: #94a3b8; }
+      .debate-tag {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 3px;
+      }
+      .tag-c {
+        color: #e11d48;
+      }
+      .tag-a {
+        color: #16a34a;
+      }
+      .tag-n {
+        color: #94a3b8;
+      }
 
-  /* ── Doctor rectification ── */
-  .rectification-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 2px 12px rgba(16,185,129,0.1);
-    border-left: 4px solid #10b981;
-    display: flex;
-    gap: 16px;
-  }
-  .rect-avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ecfdf5, #a7f3d0);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; flex-shrink: 0;
-    border: 2px solid #6ee7b7;
-  }
-  .rect-name { font-size: 13px; font-weight: 700; color: #065f46; }
-  .rect-msg { font-size: 13px; color: #374151; line-height: 1.6; margin-top: 4px; }
-  .rect-msg strong { color: #059669; }
+      /* ── Doctor rectification ── */
+      .rectification-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.1);
+        border-left: 4px solid #10b981;
+        display: flex;
+        gap: 16px;
+      }
+      .rect-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ecfdf5, #a7f3d0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+        border: 2px solid #6ee7b7;
+      }
+      .rect-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #065f46;
+      }
+      .rect-msg {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.6;
+        margin-top: 4px;
+      }
+      .rect-msg strong {
+        color: #059669;
+      }
 
-  /* ── MDT ── */
-  .mdt-section {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  .mdt-avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #faf5ff, #ede9fe);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; flex-shrink: 0;
-    border: 2px solid #c4b5fd;
-  }
-  .mdt-name { font-size: 13px; font-weight: 700; color: #4c1d95; }
-  .mdt-msg { font-size: 13px; color: #374151; line-height: 1.5; margin-top: 4px; }
+      /* ── MDT ── */
+      .mdt-section {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .mdt-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #faf5ff, #ede9fe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+        border: 2px solid #c4b5fd;
+      }
+      .mdt-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #4c1d95;
+      }
+      .mdt-msg {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.5;
+        margin-top: 4px;
+      }
 
-  /* ── Final synthesis ── */
-  .synthesis-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 4px 20px rgba(99,102,241,0.1);
-    border: 1.5px solid #c7d2fe;
-  }
-  .synthesis-header {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
-  }
-  .synthesis-icon {
-    width: 40px; height: 40px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .synthesis-title { font-size: 15px; font-weight: 800; color: #1e1b4b; }
-  .synthesis-subtitle { font-size: 12px; color: #6366f1; }
+      /* ── Final synthesis ── */
+      .synthesis-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+        border: 1.5px solid #c7d2fe;
+      }
+      .synthesis-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .synthesis-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+      .synthesis-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #1e1b4b;
+      }
+      .synthesis-subtitle {
+        font-size: 12px;
+        color: #6366f1;
+      }
 
-  .rec-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-  .rec-item {
-    display: flex; align-items: center; gap: 12px;
-    background: #f8fafc; border-radius: 10px; padding: 12px 14px;
-  }
-  .rec-icon { font-size: 20px; flex-shrink: 0; }
-  .rec-text { flex: 1; font-size: 13px; color: #374151; line-height: 1.4; }
-  .rec-conf {
-    font-size: 11px; font-weight: 700;
-    padding: 3px 10px; border-radius: 20px;
-    flex-shrink: 0;
-  }
-  .conf-high { background: #dcfce7; color: #15803d; }
-  .conf-med { background: #fef9c3; color: #854d0e; }
-  .conf-cond { background: #f0f9ff; color: #0369a1; }
+      .rec-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .rec-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .rec-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .rec-text {
+        flex: 1;
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.4;
+      }
+      .rec-conf {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        flex-shrink: 0;
+      }
+      .conf-high {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .conf-med {
+        background: #fef9c3;
+        color: #854d0e;
+      }
+      .conf-cond {
+        background: #f0f9ff;
+        color: #0369a1;
+      }
 
-  .book-cta {
-    display: flex; align-items: center; justify-content: space-between;
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    border-radius: 12px; padding: 14px 18px;
-    margin-top: 4px;
-  }
-  .book-left { flex: 1; }
-  .book-title { font-size: 13px; font-weight: 700; color: white; }
-  .book-desc { font-size: 11px; color: #c7d2fe; margin-top: 2px; }
-  .book-btn {
-    background: white; color: #4f46e5;
-    font-size: 12px; font-weight: 800;
-    padding: 8px 18px; border-radius: 20px;
-    cursor: pointer; flex-shrink: 0;
-    white-space: nowrap;
-  }
-</style>
-</head>
-<body>
+      .book-cta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-top: 4px;
+      }
+      .book-left {
+        flex: 1;
+      }
+      .book-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+      }
+      .book-desc {
+        font-size: 11px;
+        color: #c7d2fe;
+        margin-top: 2px;
+      }
+      .book-btn {
+        background: white;
+        color: #4f46e5;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 8px 18px;
+        border-radius: 20px;
+        cursor: pointer;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MediCrew Swarm — Live Consultation</h1>
+    <p class="subtitle">
+      Back pain example · 23yo cyclist · What the patient experiences
+    </p>
 
-<h1>MediCrew Swarm — Live Consultation</h1>
-<p class="subtitle">Back pain example · 23yo cyclist · What the patient experiences</p>
-
-<div class="page">
-
-  <!-- Patient Input -->
-  <div>
-    <div class="section-label">Patient</div>
-    <div class="patient-input">
-      <div class="patient-avatar">🧑</div>
-      <div class="patient-bubble">
-        "I'm <strong>23 years old</strong>. I've been having <strong>lower back pain</strong> from cycling — started about 3 days ago. I haven't done anything about it yet, <strong>no medicines</strong>, just been resting."
-      </div>
-    </div>
-  </div>
-
-  <div class="connector">↓</div>
-
-  <!-- Triage -->
-  <div>
-    <div class="section-label">L1 — Triage</div>
-    <div class="triage-card">
-      <div class="triage-avatar">🩺</div>
-      <div class="triage-info">
-        <div class="triage-name">Triage AI</div>
-        <div class="triage-result">Routing to <strong>Emma AI — Physiotherapy</strong> as lead specialist. <strong>Alex AI — GP</strong> on standby. No red flags detected.</div>
-      </div>
-      <div class="urgency-badge">✅ Routine</div>
-    </div>
-  </div>
-
-  <div class="connector">↓</div>
-
-  <!-- Lead Specialist -->
-  <div>
-    <div class="section-label">L2 — Lead Specialist</div>
-    <div class="lead-card">
-      <div class="lead-badge">Lead</div>
-      <div class="lead-avatar">👩‍⚕️</div>
-      <div class="lead-info">
-        <div class="lead-name">Emma AI</div>
-        <div class="lead-specialty">Physiotherapy</div>
-        <div class="lead-status">
-          <div class="pulse"></div>
-          Activating resident team…
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="connector">↓</div>
-
-  <!-- Resident Swarm -->
-  <div>
-    <div class="section-label">L3 — Resident Swarm</div>
-    <div class="residents-section">
-      <div class="residents-header">
-        <div class="residents-title">Emma's residents — consulting in parallel</div>
-        <div class="parallel-badge">⚡ 4 agents simultaneously</div>
-      </div>
-      <div class="residents-grid">
-
-        <div class="resident-card r-conservative">
-          <div class="resident-avatar">
-            🧑‍⚕️
-            <div class="status-dot"></div>
-          </div>
-          <div class="resident-name">Resident Kai</div>
-          <div class="resident-role">Conservative</div>
-          <div class="resident-finding">Hot pack 20 min × 3 daily. Gentle hip flexor stretches morning and evening.</div>
-          <div class="resident-confidence">78% confident</div>
-        </div>
-
-        <div class="resident-card r-pharma">
-          <div class="resident-avatar">
-            👨‍⚕️
-            <div class="status-dot"></div>
-          </div>
-          <div class="resident-name">Resident Priya</div>
-          <div class="resident-role">Pharmacological</div>
-          <div class="resident-finding">Ibuprofen 400mg with food if pain ≥4/10. Anti-inflammatory, well-tolerated.</div>
-          <div class="resident-confidence">65% confident</div>
-        </div>
-
-        <div class="resident-card r-investigative">
-          <div class="resident-avatar">
-            👩‍🔬
-            <div class="status-dot"></div>
-          </div>
-          <div class="resident-name">Resident Zoe</div>
-          <div class="resident-role">Investigative</div>
-          <div class="resident-finding">Check saddle height + handlebar reach. Postural cause likely. Bike fit assessment recommended.</div>
-          <div class="resident-confidence">82% confident</div>
-        </div>
-
-        <div class="resident-card r-redflag">
-          <div class="resident-avatar">
-            🧑‍⚕️
-            <div class="status-dot"></div>
-          </div>
-          <div class="resident-name">Resident Sam</div>
-          <div class="resident-role">Red-flag Check</div>
-          <div class="resident-finding">No radiculopathy. No bowel/bladder flags. No fracture risk. Safe to treat conservatively.</div>
-          <div class="resident-confidence">96% clear</div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="connector">↓</div>
-
-  <!-- Debate -->
-  <div>
-    <div class="section-label">L4 — Resident Debate</div>
-    <div class="debate-section">
-      <div style="font-size:13px;color:#64748b;">Residents respond to each other's findings</div>
-      <div class="debate-feed">
-
-        <div class="debate-row">
-          <div class="debate-avatar" style="background:#eff6ff;">👨‍⚕️</div>
-          <div class="debate-bubble bubble-challenge">
-            <span class="debate-tag tag-c">⚡ Priya challenges Kai</span>
-            "Rest alone risks deconditioning. Evidence supports early active recovery over pure rest — we should recommend gentle movement, not just heat."
-          </div>
-        </div>
-
-        <div class="debate-row">
-          <div class="debate-avatar" style="background:#fffbeb;">👩‍🔬</div>
-          <div class="debate-bubble bubble-add">
-            <span class="debate-tag tag-n">+ Zoe adds context</span>
-            "Cycling-specific back pain at this age is almost always postural. Bike fit should be first-line, not medication. Treating the root cause matters."
-          </div>
-        </div>
-
-        <div class="debate-row">
-          <div class="debate-avatar" style="background:#ecfdf5;">🧑‍⚕️</div>
-          <div class="debate-bubble bubble-agree">
-            <span class="debate-tag tag-a">✓ Kai agrees with Zoe</span>
-            "Agree — bike fit + active movement as first line. I'd hold medication unless no improvement by day 5."
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="connector">↓</div>
-
-  <!-- Rectification -->
-  <div>
-    <div class="section-label">L5 — Emma Rectifies</div>
-    <div class="rectification-card">
-      <div class="rect-avatar">👩‍⚕️</div>
+    <div class="page">
+      <!-- Patient Input -->
       <div>
-        <div class="rect-name">Emma AI — Physiotherapy</div>
-        <div class="rect-msg">
-          "Priya is correct that passive rest isn't optimal, but medication at day 3 is premature for a young patient with no prior treatment history.
-          <strong>Team position:</strong> active recovery + bike fit correction + heat pack. Ibuprofen is appropriate only if unresolved after 5 days.
-          Team confidence: <strong>81%</strong>."
+        <div class="section-label">Patient</div>
+        <div class="patient-input">
+          <div class="patient-avatar">🧑</div>
+          <div class="patient-bubble">
+            "I'm <strong>23 years old</strong>. I've been having
+            <strong>lower back pain</strong> from cycling — started about 3 days
+            ago. I haven't done anything about it yet,
+            <strong>no medicines</strong>, just been resting."
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="connector">↓</div>
+      <div class="connector">↓</div>
 
-  <!-- MDT Cross-consult -->
-  <div>
-    <div class="section-label">L6 — MDT Cross-Consult</div>
-    <div class="mdt-section">
-      <div class="mdt-avatar">🧔‍♂️</div>
+      <!-- Triage -->
       <div>
-        <div class="mdt-name">Alex AI — GP</div>
-        <div class="mdt-msg">"Agree with Emma's approach. If symptoms persist beyond 7 days or pain worsens, a GP assessment is warranted to rule out any underlying cause."</div>
+        <div class="section-label">L1 — Triage</div>
+        <div class="triage-card">
+          <div class="triage-avatar">🩺</div>
+          <div class="triage-info">
+            <div class="triage-name">Triage AI</div>
+            <div class="triage-result">
+              Routing to <strong>Emma AI — Physiotherapy</strong> as lead
+              specialist. <strong>Alex AI — GP</strong> on standby. No red flags
+              detected.
+            </div>
+          </div>
+          <div class="urgency-badge">✅ Routine</div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <!-- Lead Specialist -->
+      <div>
+        <div class="section-label">L2 — Lead Specialist</div>
+        <div class="lead-card">
+          <div class="lead-badge">Lead</div>
+          <div class="lead-avatar">👩‍⚕️</div>
+          <div class="lead-info">
+            <div class="lead-name">Emma AI</div>
+            <div class="lead-specialty">Physiotherapy</div>
+            <div class="lead-status">
+              <div class="pulse"></div>
+              Activating resident team…
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <!-- Resident Swarm -->
+      <div>
+        <div class="section-label">L3 — Resident Swarm</div>
+        <div class="residents-section">
+          <div class="residents-header">
+            <div class="residents-title">
+              Emma's residents — consulting in parallel
+            </div>
+            <div class="parallel-badge">⚡ 4 agents simultaneously</div>
+          </div>
+          <div class="residents-grid">
+            <div class="resident-card r-conservative">
+              <div class="resident-avatar">
+                🧑‍⚕️
+                <div class="status-dot"></div>
+              </div>
+              <div class="resident-name">Resident Kai</div>
+              <div class="resident-role">Conservative</div>
+              <div class="resident-finding">
+                Hot pack 20 min × 3 daily. Gentle hip flexor stretches morning
+                and evening.
+              </div>
+              <div class="resident-confidence">78% confident</div>
+            </div>
+
+            <div class="resident-card r-pharma">
+              <div class="resident-avatar">
+                👨‍⚕️
+                <div class="status-dot"></div>
+              </div>
+              <div class="resident-name">Resident Priya</div>
+              <div class="resident-role">Pharmacological</div>
+              <div class="resident-finding">
+                Ibuprofen 400mg with food if pain ≥4/10. Anti-inflammatory,
+                well-tolerated.
+              </div>
+              <div class="resident-confidence">65% confident</div>
+            </div>
+
+            <div class="resident-card r-investigative">
+              <div class="resident-avatar">
+                👩‍🔬
+                <div class="status-dot"></div>
+              </div>
+              <div class="resident-name">Resident Zoe</div>
+              <div class="resident-role">Investigative</div>
+              <div class="resident-finding">
+                Check saddle height + handlebar reach. Postural cause likely.
+                Bike fit assessment recommended.
+              </div>
+              <div class="resident-confidence">82% confident</div>
+            </div>
+
+            <div class="resident-card r-redflag">
+              <div class="resident-avatar">
+                🧑‍⚕️
+                <div class="status-dot"></div>
+              </div>
+              <div class="resident-name">Resident Sam</div>
+              <div class="resident-role">Red-flag Check</div>
+              <div class="resident-finding">
+                No radiculopathy. No bowel/bladder flags. No fracture risk. Safe
+                to treat conservatively.
+              </div>
+              <div class="resident-confidence">96% clear</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <!-- Debate -->
+      <div>
+        <div class="section-label">L4 — Resident Debate</div>
+        <div class="debate-section">
+          <div style="font-size: 13px; color: #64748b">
+            Residents respond to each other's findings
+          </div>
+          <div class="debate-feed">
+            <div class="debate-row">
+              <div class="debate-avatar" style="background: #eff6ff">👨‍⚕️</div>
+              <div class="debate-bubble bubble-challenge">
+                <span class="debate-tag tag-c">⚡ Priya challenges Kai</span>
+                "Rest alone risks deconditioning. Evidence supports early active
+                recovery over pure rest — we should recommend gentle movement,
+                not just heat."
+              </div>
+            </div>
+
+            <div class="debate-row">
+              <div class="debate-avatar" style="background: #fffbeb">👩‍🔬</div>
+              <div class="debate-bubble bubble-add">
+                <span class="debate-tag tag-n">+ Zoe adds context</span>
+                "Cycling-specific back pain at this age is almost always
+                postural. Bike fit should be first-line, not medication.
+                Treating the root cause matters."
+              </div>
+            </div>
+
+            <div class="debate-row">
+              <div class="debate-avatar" style="background: #ecfdf5">🧑‍⚕️</div>
+              <div class="debate-bubble bubble-agree">
+                <span class="debate-tag tag-a">✓ Kai agrees with Zoe</span>
+                "Agree — bike fit + active movement as first line. I'd hold
+                medication unless no improvement by day 5."
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <!-- Rectification -->
+      <div>
+        <div class="section-label">L5 — Emma Rectifies</div>
+        <div class="rectification-card">
+          <div class="rect-avatar">👩‍⚕️</div>
+          <div>
+            <div class="rect-name">Emma AI — Physiotherapy</div>
+            <div class="rect-msg">
+              "Priya is correct that passive rest isn't optimal, but medication
+              at day 3 is premature for a young patient with no prior treatment
+              history.
+              <strong>Team position:</strong> active recovery + bike fit
+              correction + heat pack. Ibuprofen is appropriate only if
+              unresolved after 5 days. Team confidence: <strong>81%</strong>."
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <!-- MDT Cross-consult -->
+      <div>
+        <div class="section-label">L6 — MDT Cross-Consult</div>
+        <div class="mdt-section">
+          <div class="mdt-avatar">🧔‍♂️</div>
+          <div>
+            <div class="mdt-name">Alex AI — GP</div>
+            <div class="mdt-msg">
+              "Agree with Emma's approach. If symptoms persist beyond 7 days or
+              pain worsens, a GP assessment is warranted to rule out any
+              underlying cause."
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <!-- Final Synthesis -->
+      <div>
+        <div class="section-label">L7 — Your Results</div>
+        <div class="synthesis-card">
+          <div class="synthesis-header">
+            <div class="synthesis-icon">🏥</div>
+            <div>
+              <div class="synthesis-title">
+                Your MediCrew Team Recommendation
+              </div>
+              <div class="synthesis-subtitle">
+                Reviewed by Emma AI + Alex AI · 7 agents consulted
+              </div>
+            </div>
+          </div>
+
+          <div class="rec-list">
+            <div class="rec-item">
+              <div class="rec-icon">🚴</div>
+              <div class="rec-text">
+                Get your bike saddle height and handlebar reach checked — this
+                is likely the root cause
+              </div>
+              <div class="rec-conf conf-high">82% confident</div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-icon">🌿</div>
+              <div class="rec-text">
+                Gentle active recovery: hip flexor stretches + light walking
+                daily — avoid full rest
+              </div>
+              <div class="rec-conf conf-high">81% confident</div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-icon">🔥</div>
+              <div class="rec-text">
+                Hot pack 20 minutes, 3 times daily for the first 3 days
+              </div>
+              <div class="rec-conf conf-high">78% confident</div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-icon">💊</div>
+              <div class="rec-text">
+                If no improvement by day 5 → Ibuprofen 400mg with food
+              </div>
+              <div class="rec-conf conf-cond">Day 5 if needed</div>
+            </div>
+          </div>
+
+          <div class="book-cta">
+            <div class="book-left">
+              <div class="book-title">Still no improvement after 7 days?</div>
+              <div class="book-desc">
+                Emma AI recommends seeing a physio in person for a full
+                assessment
+              </div>
+            </div>
+            <div class="book-btn">Book appointment →</div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="connector">↓</div>
-
-  <!-- Final Synthesis -->
-  <div>
-    <div class="section-label">L7 — Your Results</div>
-    <div class="synthesis-card">
-      <div class="synthesis-header">
-        <div class="synthesis-icon">🏥</div>
-        <div>
-          <div class="synthesis-title">Your MediCrew Team Recommendation</div>
-          <div class="synthesis-subtitle">Reviewed by Emma AI + Alex AI · 7 agents consulted</div>
-        </div>
-      </div>
-
-      <div class="rec-list">
-        <div class="rec-item">
-          <div class="rec-icon">🚴</div>
-          <div class="rec-text">Get your bike saddle height and handlebar reach checked — this is likely the root cause</div>
-          <div class="rec-conf conf-high">82% confident</div>
-        </div>
-        <div class="rec-item">
-          <div class="rec-icon">🌿</div>
-          <div class="rec-text">Gentle active recovery: hip flexor stretches + light walking daily — avoid full rest</div>
-          <div class="rec-conf conf-high">81% confident</div>
-        </div>
-        <div class="rec-item">
-          <div class="rec-icon">🔥</div>
-          <div class="rec-text">Hot pack 20 minutes, 3 times daily for the first 3 days</div>
-          <div class="rec-conf conf-high">78% confident</div>
-        </div>
-        <div class="rec-item">
-          <div class="rec-icon">💊</div>
-          <div class="rec-text">If no improvement by day 5 → Ibuprofen 400mg with food</div>
-          <div class="rec-conf conf-cond">Day 5 if needed</div>
-        </div>
-      </div>
-
-      <div class="book-cta">
-        <div class="book-left">
-          <div class="book-title">Still no improvement after 7 days?</div>
-          <div class="book-desc">Emma AI recommends seeing a physio in person for a full assessment</div>
-        </div>
-        <div class="book-btn">Book appointment →</div>
-      </div>
+    <div
+      style="
+        max-width: 960px;
+        margin: 24px auto 0;
+        text-align: center;
+        font-size: 11px;
+        color: #94a3b8;
+        padding-bottom: 40px;
+      "
+    >
+      Next: How the side panel looks while agents are working in real-time
     </div>
-  </div>
-
-</div>
-
-<div style="max-width:960px;margin:24px auto 0;text-align:center;font-size:11px;color:#94a3b8;padding-bottom:40px;">
-  Next: How the side panel looks while agents are working in real-time
-</div>
-
-</body>
+  </body>
 </html>

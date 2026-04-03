@@ -31,8 +31,12 @@ function formatRelativeTime(isoString: string): string {
   return `${diffDays}d ago`;
 }
 
-export function CareTeamCard({ patientId, initialStatuses }: CareTeamCardProps) {
-  const [statuses, setStatuses] = useState<Record<string, AgentStatus>>(initialStatuses);
+export function CareTeamCard({
+  patientId,
+  initialStatuses,
+}: CareTeamCardProps) {
+  const [statuses, setStatuses] =
+    useState<Record<string, AgentStatus>>(initialStatuses);
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
@@ -56,7 +60,7 @@ export function CareTeamCard({ patientId, initialStatuses }: CareTeamCardProps) 
           ) {
             setStatuses(payload.new.statuses as Record<string, AgentStatus>);
           }
-        }
+        },
       )
       .subscribe();
 
@@ -75,10 +79,17 @@ export function CareTeamCard({ patientId, initialStatuses }: CareTeamCardProps) 
         {displayTeam.map((member) => {
           const status = statuses[member.role];
           return (
-            <Card key={member.role} className="hover:shadow-md transition-shadow">
+            <Card
+              key={member.role}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardHeader className="pb-2">
                 <div className="flex items-start gap-3">
-                  <span className="text-3xl" role="img" aria-label={member.specialty}>
+                  <span
+                    className="text-3xl"
+                    role="img"
+                    aria-label={member.specialty}
+                  >
                     {member.emoji}
                   </span>
                   <div className="flex-1 min-w-0">

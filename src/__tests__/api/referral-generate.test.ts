@@ -7,7 +7,8 @@ const mockConsultation = {
   urgencyLevel: "routine",
   redFlags: JSON.stringify(["headache severity increasing"]),
   recommendation: {
-    primaryRecommendation: "These symptoms may be consistent with tension-type headache and could warrant a GP review.",
+    primaryRecommendation:
+      "These symptoms may be consistent with tension-type headache and could warrant a GP review.",
     nextSteps: ["Book a GP appointment", "Monitor symptoms"],
   },
   referralLetter: null,
@@ -51,7 +52,8 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/ai/config", () => ({
   createModel: vi.fn(() => ({
     invoke: vi.fn().mockResolvedValue({
-      content: "Dear Colleague,\n\nI am writing to refer the above patient...\n\nYours sincerely,\nMediCrew AI Care Team",
+      content:
+        "Dear Colleague,\n\nI am writing to refer the above patient...\n\nYours sincerely,\nMediCrew AI Care Team",
     }),
   })),
 }));
@@ -90,9 +92,13 @@ describe("POST /api/patient/referral/generate", () => {
 
   it("returns 403 when onboarding required", async () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
-    vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_ONBOARDING as any);
+    vi.mocked(getAuthenticatedPatient).mockResolvedValue(
+      AUTH_ONBOARDING as any,
+    );
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientPro as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientPro as any,
+    );
     const { POST } = await import("@/app/api/patient/referral/generate/route");
     const res = await POST(
       new Request("http://localhost/api/patient/referral/generate", {
@@ -108,7 +114,9 @@ describe("POST /api/patient/referral/generate", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientFree as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientFree as any,
+    );
     const { POST } = await import("@/app/api/patient/referral/generate/route");
     const res = await POST(
       new Request("http://localhost/api/patient/referral/generate", {
@@ -126,7 +134,9 @@ describe("POST /api/patient/referral/generate", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientPro as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientPro as any,
+    );
     const { POST } = await import("@/app/api/patient/referral/generate/route");
     const res = await POST(
       new Request("http://localhost/api/patient/referral/generate", {
@@ -142,7 +152,9 @@ describe("POST /api/patient/referral/generate", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientPro as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientPro as any,
+    );
     vi.mocked(prisma.consultation.findFirst).mockResolvedValue(null);
     const { POST } = await import("@/app/api/patient/referral/generate/route");
     const res = await POST(
@@ -159,7 +171,9 @@ describe("POST /api/patient/referral/generate", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientPro as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientPro as any,
+    );
     const cachedLetter = "Dear Colleague, Previously generated letter...";
     vi.mocked(prisma.consultation.findFirst).mockResolvedValue({
       ...mockConsultation,
@@ -184,8 +198,12 @@ describe("POST /api/patient/referral/generate", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientPro as any);
-    vi.mocked(prisma.consultation.findFirst).mockResolvedValue(mockConsultation as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientPro as any,
+    );
+    vi.mocked(prisma.consultation.findFirst).mockResolvedValue(
+      mockConsultation as any,
+    );
     const { POST } = await import("@/app/api/patient/referral/generate/route");
     const res = await POST(
       new Request("http://localhost/api/patient/referral/generate", {
@@ -212,8 +230,12 @@ describe("POST /api/patient/referral/generate", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.patient.findUnique).mockResolvedValue(mockPatientPro as any);
-    vi.mocked(prisma.consultation.findFirst).mockResolvedValue(mockConsultation as any);
+    vi.mocked(prisma.patient.findUnique).mockResolvedValue(
+      mockPatientPro as any,
+    );
+    vi.mocked(prisma.consultation.findFirst).mockResolvedValue(
+      mockConsultation as any,
+    );
     const { POST } = await import("@/app/api/patient/referral/generate/route");
     const res = await POST(
       new Request("http://localhost/api/patient/referral/generate", {

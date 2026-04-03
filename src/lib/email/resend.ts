@@ -12,7 +12,7 @@ function getResendClient(): Resend {
 export async function sendCheckInEmail(
   patientEmail: string,
   patientName: string,
-  checkInMessage: string
+  checkInMessage: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!process.env.RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set -- skipping email");
@@ -51,7 +51,7 @@ export async function sendEscalationEmail(
   patientEmail: string,
   patientName: string,
   subject: string,
-  body: string
+  body: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!process.env.RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set -- skipping email");

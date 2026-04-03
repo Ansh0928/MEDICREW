@@ -45,13 +45,21 @@ class FallbackModel extends BaseChatModel {
     super({});
   }
 
-  _llmType() { return "fallback"; }
+  _llmType() {
+    return "fallback";
+  }
 
-  async _generate(messages: import("@langchain/core/messages").BaseMessage[], options: import("@langchain/core/language_models/base").BaseLanguageModelCallOptions) {
+  async _generate(
+    messages: import("@langchain/core/messages").BaseMessage[],
+    options: import("@langchain/core/language_models/base").BaseLanguageModelCallOptions,
+  ) {
     try {
       return await this.primary._generate(messages, options);
     } catch (err) {
-      console.warn("[LLM] Primary provider failed, falling back to Ollama:", (err as Error).message);
+      console.warn(
+        "[LLM] Primary provider failed, falling back to Ollama:",
+        (err as Error).message,
+      );
       return this.fallback._generate(messages, options);
     }
   }
@@ -66,7 +74,10 @@ export const createModel = (temperature = 0.3): BaseChatModel => {
     return createOllamaModel(temperature);
   }
 
-  return new FallbackModel(createGroqModel(temperature), createOllamaModel(temperature));
+  return new FallbackModel(
+    createGroqModel(temperature),
+    createOllamaModel(temperature),
+  );
 };
 
 // Faster model for simple tasks
@@ -106,9 +117,9 @@ export const createJsonModel = (): BaseChatModel => {
     temperature: 0.1,
     maxTokens: 512,
     apiKey,
-    // @ts-expect-error — Groq SDK supports this, LangChain types lag
+    // @ts-ignore — Groq SDK supports this, LangChain types lag
     response_format: { type: "json_object" },
-  });
+  } as any);
 };
 
 // Model configuration

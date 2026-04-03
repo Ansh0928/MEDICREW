@@ -1,6 +1,6 @@
-'use client';
-import { CARE_TEAM } from '@/lib/care-team-config';
-import { Badge } from '@/components/ui/badge';
+"use client";
+import { CARE_TEAM } from "@/lib/care-team-config";
+import { Badge } from "@/components/ui/badge";
 
 interface AgentOverlayProps {
   agentName?: string;
@@ -9,11 +9,16 @@ interface AgentOverlayProps {
   isStreaming: boolean;
 }
 
-export function AgentOverlay({ agentName, agentRole, specialty, isStreaming }: AgentOverlayProps) {
+export function AgentOverlay({
+  agentName,
+  agentRole,
+  specialty,
+  isStreaming,
+}: AgentOverlayProps) {
   if (!agentName || !isStreaming) return null;
 
   const agent = CARE_TEAM.find((a) => a.role === agentRole);
-  const emoji = agent?.emoji || '';
+  const emoji = agent?.emoji || "";
 
   return (
     <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 mb-2 animate-in fade-in">
@@ -26,7 +31,9 @@ export function AgentOverlay({ agentName, agentRole, specialty, isStreaming }: A
           </Badge>
         )}
       </div>
-      <span className="ml-auto text-xs text-muted-foreground animate-pulse">Speaking...</span>
+      <span className="ml-auto text-xs text-muted-foreground animate-pulse">
+        Speaking...
+      </span>
     </div>
   );
 }
@@ -39,7 +46,10 @@ export function RoutingNotice({ specialists }: { specialists: string[] }) {
       <p className="text-sm font-medium">Your care team is reviewing:</p>
       <ul className="mt-1 space-y-1">
         {specialists.map((name) => (
-          <li key={name} className="text-sm text-muted-foreground flex items-center gap-1">
+          <li
+            key={name}
+            className="text-sm text-muted-foreground flex items-center gap-1"
+          >
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             {name}
           </li>

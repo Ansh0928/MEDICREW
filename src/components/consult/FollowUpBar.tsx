@@ -8,7 +8,11 @@ interface FollowUpBarProps {
   placeholder?: string;
 }
 
-export function FollowUpBar({ onSubmit, disabled, placeholder = "Ask a follow-up question…" }: FollowUpBarProps) {
+export function FollowUpBar({
+  onSubmit,
+  disabled,
+  placeholder = "Ask a follow-up question…",
+}: FollowUpBarProps) {
   const [value, setValue] = useState("");
 
   const submit = () => {
@@ -19,7 +23,10 @@ export function FollowUpBar({ onSubmit, disabled, placeholder = "Ask a follow-up
   };
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
   };
 
   return (

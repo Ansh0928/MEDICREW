@@ -3,7 +3,9 @@ import { AHPRA_DISCLAIMER, AGENT_COMPLIANCE_RULE } from "@/lib/compliance";
 
 describe("COMP-01: AHPRA disclaimer", () => {
   test("contains 'health information, not medical diagnosis'", () => {
-    expect(AHPRA_DISCLAIMER).toContain("health information, not medical diagnosis");
+    expect(AHPRA_DISCLAIMER).toContain(
+      "health information, not medical diagnosis",
+    );
   });
 
   test("contains 'registered healthcare professional'", () => {

@@ -15,32 +15,33 @@
 
 ## File Map
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/agents/swarm-types.ts` | CREATE | All swarm types: SwarmState, SwarmEvent, DoctorRole, etc. |
-| `src/agents/swarm.ts` | CREATE | Core swarm engine: runSwarm() + streamSwarm() |
-| `src/lib/ai/config.ts` | MODIFY | Add createJsonModel() for triage JSON mode |
-| `src/lib/rate-limit.ts` | CREATE | In-memory IP rate limiter |
-| `src/app/api/swarm/start/route.ts` | CREATE | SSE endpoint — starts swarm, streams events |
-| `src/app/api/swarm/answer/route.ts` | CREATE | Accepts patient answers to clarification questions |
-| `src/app/api/portal/case-consult/route.ts` | MODIFY | Fix controller.error → structured SSE error event |
-| `src/agents/definitions/*.ts` (6 files) | MODIFY | Add scope boundary guardrails to all specialist prompts |
-| `src/agents/definitions/index.ts` | MODIFY | Replace keyword routing with LLM-based routing |
-| `src/components/consult/DoctorOrbRow.tsx` | CREATE | Avatar orbs row — lights up per doctor activation |
-| `src/components/consult/LiveFeedLine.tsx` | CREATE | Single-line live text feed beneath orbs |
-| `src/components/consult/ClarificationBubble.tsx` | CREATE | Doctor asks patient a question inline |
-| `src/components/consult/SynthesisCard.tsx` | CREATE | Final output: urgency badge + next steps |
-| `src/components/consult/SwarmChat.tsx` | CREATE | Root patient consultation component (replaces ConsultationFlow) |
-| `src/components/doctor/SwarmDebugPanel.tsx` | CREATE | Doctor view: hypothesis bars + debate transcript |
-| `src/app/consult/page.tsx` | MODIFY | Use SwarmChat instead of ConsultationFlow |
-| `src/app/doctor/page.tsx` | MODIFY | Add SwarmDebugPanel |
-| `next.config.ts` | MODIFY | Add maxDuration = 60 for swarm route |
+| File                                             | Action | Purpose                                                         |
+| ------------------------------------------------ | ------ | --------------------------------------------------------------- |
+| `src/agents/swarm-types.ts`                      | CREATE | All swarm types: SwarmState, SwarmEvent, DoctorRole, etc.       |
+| `src/agents/swarm.ts`                            | CREATE | Core swarm engine: runSwarm() + streamSwarm()                   |
+| `src/lib/ai/config.ts`                           | MODIFY | Add createJsonModel() for triage JSON mode                      |
+| `src/lib/rate-limit.ts`                          | CREATE | In-memory IP rate limiter                                       |
+| `src/app/api/swarm/start/route.ts`               | CREATE | SSE endpoint — starts swarm, streams events                     |
+| `src/app/api/swarm/answer/route.ts`              | CREATE | Accepts patient answers to clarification questions              |
+| `src/app/api/portal/case-consult/route.ts`       | MODIFY | Fix controller.error → structured SSE error event               |
+| `src/agents/definitions/*.ts` (6 files)          | MODIFY | Add scope boundary guardrails to all specialist prompts         |
+| `src/agents/definitions/index.ts`                | MODIFY | Replace keyword routing with LLM-based routing                  |
+| `src/components/consult/DoctorOrbRow.tsx`        | CREATE | Avatar orbs row — lights up per doctor activation               |
+| `src/components/consult/LiveFeedLine.tsx`        | CREATE | Single-line live text feed beneath orbs                         |
+| `src/components/consult/ClarificationBubble.tsx` | CREATE | Doctor asks patient a question inline                           |
+| `src/components/consult/SynthesisCard.tsx`       | CREATE | Final output: urgency badge + next steps                        |
+| `src/components/consult/SwarmChat.tsx`           | CREATE | Root patient consultation component (replaces ConsultationFlow) |
+| `src/components/doctor/SwarmDebugPanel.tsx`      | CREATE | Doctor view: hypothesis bars + debate transcript                |
+| `src/app/consult/page.tsx`                       | MODIFY | Use SwarmChat instead of ConsultationFlow                       |
+| `src/app/doctor/page.tsx`                        | MODIFY | Add SwarmDebugPanel                                             |
+| `next.config.ts`                                 | MODIFY | Add maxDuration = 60 for swarm route                            |
 
 ---
 
 ## Task 1: Swarm types
 
 **Files:**
+
 - Create: `src/agents/swarm-types.ts`
 
 - [ ] **Step 1: Create the types file**
@@ -75,7 +76,11 @@ export interface SwarmDebateMessage {
 
 export interface SwarmSynthesis {
   urgency: UrgencyLevel;
-  rankedHypotheses: Array<{ name: string; confidence: number; doctorRole: DoctorRole }>;
+  rankedHypotheses: Array<{
+    name: string;
+    confidence: number;
+    doctorRole: DoctorRole;
+  }>;
   nextSteps: string[];
   questionsForDoctor: string[];
   timeframe: string;
@@ -102,7 +107,13 @@ export interface SwarmState {
   activeClarificationIds: string[];
   debate: SwarmDebateMessage[];
   synthesis: SwarmSynthesis | null;
-  currentPhase: "triage" | "swarm" | "awaiting_patient" | "debate" | "synthesis" | "complete";
+  currentPhase:
+    | "triage"
+    | "swarm"
+    | "awaiting_patient"
+    | "debate"
+    | "synthesis"
+    | "complete";
 }
 
 export type SwarmEvent =
@@ -110,10 +121,26 @@ export type SwarmEvent =
   | { type: "phase_changed"; phase: SwarmState["currentPhase"] }
   | { type: "doctor_activated"; doctorRole: DoctorRole; doctorName: string }
   | { type: "doctor_complete"; doctorRole: DoctorRole }
-  | { type: "hypothesis_found"; doctorRole: DoctorRole; hypothesisId: string; name: string; confidence: number }
-  | { type: "question_ready"; clarificationId: string; doctorRole: DoctorRole; question: string }
+  | {
+      type: "hypothesis_found";
+      doctorRole: DoctorRole;
+      hypothesisId: string;
+      name: string;
+      confidence: number;
+    }
+  | {
+      type: "question_ready";
+      clarificationId: string;
+      doctorRole: DoctorRole;
+      question: string;
+    }
   | { type: "doctor_token"; doctorRole: DoctorRole; token: string }
-  | { type: "debate_message"; doctorRole: DoctorRole; messageType: "agree" | "challenge" | "add_context"; content: string }
+  | {
+      type: "debate_message";
+      doctorRole: DoctorRole;
+      messageType: "agree" | "challenge" | "add_context";
+      content: string;
+    }
   | { type: "synthesis_complete"; data: SwarmSynthesis }
   | { type: "error"; message: string }
   | { type: "done" };
@@ -128,6 +155,7 @@ export const answerStore = new Map<string, string>();
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit 2>&1 | head -20
 ```
+
 Expected: 0 errors on the new file (existing errors unrelated are OK)
 
 - [ ] **Step 3: Commit**
@@ -142,6 +170,7 @@ git commit -m "feat: add swarm types and event schema"
 ## Task 2: Update LLM config for JSON mode
 
 **Files:**
+
 - Modify: `src/lib/ai/config.ts`
 
 - [ ] **Step 1: Add createJsonModel export**
@@ -186,6 +215,7 @@ git commit -m "feat: add createJsonModel for triage JSON mode"
 ## Task 3: Rate limiter
 
 **Files:**
+
 - Create: `src/lib/rate-limit.ts`
 
 - [ ] **Step 1: Create rate limiter**
@@ -201,7 +231,10 @@ const store = new Map<string, RateLimitEntry>();
 const MAX_REQUESTS = 5;
 const WINDOW_MS = 60_000;
 
-export function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+export function checkRateLimit(ip: string): {
+  allowed: boolean;
+  retryAfter?: number;
+} {
   const now = Date.now();
   const entry = store.get(ip);
 
@@ -211,7 +244,10 @@ export function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: num
   }
 
   if (entry.count >= MAX_REQUESTS) {
-    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
+    return {
+      allowed: false,
+      retryAfter: Math.ceil((entry.resetAt - now) / 1000),
+    };
   }
 
   entry.count++;
@@ -231,6 +267,7 @@ git commit -m "feat: add in-memory IP rate limiter"
 ## Task 4: Add guardrails to all specialist prompts
 
 **Files:**
+
 - Modify: `src/agents/definitions/cardiology.ts`, `dermatology.ts`, `gastro.ts`, `mental-health.ts`, `orthopedic.ts`, `physiotherapy.ts`
 
 - [ ] **Step 1: Add scope boundary block to each file**
@@ -251,7 +288,7 @@ Example for `cardiology.ts` — find the closing backtick of systemPrompt and ad
 You provide health navigation guidance only — not medical diagnoses or prescriptions.
 Never state a definitive diagnosis. Use language like "may suggest", "could indicate", "worth investigating".
 If you cannot assess confidently, say so explicitly.
-Always recommend discussing findings with a qualified healthcare provider.`
+Always recommend discussing findings with a qualified healthcare provider.`;
 ```
 
 Repeat for all 6 specialist files.
@@ -274,18 +311,23 @@ git commit -m "fix: add no-diagnosis guardrails to all specialist prompts (issue
 ## Task 5: Core swarm engine
 
 **Files:**
+
 - Create: `src/agents/swarm.ts`
 
 - [ ] **Step 1: Create swarm.ts with triage + doctor fan-out**
 
-```typescript
+````typescript
 // src/agents/swarm.ts
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { createModel, createJsonModel, createFastModel } from "@/lib/ai/config";
 import { agentRegistry } from "./definitions";
 import {
-  SwarmState, SwarmEvent, DoctorRole, SwarmHypothesis,
-  SwarmSynthesis, answerStore
+  SwarmState,
+  SwarmEvent,
+  DoctorRole,
+  SwarmHypothesis,
+  SwarmSynthesis,
+  answerStore,
 } from "./swarm-types";
 import { UrgencyLevel } from "./types";
 import crypto from "crypto";
@@ -302,7 +344,7 @@ Always recommend discussing findings with a qualified healthcare provider.`;
 
 async function runTriage(
   state: SwarmState,
-  emit: (event: SwarmEvent) => void
+  emit: (event: SwarmEvent) => void,
 ): Promise<void> {
   const llm = createJsonModel();
   const response = await llm.invoke([
@@ -343,10 +385,15 @@ Symptoms: ${state.symptoms}`),
     state.synthesis = {
       urgency: "emergency",
       rankedHypotheses: [],
-      nextSteps: ["Call 000 (Australian Emergency) immediately", "Do not drive yourself", "Stay calm and wait for help"],
+      nextSteps: [
+        "Call 000 (Australian Emergency) immediately",
+        "Do not drive yourself",
+        "Stay calm and wait for help",
+      ],
       questionsForDoctor: [],
       timeframe: "Immediately",
-      disclaimer: "This is health navigation guidance only. Call emergency services now.",
+      disclaimer:
+        "This is health navigation guidance only. Call emergency services now.",
     };
     state.currentPhase = "complete";
     emit({ type: "synthesis_complete", data: state.synthesis });
@@ -361,7 +408,7 @@ async function runHypothesisSubAgent(
   doctorRole: DoctorRole,
   symptoms: string,
   patientInfo: SwarmState["patientInfo"],
-  emit: (event: SwarmEvent) => void
+  emit: (event: SwarmEvent) => void,
 ): Promise<SwarmHypothesis & { needsClarification?: string }> {
   const llm = createFastModel();
   const agent = agentRegistry[doctorRole];
@@ -398,25 +445,65 @@ If you need one specific piece of patient history to refine confidence, set need
     // use defaults
   }
 
-  return { id: hypothesisId, name: hypothesis, confidence, reasoning, needsClarification };
+  return {
+    id: hypothesisId,
+    name: hypothesis,
+    confidence,
+    reasoning,
+    needsClarification,
+  };
 }
 
 // ── L2: Doctor swarm ────────────────────────────────────────────────────────
 
 const HYPOTHESES_BY_ROLE: Partial<Record<DoctorRole, string[]>> = {
-  cardiology: ["Acute coronary syndrome / ACS", "Unstable angina", "Aortic dissection", "Pericarditis / myocarditis"],
-  mental_health: ["Panic attack / acute anxiety", "Somatic symptom disorder", "Major depressive episode"],
-  dermatology: ["Contact dermatitis / allergic reaction", "Eczema", "Psoriasis", "Cellulitis"],
-  orthopedic: ["Musculoskeletal strain", "Herniated disc", "Stress fracture", "Tendinopathy"],
-  gastro: ["Gastroesophageal reflux (GERD)", "Peptic ulcer disease", "Irritable bowel syndrome", "Inflammatory bowel disease"],
-  physiotherapy: ["Postural dysfunction", "Repetitive strain injury", "Sports injury", "Nerve impingement"],
-  gp: ["Viral / bacterial infection", "Metabolic / endocrine cause", "Medication side effect", "Non-specific systemic illness"],
+  cardiology: [
+    "Acute coronary syndrome / ACS",
+    "Unstable angina",
+    "Aortic dissection",
+    "Pericarditis / myocarditis",
+  ],
+  mental_health: [
+    "Panic attack / acute anxiety",
+    "Somatic symptom disorder",
+    "Major depressive episode",
+  ],
+  dermatology: [
+    "Contact dermatitis / allergic reaction",
+    "Eczema",
+    "Psoriasis",
+    "Cellulitis",
+  ],
+  orthopedic: [
+    "Musculoskeletal strain",
+    "Herniated disc",
+    "Stress fracture",
+    "Tendinopathy",
+  ],
+  gastro: [
+    "Gastroesophageal reflux (GERD)",
+    "Peptic ulcer disease",
+    "Irritable bowel syndrome",
+    "Inflammatory bowel disease",
+  ],
+  physiotherapy: [
+    "Postural dysfunction",
+    "Repetitive strain injury",
+    "Sports injury",
+    "Nerve impingement",
+  ],
+  gp: [
+    "Viral / bacterial infection",
+    "Metabolic / endocrine cause",
+    "Medication side effect",
+    "Non-specific systemic illness",
+  ],
 };
 
 async function runDoctorSwarm(
   doctorRole: DoctorRole,
   state: SwarmState,
-  emit: (event: SwarmEvent) => void
+  emit: (event: SwarmEvent) => void,
 ): Promise<void> {
   const agent = agentRegistry[doctorRole];
   if (!agent) return;
@@ -430,9 +517,9 @@ async function runDoctorSwarm(
 
   // Run all hypotheses in parallel
   const results = await Promise.all(
-    hypotheses.slice(0, 4).map((h) =>
-      runHypothesisSubAgent(h, doctorRole, snapshot, pi, emit)
-    )
+    hypotheses
+      .slice(0, 4)
+      .map((h) => runHypothesisSubAgent(h, doctorRole, snapshot, pi, emit)),
   );
 
   for (const result of results) {
@@ -463,7 +550,12 @@ async function runDoctorSwarm(
 
       if (state.activeClarificationIds.length < 2) {
         state.activeClarificationIds.push(clarId);
-        emit({ type: "question_ready", clarificationId: clarId, doctorRole, question: result.needsClarification });
+        emit({
+          type: "question_ready",
+          clarificationId: clarId,
+          doctorRole,
+          question: result.needsClarification,
+        });
       }
     }
   }
@@ -476,14 +568,16 @@ async function runDoctorSwarm(
 
 async function runDebate(
   state: SwarmState,
-  emit: (event: SwarmEvent) => void
+  emit: (event: SwarmEvent) => void,
 ): Promise<void> {
   state.currentPhase = "debate";
   emit({ type: "phase_changed", phase: "debate" });
 
   const allHypotheses = Object.entries(state.doctorSwarms)
     .flatMap(([role, swarm]) =>
-      (swarm?.hypotheses ?? []).map((h) => `${role}: ${h.name} (${h.confidence}%)`)
+      (swarm?.hypotheses ?? []).map(
+        (h) => `${role}: ${h.name} (${h.confidence}%)`,
+      ),
     )
     .join("\n");
 
@@ -499,11 +593,15 @@ async function runDebate(
         new SystemMessage(`${agent.systemPrompt}${SCOPE_BOUNDARY}
 You are in a multidisciplinary team (MDT) meeting. Read all hypotheses and respond with ONE of: agree, challenge, or add_context.
 Be concise — max 100 words. Respond as JSON: { "type": "agree"|"challenge"|"add_context", "content": "your message", "referencingHypothesis": "hypothesis name or null" }`),
-        new HumanMessage(`All team hypotheses:\n${allHypotheses}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}, symptoms: ${state.symptoms}`),
+        new HumanMessage(
+          `All team hypotheses:\n${allHypotheses}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}, symptoms: ${state.symptoms}`,
+        ),
       ]);
 
       try {
-        const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+        const parsed = JSON.parse(
+          (response.content as string).replace(/```json\n?|\n?```/g, ""),
+        );
         state.debate.push({
           doctorRole,
           type: parsed.type ?? "add_context",
@@ -519,7 +617,7 @@ Be concise — max 100 words. Respond as JSON: { "type": "agree"|"challenge"|"ad
       } catch {
         // skip failed debate parse
       }
-    })
+    }),
   );
 }
 
@@ -527,7 +625,7 @@ Be concise — max 100 words. Respond as JSON: { "type": "agree"|"challenge"|"ad
 
 async function runSynthesis(
   state: SwarmState,
-  emit: (event: SwarmEvent) => void
+  emit: (event: SwarmEvent) => void,
 ): Promise<void> {
   state.currentPhase = "synthesis";
   emit({ type: "phase_changed", phase: "synthesis" });
@@ -536,7 +634,10 @@ async function runSynthesis(
 
   const allHypotheses = Object.entries(state.doctorSwarms)
     .flatMap(([role, swarm]) =>
-      (swarm?.hypotheses ?? []).map((h) => ({ ...h, doctorRole: role as DoctorRole }))
+      (swarm?.hypotheses ?? []).map((h) => ({
+        ...h,
+        doctorRole: role as DoctorRole,
+      })),
     )
     .sort((a, b) => b.confidence - a.confidence);
 
@@ -559,7 +660,10 @@ Initial triage: ${state.triage?.urgency}
 Red flags: ${state.triage?.redFlags.join(", ") || "none"}
 
 Top hypotheses:
-${allHypotheses.slice(0, 5).map((h) => `- ${h.name} (${h.confidence}%, ${h.doctorRole})`).join("\n")}
+${allHypotheses
+  .slice(0, 5)
+  .map((h) => `- ${h.name} (${h.confidence}%, ${h.doctorRole})`)
+  .join("\n")}
 
 Team debate:
 ${debateSummary || "No debate messages"}`),
@@ -580,7 +684,9 @@ ${debateSummary || "No debate messages"}`),
   };
 
   try {
-    const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+    const parsed = JSON.parse(
+      (response.content as string).replace(/```json\n?|\n?```/g, ""),
+    );
     synthesis = { ...synthesis, ...parsed };
   } catch (e) {
     console.error("[swarm] synthesis parse failed:", e);
@@ -598,7 +704,7 @@ ${debateSummary || "No debate messages"}`),
 export async function* streamSwarm(
   symptoms: string,
   patientInfo: SwarmState["patientInfo"],
-  sessionId?: string
+  sessionId?: string,
 ): AsyncGenerator<SwarmEvent> {
   const events: SwarmEvent[] = [];
   const emit = (event: SwarmEvent) => events.push(event);
@@ -628,7 +734,9 @@ export async function* streamSwarm(
 
   // L2+L3 All doctors in parallel
   const relevantDoctors = state.triage?.relevantDoctors ?? ["gp"];
-  await Promise.all(relevantDoctors.map((role) => runDoctorSwarm(role, state, emit)));
+  await Promise.all(
+    relevantDoctors.map((role) => runDoctorSwarm(role, state, emit)),
+  );
   yield* flush();
 
   // Wait for any pending clarifications (poll answerStore)
@@ -644,8 +752,13 @@ export async function* streamSwarm(
         const answer = answerStore.get(clarId);
         if (answer) {
           const clar = state.clarifications.find((c) => c.id === clarId);
-          if (clar) { clar.answer = answer; clar.status = "answered"; }
-          state.activeClarificationIds = state.activeClarificationIds.filter((id) => id !== clarId);
+          if (clar) {
+            clar.answer = answer;
+            clar.status = "answered";
+          }
+          state.activeClarificationIds = state.activeClarificationIds.filter(
+            (id) => id !== clarId,
+          );
           answerStore.delete(clarId);
         }
       }
@@ -661,7 +774,7 @@ export async function* streamSwarm(
   await runSynthesis(state, emit);
   yield* flush();
 }
-```
+````
 
 - [ ] **Step 2: Verify TypeScript**
 
@@ -681,6 +794,7 @@ git commit -m "feat: add swarm engine with parallel doctor fan-out and debate"
 ## Task 6: API routes
 
 **Files:**
+
 - Create: `src/app/api/swarm/start/route.ts`
 - Create: `src/app/api/swarm/answer/route.ts`
 - Modify: `src/app/api/portal/case-consult/route.ts`
@@ -701,8 +815,11 @@ export async function POST(request: NextRequest) {
   const rateCheck = checkRateLimit(ip);
   if (!rateCheck.allowed) {
     return new Response(
-      JSON.stringify({ error: "Too many requests", retryAfter: rateCheck.retryAfter }),
-      { status: 429, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: "Too many requests",
+        retryAfter: rateCheck.retryAfter,
+      }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -710,24 +827,37 @@ export async function POST(request: NextRequest) {
   const { symptoms, patientInfo } = body;
 
   if (!symptoms || typeof symptoms !== "string") {
-    return new Response(JSON.stringify({ error: "symptoms required" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "symptoms required" }), {
+      status: 400,
+    });
   }
   if (symptoms.length > 2000) {
-    return new Response(JSON.stringify({ error: "symptoms must be under 2000 characters" }), { status: 400 });
+    return new Response(
+      JSON.stringify({ error: "symptoms must be under 2000 characters" }),
+      { status: 400 },
+    );
   }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: SwarmEvent) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+        );
       };
       try {
-        for await (const event of streamSwarm(symptoms, patientInfo ?? { age: "unknown", gender: "unknown" })) {
+        for await (const event of streamSwarm(
+          symptoms,
+          patientInfo ?? { age: "unknown", gender: "unknown" },
+        )) {
           send(event);
         }
       } catch (err) {
-        send({ type: "error", message: "Consultation failed. Please try again." });
+        send({
+          type: "error",
+          message: "Consultation failed. Please try again.",
+        });
       } finally {
         controller.close();
       }
@@ -754,7 +884,10 @@ import { answerStore } from "@/agents/swarm-types";
 export async function POST(request: NextRequest) {
   const { clarificationId, answer } = await request.json();
   if (!clarificationId || !answer) {
-    return NextResponse.json({ error: "clarificationId and answer required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "clarificationId and answer required" },
+      { status: 400 },
+    );
   }
   answerStore.set(clarificationId, String(answer).slice(0, 500));
   return NextResponse.json({ ok: true });
@@ -792,6 +925,7 @@ git commit -m "feat: add swarm API routes, fix SSE error handling (issues #8, #1
 ## Task 7: Patient UI components
 
 **Files:**
+
 - Create: `src/components/consult/DoctorOrbRow.tsx`
 - Create: `src/components/consult/LiveFeedLine.tsx`
 - Create: `src/components/consult/ClarificationBubble.tsx`
@@ -806,7 +940,10 @@ import { motion } from "framer-motion";
 import { DoctorRole } from "@/agents/swarm-types";
 import { agentRegistry } from "@/agents/definitions";
 
-interface OrbState { role: DoctorRole; status: "waiting" | "active" | "done" }
+interface OrbState {
+  role: DoctorRole;
+  status: "waiting" | "active" | "done";
+}
 
 export function DoctorOrbRow({ orbs }: { orbs: OrbState[] }) {
   if (orbs.length === 0) return null;
@@ -822,20 +959,31 @@ export function DoctorOrbRow({ orbs }: { orbs: OrbState[] }) {
               scale: status === "active" ? [1, 1.08, 1] : 1,
               opacity: status === "waiting" ? 0.35 : 1,
             }}
-            transition={{ repeat: status === "active" ? Infinity : 0, duration: 1.2 }}
+            transition={{
+              repeat: status === "active" ? Infinity : 0,
+              duration: 1.2,
+            }}
             className="flex flex-col items-center gap-1"
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all ${
-              status === "active"
-                ? "border-blue-400 bg-blue-950 shadow-[0_0_12px_#60a5fa80]"
-                : status === "done"
-                ? "border-green-500 bg-green-950"
-                : "border-gray-600 bg-gray-800"
-            }`}>
-              {status === "done" ? "✓" : agent?.emoji ?? "👤"}
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all ${
+                status === "active"
+                  ? "border-blue-400 bg-blue-950 shadow-[0_0_12px_#60a5fa80]"
+                  : status === "done"
+                    ? "border-green-500 bg-green-950"
+                    : "border-gray-600 bg-gray-800"
+              }`}
+            >
+              {status === "done" ? "✓" : (agent?.emoji ?? "👤")}
             </div>
-            <span className={`text-[10px] ${status === "active" ? "text-blue-400" : status === "done" ? "text-green-400" : "text-gray-500"}`}>
-              {status === "active" ? "thinking" : status === "done" ? "done" : agent?.name.split(" ")[0]}
+            <span
+              className={`text-[10px] ${status === "active" ? "text-blue-400" : status === "done" ? "text-green-400" : "text-gray-500"}`}
+            >
+              {status === "active"
+                ? "thinking"
+                : status === "done"
+                  ? "done"
+                  : agent?.name.split(" ")[0]}
             </span>
           </motion.div>
         );
@@ -888,7 +1036,12 @@ interface Props {
   onAnswer: (clarificationId: string, answer: string) => void;
 }
 
-export function ClarificationBubble({ clarificationId, doctorRole, question, onAnswer }: Props) {
+export function ClarificationBubble({
+  clarificationId,
+  doctorRole,
+  question,
+  onAnswer,
+}: Props) {
   const [answer, setAnswer] = useState("");
   const agent = agentRegistry[doctorRole];
 
@@ -906,7 +1059,11 @@ export function ClarificationBubble({ clarificationId, doctorRole, question, onA
             placeholder="Your answer..."
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && answer.trim() && onAnswer(clarificationId, answer)}
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              answer.trim() &&
+              onAnswer(clarificationId, answer)
+            }
             className="flex-1"
             autoFocus
           />
@@ -934,13 +1091,31 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const URGENCY_CONFIG = {
-  emergency: { label: "EMERGENCY — Call 000", className: "bg-red-600 text-white text-base px-4 py-2" },
-  urgent: { label: "Urgent — See doctor today", className: "bg-orange-500 text-white" },
-  routine: { label: "Routine — Schedule an appointment", className: "bg-blue-600 text-white" },
-  self_care: { label: "Self-care recommended", className: "bg-green-600 text-white" },
+  emergency: {
+    label: "EMERGENCY — Call 000",
+    className: "bg-red-600 text-white text-base px-4 py-2",
+  },
+  urgent: {
+    label: "Urgent — See doctor today",
+    className: "bg-orange-500 text-white",
+  },
+  routine: {
+    label: "Routine — Schedule an appointment",
+    className: "bg-blue-600 text-white",
+  },
+  self_care: {
+    label: "Self-care recommended",
+    className: "bg-green-600 text-white",
+  },
 };
 
-export function SynthesisCard({ synthesis, onStartNew }: { synthesis: SwarmSynthesis; onStartNew: () => void }) {
+export function SynthesisCard({
+  synthesis,
+  onStartNew,
+}: {
+  synthesis: SwarmSynthesis;
+  onStartNew: () => void;
+}) {
   const config = URGENCY_CONFIG[synthesis.urgency];
   return (
     <Card className="p-6 space-y-4 border-2">
@@ -962,15 +1137,21 @@ export function SynthesisCard({ synthesis, onStartNew }: { synthesis: SwarmSynth
           <h3 className="font-semibold mb-2">Questions to ask your doctor</h3>
           <ul className="space-y-1">
             {synthesis.questionsForDoctor.map((q, i) => (
-              <li key={i} className="text-sm text-muted-foreground">• {q}</li>
+              <li key={i} className="text-sm text-muted-foreground">
+                • {q}
+              </li>
             ))}
           </ul>
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground border-t pt-3">{synthesis.disclaimer}</p>
+      <p className="text-xs text-muted-foreground border-t pt-3">
+        {synthesis.disclaimer}
+      </p>
 
-      <button onClick={onStartNew} className="text-sm text-primary underline">Start new consultation</button>
+      <button onClick={onStartNew} className="text-sm text-primary underline">
+        Start new consultation
+      </button>
     </Card>
   );
 }
@@ -994,6 +1175,7 @@ git commit -m "feat: add swarm patient UI components (orbs, feed, clarification,
 ## Task 8: SwarmChat — main patient consultation component
 
 **Files:**
+
 - Create: `src/components/consult/SwarmChat.tsx`
 - Modify: `src/app/consult/page.tsx`
 
@@ -1015,16 +1197,25 @@ import { agentRegistry } from "@/agents/definitions";
 
 type OrbStatus = "waiting" | "active" | "done";
 
-interface OrbState { role: DoctorRole; status: OrbStatus }
+interface OrbState {
+  role: DoctorRole;
+  status: OrbStatus;
+}
 
 export function SwarmChat() {
   const [step, setStep] = useState<"info" | "chat">("info");
-  const [patientInfo, setPatientInfo] = useState({ age: "", gender: "", knownConditions: "" });
+  const [patientInfo, setPatientInfo] = useState({
+    age: "",
+    gender: "",
+    knownConditions: "",
+  });
   const [symptoms, setSymptoms] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [liveFeed, setLiveFeed] = useState("");
   const [orbs, setOrbs] = useState<OrbState[]>([]);
-  const [clarifications, setClarifications] = useState<Array<{ id: string; doctorRole: DoctorRole; question: string }>>([]);
+  const [clarifications, setClarifications] = useState<
+    Array<{ id: string; doctorRole: DoctorRole; question: string }>
+  >([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -1034,7 +1225,7 @@ export function SwarmChat() {
     setOrbs((prev) => {
       const existing = prev.find((o) => o.role === role);
       if (!existing) return [...prev, { role, status }];
-      return prev.map((o) => o.role === role ? { ...o, status } : o);
+      return prev.map((o) => (o.role === role ? { ...o, status } : o));
     });
   }, []);
 
@@ -1071,12 +1262,17 @@ export function SwarmChat() {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const lines = decoder.decode(value).split("\n").filter((l) => l.startsWith("data: "));
+        const lines = decoder
+          .decode(value)
+          .split("\n")
+          .filter((l) => l.startsWith("data: "));
         for (const line of lines) {
           try {
             const event: SwarmEvent = JSON.parse(line.replace("data: ", ""));
             handleEvent(event);
-          } catch { /* skip malformed */ }
+          } catch {
+            /* skip malformed */
+          }
         }
       }
     } catch (err) {
@@ -1094,21 +1290,33 @@ export function SwarmChat() {
         break;
       case "doctor_activated":
         updateOrb(event.doctorRole, "active");
-        setLiveFeed(`${agentRegistry[event.doctorRole]?.name ?? event.doctorRole} is reviewing your symptoms...`);
+        setLiveFeed(
+          `${agentRegistry[event.doctorRole]?.name ?? event.doctorRole} is reviewing your symptoms...`,
+        );
         break;
       case "doctor_complete":
         updateOrb(event.doctorRole, "done");
         break;
       case "doctor_token":
-        tokenBufferRef.current[event.doctorRole] = (tokenBufferRef.current[event.doctorRole] ?? "") + event.token;
+        tokenBufferRef.current[event.doctorRole] =
+          (tokenBufferRef.current[event.doctorRole] ?? "") + event.token;
         break;
       case "question_ready":
-        setClarifications((prev) => [...prev, { id: event.clarificationId, doctorRole: event.doctorRole, question: event.question }]);
+        setClarifications((prev) => [
+          ...prev,
+          {
+            id: event.clarificationId,
+            doctorRole: event.doctorRole,
+            question: event.question,
+          },
+        ]);
         setLiveFeed("Your care team has a question for you...");
         break;
       case "phase_changed":
-        if (event.phase === "debate") setLiveFeed("Your care team is discussing...");
-        if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
+        if (event.phase === "debate")
+          setLiveFeed("Your care team is discussing...");
+        if (event.phase === "synthesis")
+          setLiveFeed("Preparing your recommendations...");
         break;
       case "synthesis_complete":
         setSynthesis(event.data);
@@ -1137,21 +1345,46 @@ export function SwarmChat() {
         <div className="text-center">
           <div className="text-4xl mb-2">🏥</div>
           <h2 className="text-xl font-bold">Tell us about yourself</h2>
-          <p className="text-sm text-muted-foreground mt-1">Helps your AI care team give better guidance</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Helps your AI care team give better guidance
+          </p>
         </div>
         <div className="space-y-3">
-          <Input placeholder="Age" type="number" value={patientInfo.age} onChange={(e) => setPatientInfo({ ...patientInfo, age: e.target.value })} />
+          <Input
+            placeholder="Age"
+            type="number"
+            value={patientInfo.age}
+            onChange={(e) =>
+              setPatientInfo({ ...patientInfo, age: e.target.value })
+            }
+          />
           <div className="flex gap-2">
             {["Male", "Female", "Other"].map((g) => (
-              <button key={g} onClick={() => setPatientInfo({ ...patientInfo, gender: g })}
-                className={`flex-1 py-2 rounded-lg border-2 text-sm transition-colors ${patientInfo.gender === g ? "border-primary bg-primary/10" : "border-border"}`}>
+              <button
+                key={g}
+                onClick={() => setPatientInfo({ ...patientInfo, gender: g })}
+                className={`flex-1 py-2 rounded-lg border-2 text-sm transition-colors ${patientInfo.gender === g ? "border-primary bg-primary/10" : "border-border"}`}
+              >
                 {g}
               </button>
             ))}
           </div>
-          <Input placeholder="Known conditions (optional)" value={patientInfo.knownConditions} onChange={(e) => setPatientInfo({ ...patientInfo, knownConditions: e.target.value })} />
+          <Input
+            placeholder="Known conditions (optional)"
+            value={patientInfo.knownConditions}
+            onChange={(e) =>
+              setPatientInfo({
+                ...patientInfo,
+                knownConditions: e.target.value,
+              })
+            }
+          />
         </div>
-        <Button className="w-full" disabled={!patientInfo.age || !patientInfo.gender} onClick={() => setStep("chat")}>
+        <Button
+          className="w-full"
+          disabled={!patientInfo.age || !patientInfo.gender}
+          onClick={() => setStep("chat")}
+        >
           Continue
         </Button>
       </Card>
@@ -1163,7 +1396,9 @@ export function SwarmChat() {
       {/* Care team panel */}
       {(orbs.length > 0 || isLoading) && (
         <Card className="p-4 mb-4 space-y-3">
-          <p className="text-xs text-muted-foreground text-center uppercase tracking-wide">Your care team</p>
+          <p className="text-xs text-muted-foreground text-center uppercase tracking-wide">
+            Your care team
+          </p>
           <DoctorOrbRow orbs={orbs} />
           <LiveFeedLine text={liveFeed} />
         </Card>
@@ -1177,10 +1412,18 @@ export function SwarmChat() {
       ))}
 
       {/* Synthesis result */}
-      {synthesis && <div className="mb-4"><SynthesisCard synthesis={synthesis} onStartNew={handleReset} /></div>}
+      {synthesis && (
+        <div className="mb-4">
+          <SynthesisCard synthesis={synthesis} onStartNew={handleReset} />
+        </div>
+      )}
 
       {/* Error */}
-      {error && <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl text-sm text-amber-700 dark:text-amber-300">{error}</div>}
+      {error && (
+        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl text-sm text-amber-700 dark:text-amber-300">
+          {error}
+        </div>
+      )}
 
       {/* Input */}
       {!synthesis && (
@@ -1195,11 +1438,20 @@ export function SwarmChat() {
               className="flex-1"
               autoFocus
             />
-            <Button onClick={startConsultation} disabled={!symptoms.trim() || isLoading}>
-              {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "→"}
+            <Button
+              onClick={startConsultation}
+              disabled={!symptoms.trim() || isLoading}
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                "→"
+              )}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">🔒 Not stored · AI guidance only, not medical advice</p>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            🔒 Not stored · AI guidance only, not medical advice
+          </p>
         </div>
       )}
     </div>
@@ -1214,7 +1466,7 @@ In `src/app/consult/page.tsx`, replace `ConsultationFlow` import and usage:
 ```tsx
 import { SwarmChat } from "@/components/consult/SwarmChat";
 // ...
-<SwarmChat />
+<SwarmChat />;
 ```
 
 - [ ] **Step 3: Verify TypeScript**
@@ -1235,6 +1487,7 @@ git commit -m "feat: add SwarmChat patient UI replacing ConsultationFlow"
 ## Task 9: Doctor debug panel
 
 **Files:**
+
 - Create: `src/components/doctor/SwarmDebugPanel.tsx`
 - Modify: `src/app/doctor/page.tsx`
 
@@ -1255,7 +1508,9 @@ export function SwarmDebugPanel({ state }: { state: Partial<SwarmState> }) {
         const agent = agentRegistry[role as keyof typeof agentRegistry];
         return (
           <div key={role} className="border rounded-lg p-3 space-y-2">
-            <div className="font-semibold">{agent?.emoji} {agent?.name}</div>
+            <div className="font-semibold">
+              {agent?.emoji} {agent?.name}
+            </div>
             {swarm?.hypotheses.map((h) => (
               <div key={h.id} className="space-y-1">
                 <div className="flex justify-between text-xs">
@@ -1263,7 +1518,10 @@ export function SwarmDebugPanel({ state }: { state: Partial<SwarmState> }) {
                   <span className="text-muted-foreground">{h.confidence}%</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-1.5">
-                  <div className="bg-primary h-1.5 rounded-full" style={{ width: `${h.confidence}%` }} />
+                  <div
+                    className="bg-primary h-1.5 rounded-full"
+                    style={{ width: `${h.confidence}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -1276,7 +1534,9 @@ export function SwarmDebugPanel({ state }: { state: Partial<SwarmState> }) {
           <div className="font-semibold">💬 Team Debate</div>
           {state.debate!.map((d, i) => (
             <div key={i} className="text-xs">
-              <span className="text-primary">{agentRegistry[d.doctorRole]?.name}</span>
+              <span className="text-primary">
+                {agentRegistry[d.doctorRole]?.name}
+              </span>
               <span className="text-muted-foreground"> ({d.type}): </span>
               {d.content}
             </div>
@@ -1300,6 +1560,7 @@ git commit -m "feat: add SwarmDebugPanel for doctor portal"
 ## Task 10: next.config + maxDuration
 
 **Files:**
+
 - Modify: `next.config.ts`
 
 - [ ] **Step 1: Add maxDuration**
@@ -1330,6 +1591,7 @@ git commit -m "fix: ensure swarm route has 60s maxDuration for Vercel"
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit 2>&1
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 2: Start dev server and smoke test**
@@ -1339,6 +1601,7 @@ bun run dev
 ```
 
 Open http://localhost:3000/consult — verify:
+
 - Info form appears
 - After submitting symptoms, orbs appear and animate
 - Live feed updates
@@ -1351,6 +1614,7 @@ curl -X POST http://localhost:3000/api/swarm/answer \
   -H "Content-Type: application/json" \
   -d '{"clarificationId":"test-123","answer":"no history of heart disease"}'
 ```
+
 Expected: `{"ok":true}`
 
 - [ ] **Step 4: Update agent-review.md**
@@ -1368,17 +1632,19 @@ git commit -m "feat: MediCrew swarm architecture — all 14 agent issues resolve
 
 ## Quick Reference
 
-| Command | Purpose |
-|---------|---------|
-| `bun run dev` | Start dev server |
+| Command                | Purpose          |
+| ---------------------- | ---------------- |
+| `bun run dev`          | Start dev server |
 | `bun run tsc --noEmit` | TypeScript check |
-| `bun run build` | Production build |
+| `bun run build`        | Production build |
 
 **Environment variables required:**
+
 - `GROQ_API_KEY` — Groq API key (paid plan recommended for 30s target)
 - `LLM_PROVIDER` — `groq` (default) or `ollama`
 
 **Key files to read before starting:**
+
 - `docs/superpowers/specs/2026-03-26-medicrew-swarm-design.md` — full spec
 - `docs/agent-review.md` — 14 issues being fixed
 - `src/agents/types.ts` — existing AgentRole, UrgencyLevel types

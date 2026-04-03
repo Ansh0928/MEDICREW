@@ -25,7 +25,7 @@ Phase 1 delivers the legal and infrastructure foundation: Supabase PostgreSQL (S
 
 - Agent naming format: `"Alex AI — GP"` (no bare "Dr." prefix) — clear AI identification, professional tone, AHPRA-safe. All 8 agent names updated across definitions and UI references.
 - AHPRA disclaimer placement: appended to every **Care Summary** output + displayed as a static banner on the consultation page header. Not injected per-message (reduces noise while remaining compliant per AHPRA guidance on health info disclaimers).
-- Standard disclaimer text: *"Medicrew provides health information, not medical diagnosis or advice. Always consult a registered healthcare professional for medical concerns. In an emergency, call 000."*
+- Standard disclaimer text: _"Medicrew provides health information, not medical diagnosis or advice. Always consult a registered healthcare professional for medical concerns. In an emergency, call 000."_
 - Agent system prompts: each agent receives an additional rule: never output "you have [condition]" — always "this may be consistent with" or "worth discussing with a doctor."
 
 ### Emergency Rules Engine
@@ -58,6 +58,7 @@ Phase 1 delivers the legal and infrastructure foundation: Supabase PostgreSQL (S
 </decisions>
 
 <code_context>
+
 ## Existing Code Insights
 
 ### Reusable Assets

@@ -12,12 +12,12 @@
 
 ## File Map
 
-| Action | Path | Purpose |
-|--------|------|---------|
-| Create | `src/components/ui/sign-in-flow-1.tsx` | Full sign-in component with all sub-components |
-| Replace | `src/app/login/patient/page.tsx` | Dynamic import of SignInPage with role="patient" |
-| Replace | `src/app/login/doctor/page.tsx` | Dynamic import of SignInPage with role="doctor" |
-| Create | `src/__tests__/sign-in-flow.test.tsx` | Unit tests for auth wiring and step transitions |
+| Action  | Path                                   | Purpose                                          |
+| ------- | -------------------------------------- | ------------------------------------------------ |
+| Create  | `src/components/ui/sign-in-flow-1.tsx` | Full sign-in component with all sub-components   |
+| Replace | `src/app/login/patient/page.tsx`       | Dynamic import of SignInPage with role="patient" |
+| Replace | `src/app/login/doctor/page.tsx`        | Dynamic import of SignInPage with role="doctor"  |
+| Create  | `src/__tests__/sign-in-flow.test.tsx`  | Unit tests for auth wiring and step transitions  |
 
 ---
 
@@ -53,6 +53,7 @@ git commit -m "chore: add three and @react-three/fiber for sign-in canvas effect
 ## Task 2: Write Tests First
 
 **Files:**
+
 - Create: `src/__tests__/sign-in-flow.test.tsx`
 
 Mock Three.js and R3F (they use browser-only APIs that don't exist in vitest/jsdom). Test only the auth wiring and step transitions, not the WebGL canvas itself.
@@ -88,9 +89,13 @@ vi.mock("@react-three/fiber", () => ({
 
 // Mock next/link
 vi.mock("next/link", () => ({
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    href,
+    children,
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => <a href={href}>{children}</a>,
 }));
 
 // Mock next/navigation
@@ -148,15 +153,19 @@ describe("SignInPage", () => {
     await waitFor(() => screen.getByText(/we sent you a code/i));
 
     // Fill 6 code inputs
-    const codeInputs = screen.getAllByRole("textbox").filter(
-      (el) => el.getAttribute("maxlength") === "1"
-    );
+    const codeInputs = screen
+      .getAllByRole("textbox")
+      .filter((el) => el.getAttribute("maxlength") === "1");
     for (const [i, input] of codeInputs.entries()) {
       fireEvent.change(input, { target: { value: String(i + 1) } });
     }
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith("patient@demo.com", "123456", "patient");
+      expect(mockLogin).toHaveBeenCalledWith(
+        "patient@demo.com",
+        "123456",
+        "patient",
+      );
     });
   });
 
@@ -170,9 +179,9 @@ describe("SignInPage", () => {
 
     await waitFor(() => screen.getByText(/we sent you a code/i));
 
-    const codeInputs = screen.getAllByRole("textbox").filter(
-      (el) => el.getAttribute("maxlength") === "1"
-    );
+    const codeInputs = screen
+      .getAllByRole("textbox")
+      .filter((el) => el.getAttribute("maxlength") === "1");
     for (const [i, input] of codeInputs.entries()) {
       fireEvent.change(input, { target: { value: String(i + 1) } });
     }
@@ -191,9 +200,9 @@ describe("SignInPage", () => {
     fireEvent.submit(emailInput.closest("form")!);
     await waitFor(() => screen.getByText(/we sent you a code/i));
 
-    const codeInputs = screen.getAllByRole("textbox").filter(
-      (el) => el.getAttribute("maxlength") === "1"
-    );
+    const codeInputs = screen
+      .getAllByRole("textbox")
+      .filter((el) => el.getAttribute("maxlength") === "1");
     for (const [i, input] of codeInputs.entries()) {
       fireEvent.change(input, { target: { value: String(i + 1) } });
     }
@@ -201,7 +210,9 @@ describe("SignInPage", () => {
     // Success step appears after 2s timeout — advance fake timers
     await waitFor(() => screen.getByText(/you're in/i), { timeout: 3000 });
 
-    const dashboardBtn = screen.getByRole("button", { name: /continue to dashboard/i });
+    const dashboardBtn = screen.getByRole("button", {
+      name: /continue to dashboard/i,
+    });
     fireEvent.click(dashboardBtn);
     expect(mockPush).toHaveBeenCalledWith("/patient");
   });
@@ -215,16 +226,18 @@ describe("SignInPage", () => {
     fireEvent.submit(emailInput.closest("form")!);
     await waitFor(() => screen.getByText(/we sent you a code/i));
 
-    const codeInputs = screen.getAllByRole("textbox").filter(
-      (el) => el.getAttribute("maxlength") === "1"
-    );
+    const codeInputs = screen
+      .getAllByRole("textbox")
+      .filter((el) => el.getAttribute("maxlength") === "1");
     for (const [i, input] of codeInputs.entries()) {
       fireEvent.change(input, { target: { value: String(i + 1) } });
     }
 
     await waitFor(() => screen.getByText(/you're in/i), { timeout: 3000 });
 
-    const dashboardBtn = screen.getByRole("button", { name: /continue to dashboard/i });
+    const dashboardBtn = screen.getByRole("button", {
+      name: /continue to dashboard/i,
+    });
     fireEvent.click(dashboardBtn);
     expect(mockPush).toHaveBeenCalledWith("/doctor");
   });
@@ -244,6 +257,7 @@ Expected: FAIL with "Cannot find module '@/components/ui/sign-in-flow-1'".
 ## Task 3: Create the Component
 
 **Files:**
+
 - Create: `src/components/ui/sign-in-flow-1.tsx`
 
 Start from the source component provided in the conversation. Apply all modifications from the spec.
@@ -318,23 +332,23 @@ colors={[dotColor]}
 
 Apply these replacements throughout the email step, code step, and success step JSX:
 
-| Old | New |
-|-----|-----|
-| `text-white` (headings h1) | `style={{ color: headingColor }}` |
-| `text-white/70`, `text-white/50` | `text-slate-500` |
-| `text-white/40` | `text-slate-400` |
-| `border-white/10` | `className={borderColor}` (or literal `border-sky-100` / `border-cyan-100`) |
-| `bg-white/5` (Google button) | `bg-white` |
-| `text-white` (Google button label) | `text-slate-700` |
-| `bg-[#111]` (disabled Continue) | `bg-slate-100` |
-| `text-white/50` (disabled Continue) | `text-slate-400` |
-| Continue button active state | `` `bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white` `` |
-| Email input `className` | `` `w-full ${inputBg} border ${borderColor} rounded-full py-3 px-4 text-slate-700 focus:outline-none focus:border focus:border-sky-300` `` |
-| Back button | `bg-slate-900 text-white` (keep dark for contrast) |
-| `text-white` (code inputs) | `text-slate-800` |
-| Placeholder `0` in code | `text-slate-300` |
-| `text-white/20` (pipe separator) | `text-slate-200` |
-| Code input container border | `` `border ${borderColor}` `` |
+| Old                                 | New                                                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `text-white` (headings h1)          | `style={{ color: headingColor }}`                                                                                                          |
+| `text-white/70`, `text-white/50`    | `text-slate-500`                                                                                                                           |
+| `text-white/40`                     | `text-slate-400`                                                                                                                           |
+| `border-white/10`                   | `className={borderColor}` (or literal `border-sky-100` / `border-cyan-100`)                                                                |
+| `bg-white/5` (Google button)        | `bg-white`                                                                                                                                 |
+| `text-white` (Google button label)  | `text-slate-700`                                                                                                                           |
+| `bg-[#111]` (disabled Continue)     | `bg-slate-100`                                                                                                                             |
+| `text-white/50` (disabled Continue) | `text-slate-400`                                                                                                                           |
+| Continue button active state        | `` `bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white` ``                                                                          |
+| Email input `className`             | `` `w-full ${inputBg} border ${borderColor} rounded-full py-3 px-4 text-slate-700 focus:outline-none focus:border focus:border-sky-300` `` |
+| Back button                         | `bg-slate-900 text-white` (keep dark for contrast)                                                                                         |
+| `text-white` (code inputs)          | `text-slate-800`                                                                                                                           |
+| Placeholder `0` in code             | `text-slate-300`                                                                                                                           |
+| `text-white/20` (pipe separator)    | `text-slate-200`                                                                                                                           |
+| Code input container border         | `` `border ${borderColor}` ``                                                                                                              |
 
 - [ ] **Step 5: Add demo hint below email input**
 
@@ -376,17 +390,21 @@ Make `handleCodeChange` async and call `handleCodeComplete` when all 6 digits ar
 ```tsx
 // OLD (remove this block):
 if (index === 5 && value) {
-  const isComplete = newCode.every(digit => digit.length === 1);
+  const isComplete = newCode.every((digit) => digit.length === 1);
   if (isComplete) {
     setReverseCanvasVisible(true);
-    setTimeout(() => { setInitialCanvasVisible(false); }, 50);
-    setTimeout(() => { setStep("success"); }, 2000);
+    setTimeout(() => {
+      setInitialCanvasVisible(false);
+    }, 50);
+    setTimeout(() => {
+      setStep("success");
+    }, 2000);
   }
 }
 
 // NEW:
 if (index === 5 && value) {
-  const isComplete = newCode.every(digit => digit.length === 1);
+  const isComplete = newCode.every((digit) => digit.length === 1);
   if (isComplete) {
     await handleCodeComplete(newCode);
   }
@@ -394,6 +412,7 @@ if (index === 5 && value) {
 ```
 
 Also make the function signature async:
+
 ```tsx
 const handleCodeChange = async (index: number, value: string) => {
 ```
@@ -403,9 +422,11 @@ const handleCodeChange = async (index: number, value: string) => {
 In the code step JSX, after the code input container `</div>`, add:
 
 ```tsx
-{authError && (
-  <p className="text-red-500 text-xs text-center mt-2">{authError}</p>
-)}
+{
+  authError && (
+    <p className="text-red-500 text-xs text-center mt-2">{authError}</p>
+  );
+}
 ```
 
 - [ ] **Step 8: Wire success step router.push**
@@ -435,16 +456,20 @@ Then inside `MiniNavbar`:
 const navLinksData = [
   { label: "Home", href: "/" },
   { label: "Consult", href: "/consult" },
-  { label: role === "doctor" ? "Patient Portal" : "Doctor Portal",
-    href: role === "doctor" ? "/login/patient" : "/login/doctor" },
+  {
+    label: role === "doctor" ? "Patient Portal" : "Doctor Portal",
+    href: role === "doctor" ? "/login/patient" : "/login/doctor",
+  },
 ];
 ```
 
 Replace the header className values:
+
 - `bg-[#1f1f1f57]` → `bg-white/80`
 - `border-[#333]` → `border-slate-200`
 
 Replace the Login button:
+
 ```tsx
 <a
   href="/login"
@@ -457,13 +482,16 @@ Replace the Login button:
 Remove the Signup button entirely (delete `signupButtonElement` and its usage).
 
 Update `AnimatedNavLink` text colors:
+
 - `text-gray-300` → `text-slate-500`
 - `text-white` (hover) → `text-slate-900`
 
 Update mobile menu link colors:
+
 - `text-gray-300 hover:text-white` → `text-slate-600 hover:text-slate-900`
 
 Update hamburger icon color:
+
 - `text-gray-300` → `text-slate-600`
 
 - [ ] **Step 10: Run tests**
@@ -475,6 +503,7 @@ bun run test src/__tests__/sign-in-flow.test.tsx 2>&1 | tail -30
 Expected: most tests pass. The success-redirect tests may need `vi.useFakeTimers()` — see fix below if they fail.
 
 **If the 2s setTimeout causes test timeouts**, add to the describe block:
+
 ```tsx
 beforeEach(() => {
   vi.useFakeTimers();
@@ -485,6 +514,7 @@ afterEach(() => {
 ```
 
 And in the success tests, after filling digits:
+
 ```tsx
 await vi.runAllTimersAsync();
 await waitFor(() => screen.getByText(/you're in/i));
@@ -502,6 +532,7 @@ git commit -m "feat(auth): add animated sign-in component with role-based blue/c
 ## Task 4: Replace Patient Login Page
 
 **Files:**
+
 - Replace: `src/app/login/patient/page.tsx`
 
 - [ ] **Step 1: Overwrite the patient login page**
@@ -512,7 +543,7 @@ import dynamic from "next/dynamic";
 
 const SignInPage = dynamic(
   () => import("@/components/ui/sign-in-flow-1").then((m) => m.SignInPage),
-  { ssr: false }
+  { ssr: false },
 );
 
 export default function PatientLogin() {
@@ -542,6 +573,7 @@ git commit -m "feat(auth): replace patient login page with animated sign-in flow
 ## Task 5: Replace Doctor Login Page
 
 **Files:**
+
 - Replace: `src/app/login/doctor/page.tsx`
 
 - [ ] **Step 1: Check what the current doctor login page contains**
@@ -556,7 +588,7 @@ import dynamic from "next/dynamic";
 
 const SignInPage = dynamic(
   () => import("@/components/ui/sign-in-flow-1").then((m) => m.SignInPage),
-  { ssr: false }
+  { ssr: false },
 );
 
 export default function DoctorLogin() {
@@ -594,6 +626,7 @@ bun run dev
 - [ ] **Step 2: Check patient login**
 
 Navigate to `http://localhost:3000/login/patient`:
+
 - [ ] Page background is light blue (`#f0f9ff`)
 - [ ] Animated dot matrix renders in sky blue
 - [ ] Demo hint shows `patient@demo.com`
@@ -605,6 +638,7 @@ Navigate to `http://localhost:3000/login/patient`:
 - [ ] **Step 3: Check doctor login**
 
 Navigate to `http://localhost:3000/login/doctor`:
+
 - [ ] Page background is light cyan (`#ecfeff`)
 - [ ] Dot matrix renders in cyan
 - [ ] Demo hint shows `doctor@demo.com`
@@ -613,6 +647,7 @@ Navigate to `http://localhost:3000/login/doctor`:
 - [ ] **Step 4: Check error state**
 
 On either page:
+
 - [ ] Enter a wrong email (e.g. `fake@test.com`) → advance → fill 6 digits → error message appears, code inputs reset
 
 - [ ] **Step 5: Check navbar links**

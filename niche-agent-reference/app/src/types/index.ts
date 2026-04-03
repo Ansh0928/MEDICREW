@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'patient' | 'doctor';
+  role: "patient" | "doctor";
   avatar?: string;
 }
 
@@ -10,7 +10,7 @@ export interface Symptom {
   id: string;
   name: string;
   category: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
 }
 
 export interface SymptomCheck {
@@ -21,13 +21,13 @@ export interface SymptomCheck {
   duration: string;
   additionalInfo: string;
   aiAssessment: AIAssessment;
-  status: 'pending' | 'in-review' | 'completed';
+  status: "pending" | "in-review" | "completed";
   createdAt: string;
   assignedDoctor?: string;
 }
 
 export interface AIAssessment {
-  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
+  urgencyLevel: "low" | "medium" | "high" | "critical";
   possibleConditions: string[];
   recommendedAction: string;
   questionsToAsk: string[];
@@ -50,9 +50,9 @@ export interface QueueItem {
   id: string;
   patientId: string;
   patientName: string;
-  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
+  urgencyLevel: "low" | "medium" | "high" | "critical";
   estimatedWaitTime: number;
-  status: 'waiting' | 'in-progress' | 'completed';
+  status: "waiting" | "in-progress" | "completed";
   symptomCheckId: string;
   checkInTime: string;
 }

@@ -41,9 +41,17 @@ export default function LoginPortal() {
             {/* Patient Portal */}
             <Link
               href="/login/patient"
-              onClick={() => trackEvent(ANALYTICS_EVENTS.authIntentClick, { surface: "login_portal", target: "patient" })}
+              onClick={() =>
+                trackEvent(ANALYTICS_EVENTS.authIntentClick, {
+                  surface: "login_portal",
+                  target: "patient",
+                })
+              }
             >
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <Card className="p-8 h-full cursor-pointer hover:border-blue-400 hover:shadow-lg transition-all group">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
                     <User className="w-8 h-8 text-blue-600" />
@@ -53,7 +61,8 @@ export default function LoginPortal() {
                     <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Access your health records, view consultation history, and receive notifications from your care team.
+                    Access your health records, view consultation history, and
+                    receive notifications from your care team.
                   </p>
                   <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
                     <li>✓ View consultation history</li>
@@ -67,9 +76,17 @@ export default function LoginPortal() {
             {/* Doctor Portal */}
             <Link
               href="/login/doctor"
-              onClick={() => trackEvent(ANALYTICS_EVENTS.authIntentClick, { surface: "login_portal", target: "doctor" })}
+              onClick={() =>
+                trackEvent(ANALYTICS_EVENTS.authIntentClick, {
+                  surface: "login_portal",
+                  target: "doctor",
+                })
+              }
             >
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <Card className="p-8 h-full cursor-pointer hover:border-emerald-400 hover:shadow-lg transition-all group">
                   <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6">
                     <Stethoscope className="w-8 h-8 text-emerald-600" />
@@ -79,7 +96,8 @@ export default function LoginPortal() {
                     <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Review patient cases, analyze AI consultations, and send personalized recommendations.
+                    Review patient cases, analyze AI consultations, and send
+                    personalized recommendations.
                   </p>
                   <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
                     <li>✓ View patient records</li>
@@ -96,7 +114,12 @@ export default function LoginPortal() {
             <Link
               href="/consult"
               className="text-blue-600 hover:underline"
-              onClick={() => trackEvent(ANALYTICS_EVENTS.landingCtaClick, { surface: "login_portal", cta: "start_consultation" })}
+              onClick={() =>
+                trackEvent(ANALYTICS_EVENTS.landingCtaClick, {
+                  surface: "login_portal",
+                  cta: "start_consultation",
+                })
+              }
             >
               Start a free consultation
             </Link>{" "}

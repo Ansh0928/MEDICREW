@@ -5,19 +5,28 @@ import { AgentRole } from "@/agents/types";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
 
 const teamRoles: AgentRole[] = [
-  "triage", "gp", "cardiology", "mental_health",
-  "dermatology", "orthopedic", "gastro", "physiotherapy",
+  "triage",
+  "gp",
+  "cardiology",
+  "mental_health",
+  "dermatology",
+  "orthopedic",
+  "gastro",
+  "physiotherapy",
 ];
 
-const roleConfig: Record<string, { color: string; seed: string; energy: number }> = {
-  triage:        { color: "#E95F6A", seed: "triage", energy: 100 },
-  gp:            { color: "#118CFD", seed: "alex",   energy: 95  },
-  cardiology:    { color: "#E95F6A", seed: "sarah",  energy: 90  },
-  mental_health: { color: "#8470BE", seed: "maya",   energy: 88  },
-  dermatology:   { color: "#F7C543", seed: "priya",  energy: 85  },
-  orthopedic:    { color: "#118CFD", seed: "james",  energy: 87  },
-  gastro:        { color: "#12CA93", seed: "chen",   energy: 92  },
-  physiotherapy: { color: "#12CA93", seed: "emma",   energy: 89  },
+const roleConfig: Record<
+  string,
+  { color: string; seed: string; energy: number }
+> = {
+  triage: { color: "#E95F6A", seed: "triage", energy: 100 },
+  gp: { color: "#118CFD", seed: "alex", energy: 95 },
+  cardiology: { color: "#E95F6A", seed: "sarah", energy: 90 },
+  mental_health: { color: "#8470BE", seed: "maya", energy: 88 },
+  dermatology: { color: "#F7C543", seed: "priya", energy: 85 },
+  orthopedic: { color: "#118CFD", seed: "james", energy: 87 },
+  gastro: { color: "#12CA93", seed: "chen", energy: 92 },
+  physiotherapy: { color: "#12CA93", seed: "emma", energy: 89 },
 };
 
 const dicebear = (seed: string) =>
@@ -41,10 +50,11 @@ export function MeetTheTeam() {
   return (
     <section
       className="py-24 px-6"
-      style={{ background: "linear-gradient(160deg, #E8EDF2 0%, #DDD9E8 100%)" }}
+      style={{
+        background: "linear-gradient(160deg, #E8EDF2 0%, #DDD9E8 100%)",
+      }}
     >
       <div className="max-w-5xl mx-auto">
-
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-6">
           <div>
@@ -69,7 +79,8 @@ export function MeetTheTeam() {
             className="text-sm leading-relaxed md:max-w-[260px] md:text-right"
             style={{ color: "#637288" }}
           >
-            Every case is reviewed by all relevant specialists simultaneously — not routed to just one.
+            Every case is reviewed by all relevant specialists simultaneously —
+            not routed to just one.
           </p>
         </div>
 
@@ -90,7 +101,10 @@ export function MeetTheTeam() {
             boxShadow: "0 2px 24px rgba(0,0,0,0.05)",
           }}
         >
-          <RadialOrbitalTimeline timelineData={orbitalData} centerColor="#118CFD" />
+          <RadialOrbitalTimeline
+            timelineData={orbitalData}
+            centerColor="#118CFD"
+          />
         </div>
       </div>
     </section>

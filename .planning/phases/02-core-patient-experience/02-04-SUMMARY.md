@@ -2,7 +2,17 @@
 phase: 02-core-patient-experience
 plan: "04"
 subsystem: ui
-tags: [react, nextjs, prisma, shadcn, care-summary, symptom-journal, health-profile, ahpra]
+tags:
+  [
+    react,
+    nextjs,
+    prisma,
+    shadcn,
+    care-summary,
+    symptom-journal,
+    health-profile,
+    ahpra,
+  ]
 
 # Dependency graph
 requires:
@@ -108,6 +118,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing Critical] Added integer validation for journal severity**
+
 - **Found during:** Task 1 (journal API implementation)
 - **Issue:** Plan spec only checked `severity < 1 || severity > 5` but did not check `Number.isInteger(severity)` — a float like 2.5 would pass range check and store invalid data
 - **Fix:** Added `!Number.isInteger(severity)` to the validation condition
@@ -116,6 +127,7 @@ Each task was committed atomically:
 - **Committed in:** 92f1d7a (Task 1 commit)
 
 **2. [Rule 2 - Missing Critical] Added array type validation for PATCH profile medications/allergies**
+
 - **Found during:** Task 1 (profile API implementation)
 - **Issue:** Prisma expects `medications` to be `string[]` — passing a non-array would throw at runtime
 - **Fix:** Added `!Array.isArray(medications)` and `!Array.isArray(allergies)` guards with 400 response
@@ -144,8 +156,9 @@ None - no external service configuration required.
 - /patient/profile is accessible but not yet linked from the Patient Portal nav (low priority, navigable directly)
 
 ---
-*Phase: 02-core-patient-experience*
-*Completed: 2026-03-26*
+
+_Phase: 02-core-patient-experience_
+_Completed: 2026-03-26_
 
 ## Self-Check: PASSED
 

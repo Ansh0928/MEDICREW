@@ -12,20 +12,20 @@
 
 ### What Exists
 
-| Area | Current State |
-|------|--------------|
-| `src/lib/inngest/client.ts` | `Inngest({ id: "medicrew" })` created — no functions registered |
-| `src/app/api/inngest/route.ts` | Serve handler scaffolded, `functions: []` — ready to add |
-| `prisma/schema.prisma` | `Notification` model exists (patientId, doctorId, title, message, type, read, createdAt) — lacks: `priority`, `notificationType` enum, `checkInId` foreign key |
-| `prisma/schema.prisma` | No `CheckIn` model — needs creation |
-| `prisma/schema.prisma` | `Consultation.urgencyLevel` String — needs to drive escalation but has no `checkInOptOut` on Patient |
-| `src/lib/emergency-rules.ts` | `detectEmergency(text)` pure function — deterministic, no LLM, returns `isEmergency`, `category`, `response` with 000 CTA. **Reuse directly in escalation engine.** |
-| `src/app/api/portal/queue/route.ts` | Uses in-memory `doctors-patients-store` — NOT Supabase/Prisma. Phase 3 doctor monitoring queue must use Prisma instead. |
-| `src/lib/doctors-patients-store.ts` | In-memory store — NOT persistent. Doctor monitoring queue in Phase 3 will bypass this and query Prisma directly. |
-| `src/app/api/notifications/route.ts` | GET handler exists — reads Prisma `Notification` model. Phase 3 extends this: add unread count endpoint + mark-read. |
-| `src/lib/supabase/client.ts` | `createSupabaseBrowser()` — Supabase JS client for browser Realtime. |
-| `src/lib/supabase/server.ts` | `createSupabaseServer()` — server-side Supabase client. |
-| `src/components/` | `consult/`, `dashboard/`, `doctor/`, `landing/`, `onboarding/`, `portal/`, `profile/`, `ui/` — no notification-specific components yet |
+| Area                                 | Current State                                                                                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/inngest/client.ts`          | `Inngest({ id: "medicrew" })` created — no functions registered                                                                                                     |
+| `src/app/api/inngest/route.ts`       | Serve handler scaffolded, `functions: []` — ready to add                                                                                                            |
+| `prisma/schema.prisma`               | `Notification` model exists (patientId, doctorId, title, message, type, read, createdAt) — lacks: `priority`, `notificationType` enum, `checkInId` foreign key      |
+| `prisma/schema.prisma`               | No `CheckIn` model — needs creation                                                                                                                                 |
+| `prisma/schema.prisma`               | `Consultation.urgencyLevel` String — needs to drive escalation but has no `checkInOptOut` on Patient                                                                |
+| `src/lib/emergency-rules.ts`         | `detectEmergency(text)` pure function — deterministic, no LLM, returns `isEmergency`, `category`, `response` with 000 CTA. **Reuse directly in escalation engine.** |
+| `src/app/api/portal/queue/route.ts`  | Uses in-memory `doctors-patients-store` — NOT Supabase/Prisma. Phase 3 doctor monitoring queue must use Prisma instead.                                             |
+| `src/lib/doctors-patients-store.ts`  | In-memory store — NOT persistent. Doctor monitoring queue in Phase 3 will bypass this and query Prisma directly.                                                    |
+| `src/app/api/notifications/route.ts` | GET handler exists — reads Prisma `Notification` model. Phase 3 extends this: add unread count endpoint + mark-read.                                                |
+| `src/lib/supabase/client.ts`         | `createSupabaseBrowser()` — Supabase JS client for browser Realtime.                                                                                                |
+| `src/lib/supabase/server.ts`         | `createSupabaseServer()` — server-side Supabase client.                                                                                                             |
+| `src/components/`                    | `consult/`, `dashboard/`, `doctor/`, `landing/`, `onboarding/`, `portal/`, `profile/`, `ui/` — no notification-specific components yet                              |
 
 ### Schema Gaps to Fill in Phase 3
 
@@ -82,7 +82,7 @@ export const scheduleCheckIn = inngest.createFunction(
     await step.run("send-checkin-notification", async () => {
       // create Notification + CheckIn record
     });
-  }
+  },
 );
 
 // Registering in route.ts
@@ -108,6 +108,7 @@ await inngest.send({
 ```
 
 ### Key Points
+
 - `step.sleep("48 hours")` is durable — survives Vercel function restarts and cold starts
 - Inngest Dev Server (port 8288) needed for local testing: `bunx inngest-cli@latest dev`
 - Opt-out check: read `patient.checkInOptOut` inside the function before sending — if true, return early and log skip
@@ -156,6 +157,7 @@ export function detectEscalation(
 Current `Consultation.urgencyLevel` values: `emergency`, `urgent`, `routine`, `self_care`.
 
 Escalation logic: `Worse` response → promote one tier:
+
 - `self_care` → `routine`
 - `routine` → `urgent`
 - `urgent` → `emergency`
@@ -171,12 +173,11 @@ Use Supabase broadcast channel for instant dashboard updates (no polling):
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 const supabase = await createSupabaseServer();
-await supabase.channel(`patient-${patientId}`)
-  .send({
-    type: "broadcast",
-    event: "escalation",
-    payload: { patientId, newUrgencyLevel, notificationId },
-  });
+await supabase.channel(`patient-${patientId}`).send({
+  type: "broadcast",
+  event: "escalation",
+  payload: { patientId, newUrgencyLevel, notificationId },
+});
 ```
 
 Client subscribes to the same channel in the dashboard component.
@@ -188,18 +189,19 @@ Client subscribes to the same channel in the dashboard component.
 ### Existing `Notification` Model
 
 The Prisma `Notification` model exists but lacks:
+
 - `priority` — needed for emergency visual distinction
 - `notificationType` — needed to categorize (check_in, escalation, emergency, etc.)
 - `checkInId` — FK to link notification to triggering check-in
 
 ### Required API Routes
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/notifications?patientId=` | GET | Exists — returns all notifications |
-| `/api/notifications/unread-count?patientId=` | GET | New — returns `{ count: N }` |
-| `/api/notifications/[id]/read` | PATCH | New — marks single notification read |
-| `/api/notifications/mark-all-read` | POST | New — bulk mark read for patient |
+| Route                                        | Method | Purpose                              |
+| -------------------------------------------- | ------ | ------------------------------------ |
+| `/api/notifications?patientId=`              | GET    | Exists — returns all notifications   |
+| `/api/notifications/unread-count?patientId=` | GET    | New — returns `{ count: N }`         |
+| `/api/notifications/[id]/read`               | PATCH  | New — marks single notification read |
+| `/api/notifications/mark-all-read`           | POST   | New — bulk mark read for patient     |
 
 ### Unread Badge
 
@@ -214,7 +216,11 @@ Resend is NOT currently installed in `package.json`. Install: `bun add resend`.
 import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function sendEscalationEmail(to: string, patientName: string, escalationDetail: string) {
+export async function sendEscalationEmail(
+  to: string,
+  patientName: string,
+  escalationDetail: string,
+) {
   await resend.emails.send({
     from: "Medicrew <noreply@medicrew.au>",
     to,
@@ -252,6 +258,7 @@ const patients = await prisma.patient.findMany({
 ```
 
 New route: `src/app/api/portal/monitoring-queue/route.ts` (separate from existing `queue` which uses in-memory store). Returns shaped data:
+
 ```ts
 {
   patientId, patientName, urgencyLevel,
@@ -272,37 +279,37 @@ New route: `src/app/api/portal/monitoring-queue/route.ts` (separate from existin
 
 ### Test Strategy
 
-| Concern | Test Approach |
-|---------|--------------|
-| `detectEscalation()` | Unit tests in `src/__tests__/escalation-rules.test.ts` — test "Worse", emergency keywords, "Better" (no escalation) |
-| Inngest function | Mock Inngest step functions with `@inngest/test` or manual mock — test opt-out early return, sleep duration |
-| `/api/notifications` routes | Vitest with Prisma mock (`vi.mock('@/lib/prisma')`) |
-| Resend email | Mock `resend.emails.send` with `vi.fn()` — assert called with correct `to`, `subject` |
-| Monitoring queue route | Mock Prisma, assert correct shape |
-| Supabase Realtime | Integration: manual QA in dev — Supabase Realtime channel subscription tested via browser DevTools |
+| Concern                     | Test Approach                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `detectEscalation()`        | Unit tests in `src/__tests__/escalation-rules.test.ts` — test "Worse", emergency keywords, "Better" (no escalation) |
+| Inngest function            | Mock Inngest step functions with `@inngest/test` or manual mock — test opt-out early return, sleep duration         |
+| `/api/notifications` routes | Vitest with Prisma mock (`vi.mock('@/lib/prisma')`)                                                                 |
+| Resend email                | Mock `resend.emails.send` with `vi.fn()` — assert called with correct `to`, `subject`                               |
+| Monitoring queue route      | Mock Prisma, assert correct shape                                                                                   |
+| Supabase Realtime           | Integration: manual QA in dev — Supabase Realtime channel subscription tested via browser DevTools                  |
 
 ### Acceptance Criteria Coverage
 
-| Success Criterion | How to verify |
-|-------------------|--------------|
-| 48h check-in fires | Inngest `step.sleep("48 hours")` present in function; local test: use `step.sleep("10 seconds")` env var override |
-| "Worse" → urgency escalation | `detectEscalation("feeling worse", "worse")` returns `action: "escalate"` |
-| Emergency keywords → 000 | `detectEscalation("chest pain", "worse")` returns `action: "emergency"` |
-| Doctor queue shows all active patients | GET `/api/portal/monitoring-queue` returns patients with last check-in status |
-| Unread badge | `Notification.read = false` count > 0 → badge renders with count |
+| Success Criterion                      | How to verify                                                                                                     |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 48h check-in fires                     | Inngest `step.sleep("48 hours")` present in function; local test: use `step.sleep("10 seconds")` env var override |
+| "Worse" → urgency escalation           | `detectEscalation("feeling worse", "worse")` returns `action: "escalate"`                                         |
+| Emergency keywords → 000               | `detectEscalation("chest pain", "worse")` returns `action: "emergency"`                                           |
+| Doctor queue shows all active patients | GET `/api/portal/monitoring-queue` returns patients with last check-in status                                     |
+| Unread badge                           | `Notification.read = false` count > 0 → badge renders with count                                                  |
 
 ---
 
 ## 7. Key Implementation Decisions
 
-| Decision | Rationale |
-|----------|-----------|
+| Decision                                           | Rationale                                                                                                                                 |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Inngest `step.sleep("48 hours")` — NOT Vercel Cron | Durable, survives restarts. Vercel Cron would require a separate cron job that scans for pending check-ins — more complex, less reliable. |
-| Reuse `detectEmergency()` in escalation engine | Deterministic, already tested, single source of truth per COMP-03 |
-| New `/api/portal/monitoring-queue` route | Avoids polluting in-memory store route; Prisma-backed for correctness |
-| `Resend` for email | Already implied in NOTF-02; no SMTP infra needed; matches pattern of existing integrations |
-| Supabase Realtime broadcast for escalations | Existing pattern (Phase 2 used Realtime for CareTeamStatus); zero-polling, instant |
-| `CheckIn` as first-class model | Enables querying check-in history, opt-out per-consultation, and linking notifications to their trigger |
+| Reuse `detectEmergency()` in escalation engine     | Deterministic, already tested, single source of truth per COMP-03                                                                         |
+| New `/api/portal/monitoring-queue` route           | Avoids polluting in-memory store route; Prisma-backed for correctness                                                                     |
+| `Resend` for email                                 | Already implied in NOTF-02; no SMTP infra needed; matches pattern of existing integrations                                                |
+| Supabase Realtime broadcast for escalations        | Existing pattern (Phase 2 used Realtime for CareTeamStatus); zero-polling, instant                                                        |
+| `CheckIn` as first-class model                     | Enables querying check-in history, opt-out per-consultation, and linking notifications to their trigger                                   |
 
 ---
 
@@ -325,5 +332,5 @@ src/app/(portal)/doctor/              — Add monitoring queue tab/page
 
 ---
 
-*Research complete: 2026-03-26*
-*Phase: 03-proactive-care-loop*
+_Research complete: 2026-03-26_
+_Phase: 03-proactive-care-loop_

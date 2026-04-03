@@ -213,7 +213,9 @@ export default async function ResourceArticle({
         </Link>
 
         {/* Title */}
-        <p className="font-mono text-xs tracking-widest uppercase text-slate-400 mb-3">Care Resource</p>
+        <p className="font-mono text-xs tracking-widest uppercase text-slate-400 mb-3">
+          Care Resource
+        </p>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900 leading-snug mb-4">
           {article.title}
         </h1>
@@ -221,10 +223,15 @@ export default async function ResourceArticle({
 
         {/* Symptom checklist */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Common symptoms</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            Common symptoms
+          </h2>
           <ul className="space-y-2">
             {article.checklist.map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-slate-700">
+              <li
+                key={item}
+                className="flex items-start gap-2.5 text-sm text-slate-700"
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0 mt-2" />
                 {item}
               </li>
@@ -234,7 +241,9 @@ export default async function ResourceArticle({
 
         {/* When to act */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">When to act</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            When to act
+          </h2>
 
           <div className="space-y-4">
             {/* Call 000 */}
@@ -247,7 +256,10 @@ export default async function ResourceArticle({
               </div>
               <ul className="space-y-1.5">
                 {article.callSection.call000.map((item) => (
-                  <li key={item} className="text-sm text-red-800 flex items-start gap-2">
+                  <li
+                    key={item}
+                    className="text-sm text-red-800 flex items-start gap-2"
+                  >
                     <span className="mt-1.5 w-1 h-1 rounded-full bg-red-600 flex-shrink-0" />
                     {item}
                   </li>
@@ -265,7 +277,10 @@ export default async function ResourceArticle({
               </div>
               <ul className="space-y-1.5">
                 {article.callSection.seeGP.map((item) => (
-                  <li key={item} className="text-sm text-yellow-900 flex items-start gap-2">
+                  <li
+                    key={item}
+                    className="text-sm text-yellow-900 flex items-start gap-2"
+                  >
                     <span className="mt-1.5 w-1 h-1 rounded-full bg-yellow-600 flex-shrink-0" />
                     {item}
                   </li>
@@ -280,7 +295,10 @@ export default async function ResourceArticle({
               </p>
               <ul className="space-y-1.5">
                 {article.callSection.selfCare.map((item) => (
-                  <li key={item} className="text-sm text-green-900 flex items-start gap-2">
+                  <li
+                    key={item}
+                    className="text-sm text-green-900 flex items-start gap-2"
+                  >
                     <span className="mt-1.5 w-1 h-1 rounded-full bg-green-600 flex-shrink-0" />
                     {item}
                   </li>
@@ -292,15 +310,19 @@ export default async function ResourceArticle({
 
         {/* CTA */}
         <div className="rounded-xl bg-sky-50 border border-sky-100 p-6 text-center">
-          <p className="font-semibold text-slate-900 mb-1">Still not sure what to do?</p>
+          <p className="font-semibold text-slate-900 mb-1">
+            Still not sure what to do?
+          </p>
           <p className="text-sm text-slate-600 mb-4">
-            Start a free AI consultation and our care team will assess your specific symptoms.
+            Start a free AI consultation and our care team will assess your
+            specific symptoms.
           </p>
           <Link
             href="/consult"
             className="inline-flex rounded-full bg-sky-600 text-white text-sm font-medium px-6 py-2.5 hover:bg-sky-700 transition-colors"
           >
-            Start a consultation about {article.title.split(" ").slice(0, 2).join(" ").toLowerCase()}
+            Start a consultation about{" "}
+            {article.title.split(" ").slice(0, 2).join(" ").toLowerCase()}
           </Link>
         </div>
 

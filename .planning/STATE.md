@@ -36,16 +36,16 @@ Plan: 3 of 4 complete (03-03 done, 03-04 next)
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-foundation-compliance | 1/4 | 4 min | 4 min |
+| Phase                    | Plans | Total | Avg/Plan |
+| ------------------------ | ----- | ----- | -------- |
+| 01-foundation-compliance | 1/4   | 4 min | 4 min    |
 
 **Recent Trend:**
 
 - Last 5 plans: 01-01 (4 min)
 - Trend: on track
 
-*Updated after each plan completion*
+_Updated after each plan completion_
 | Phase 01-foundation-compliance P01 | 4 | 2 tasks | 15 files |
 | Phase 01-foundation-compliance P02 | 12 | 2 tasks | 6 files |
 | Phase 01-foundation-compliance P03 | 4 | 2 tasks | 14 files |
@@ -71,7 +71,7 @@ Recent decisions affecting current work:
 - [Roadmap]: Supabase must be confirmed on ap-southeast-2 (Sydney) before any patient data migration
 - [01-01]: Lowercase SQL keywords in ALTER TABLE RLS statements to match grep acceptance criteria pattern
 - [01-01]: Removed @prisma/adapter-better-sqlite3 — prisma.ts uses plain PrismaClient with no adapter
-- [01-01]: Force-committed .env.example despite .gitignore .env* rule (template with no real secrets)
+- [01-01]: Force-committed .env.example despite .gitignore .env\* rule (template with no real secrets)
 - [Phase 01-01]: Removed @prisma/adapter-better-sqlite3 — prisma.ts uses plain PrismaClient with no adapter import
 - [Phase 01-01]: Lowercase SQL in RLS ALTER TABLE statements to match plan grep acceptance criteria
 - [Phase 01-02]: PostgresSaver uses DIRECT_URL not DATABASE_URL — pg driver requires direct connection bypassing Supabase pooler

@@ -21,7 +21,11 @@ interface TriageTransparencyPanelProps {
  * Shared panel showing agent activations + live feed.
  * Used in SwarmChat (patient view) and HuddleRoom (doctor team overview).
  */
-export function TriageTransparencyPanel({ orbs, liveFeed, isVisible }: TriageTransparencyPanelProps) {
+export function TriageTransparencyPanel({
+  orbs,
+  liveFeed,
+  isVisible,
+}: TriageTransparencyPanelProps) {
   if (!isVisible) return null;
 
   return (

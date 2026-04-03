@@ -5,14 +5,16 @@ export type ConnectionType = "agree" | "challenge" | "add_context";
 
 export interface HuddleConnection {
   id: string;
-  fromX: number; fromY: number;
-  toX: number;   toY: number;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
   type: ConnectionType;
 }
 
 const colorMap: Record<ConnectionType, string> = {
-  agree: "#22c55e",        // green-500
-  challenge: "#f97316",   // orange-500
+  agree: "#22c55e", // green-500
+  challenge: "#f97316", // orange-500
   add_context: "#3b82f6", // blue-500
 };
 

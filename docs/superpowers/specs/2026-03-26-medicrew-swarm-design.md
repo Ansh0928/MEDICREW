@@ -75,60 +75,75 @@ L5  SYNTHESIS            Reads all hypotheses + confidence scores + debate.
 
 ```typescript
 // DoctorRole is an alias for the existing AgentRole from src/agents/types.ts
-type DoctorRole = AgentRole  // "gp" | "cardiology" | "mental_health" | "dermatology" | "orthopedic" | "gastro" | "physiotherapy" | "triage"
+type DoctorRole = AgentRole; // "gp" | "cardiology" | "mental_health" | "dermatology" | "orthopedic" | "gastro" | "physiotherapy" | "triage"
 
 interface SwarmState {
-  sessionId: string
-  symptoms: string
-  patientInfo: { age: string; gender: string; knownConditions?: string }
+  sessionId: string;
+  symptoms: string;
+  patientInfo: { age: string; gender: string; knownConditions?: string };
 
   // L1
   triage: {
-    urgency: 'emergency' | 'urgent' | 'routine' | 'self_care'
-    relevantDoctors: DoctorRole[]
-    redFlags: string[]
-  } | null
+    urgency: "emergency" | "urgent" | "routine" | "self_care";
+    relevantDoctors: DoctorRole[];
+    redFlags: string[];
+  } | null;
 
   // L2 + L3
-  doctorSwarms: Partial<Record<DoctorRole, {
-    status: 'pending' | 'running' | 'waiting_for_patient' | 'complete'
-    hypotheses: Array<{
-      id: string          // uuid — used to correlate questions with swarm branch
-      name: string
-      confidence: number
-      reasoning: string
-    }>
-  }>>
+  doctorSwarms: Partial<
+    Record<
+      DoctorRole,
+      {
+        status: "pending" | "running" | "waiting_for_patient" | "complete";
+        hypotheses: Array<{
+          id: string; // uuid — used to correlate questions with swarm branch
+          name: string;
+          confidence: number;
+          reasoning: string;
+        }>;
+      }
+    >
+  >;
 
   // Clarification Q&A
   clarifications: Array<{
-    id: string            // matches hypothesis.id that triggered the question
-    doctorRole: DoctorRole
-    question: string
-    answer?: string
-    status: 'pending' | 'answered'
-  }>
-  activeClarificationIds: string[]  // max 2 — queued if more pending
+    id: string; // matches hypothesis.id that triggered the question
+    doctorRole: DoctorRole;
+    question: string;
+    answer?: string;
+    status: "pending" | "answered";
+  }>;
+  activeClarificationIds: string[]; // max 2 — queued if more pending
 
   // L4
   debate: Array<{
-    doctorRole: DoctorRole
-    type: 'agree' | 'challenge' | 'add_context'
-    content: string
-    referencingHypothesis?: string
-  }>
+    doctorRole: DoctorRole;
+    type: "agree" | "challenge" | "add_context";
+    content: string;
+    referencingHypothesis?: string;
+  }>;
 
   // L5
   synthesis: {
-    urgency: 'emergency' | 'urgent' | 'routine' | 'self_care'
-    rankedHypotheses: Array<{ name: string; confidence: number; doctorRole: DoctorRole }>
-    nextSteps: string[]
-    questionsForDoctor: string[]
-    timeframe: string
-    disclaimer: string
-  } | null
+    urgency: "emergency" | "urgent" | "routine" | "self_care";
+    rankedHypotheses: Array<{
+      name: string;
+      confidence: number;
+      doctorRole: DoctorRole;
+    }>;
+    nextSteps: string[];
+    questionsForDoctor: string[];
+    timeframe: string;
+    disclaimer: string;
+  } | null;
 
-  currentPhase: 'triage' | 'swarm' | 'awaiting_patient' | 'debate' | 'synthesis' | 'complete'
+  currentPhase:
+    | "triage"
+    | "swarm"
+    | "awaiting_patient"
+    | "debate"
+    | "synthesis"
+    | "complete";
 }
 ```
 
@@ -138,17 +153,33 @@ interface SwarmState {
 
 ```typescript
 type SwarmEvent =
-  | { type: 'triage_complete'; data: NonNullable<SwarmState['triage']> }
-  | { type: 'phase_changed'; phase: SwarmState['currentPhase'] }
-  | { type: 'doctor_activated'; doctorRole: DoctorRole; doctorName: string }
-  | { type: 'doctor_complete'; doctorRole: DoctorRole }
-  | { type: 'hypothesis_found'; doctorRole: DoctorRole; hypothesisId: string; name: string; confidence: number }
-  | { type: 'question_ready'; clarificationId: string; doctorRole: DoctorRole; question: string }
-  | { type: 'doctor_token'; doctorRole: DoctorRole; token: string }
-  | { type: 'debate_message'; doctorRole: DoctorRole; messageType: 'agree' | 'challenge' | 'add_context'; content: string }
-  | { type: 'synthesis_complete'; data: NonNullable<SwarmState['synthesis']> }
-  | { type: 'error'; message: string }
-  | { type: 'done' }
+  | { type: "triage_complete"; data: NonNullable<SwarmState["triage"]> }
+  | { type: "phase_changed"; phase: SwarmState["currentPhase"] }
+  | { type: "doctor_activated"; doctorRole: DoctorRole; doctorName: string }
+  | { type: "doctor_complete"; doctorRole: DoctorRole }
+  | {
+      type: "hypothesis_found";
+      doctorRole: DoctorRole;
+      hypothesisId: string;
+      name: string;
+      confidence: number;
+    }
+  | {
+      type: "question_ready";
+      clarificationId: string;
+      doctorRole: DoctorRole;
+      question: string;
+    }
+  | { type: "doctor_token"; doctorRole: DoctorRole; token: string }
+  | {
+      type: "debate_message";
+      doctorRole: DoctorRole;
+      messageType: "agree" | "challenge" | "add_context";
+      content: string;
+    }
+  | { type: "synthesis_complete"; data: NonNullable<SwarmState["synthesis"]> }
+  | { type: "error"; message: string }
+  | { type: "done" };
 ```
 
 ---
@@ -156,11 +187,20 @@ type SwarmEvent =
 ## 6. API Endpoints
 
 ### `POST /api/swarm/start`
+
 Start a swarm session. Returns SSE stream.
 
 Request:
+
 ```json
-{ "symptoms": "string (max 2000 chars)", "patientInfo": { "age": "string", "gender": "string", "knownConditions": "string?" } }
+{
+  "symptoms": "string (max 2000 chars)",
+  "patientInfo": {
+    "age": "string",
+    "gender": "string",
+    "knownConditions": "string?"
+  }
+}
 ```
 
 Response: `text/event-stream`. Each event: `data: <SwarmEvent JSON>\n\n`
@@ -168,9 +208,11 @@ Response: `text/event-stream`. Each event: `data: <SwarmEvent JSON>\n\n`
 Security: input length cap 2000 chars, IP rate limit 5 req/60s, auth optional for MVP.
 
 ### `POST /api/swarm/answer`
+
 Submit patient answer to a clarification question.
 
 Request:
+
 ```json
 { "sessionId": "string", "clarificationId": "string", "answer": "string" }
 ```
@@ -180,6 +222,7 @@ Response: `{ "ok": true }` — the answer is written to a shared in-memory store
 Note: both the SSE handler and the answer handler run in the same serverless function invocation **only** if the SSE stream is still open. The `POST /api/swarm/answer` writes to a module-level `Map<sessionId, answer>` that the SSE generator reads. This works in dev (single Node process) but has the same Vercel statelesness caveat — session resume is Phase 2.
 
 ### `POST /api/portal/case-consult` (existing)
+
 Updated to use the new swarm. Fixes SSE error handling (structured error event before `controller.close()`).
 
 ---
@@ -188,14 +231,14 @@ Updated to use the new swarm. Fixes SSE error handling (structured error event b
 
 File: `src/components/consult/SwarmChat.tsx` (replaces `ConsultationFlow.tsx`)
 
-| Component | Behaviour |
-|-----------|-----------|
-| `SwarmChat` | Root. Manages SSE stream from `/api/swarm/start`. Owns `SwarmState` locally. |
-| `PatientInfoStep` | Age + gender + optional conditions. One step, no doctor selection. |
-| `DoctorOrbRow` | Row of orbs for relevant doctors only. `waiting` = dim, `active` = glowing pulse animation, `done` = checkmark. |
-| `LiveFeedLine` | Single line below orbs. Updates on `doctor_activated` and `doctor_token` events. |
-| `ClarificationBubble` | Renders on `question_ready`. Doctor avatar + question text + inline text input + submit. On submit calls `POST /api/swarm/answer`. Max 2 visible. |
-| `SynthesisCard` | Renders on `synthesis_complete`. Urgency badge, ranked next steps, questions for GP, disclaimer. Emergency urgency → renders immediately with "Call 000". |
+| Component             | Behaviour                                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SwarmChat`           | Root. Manages SSE stream from `/api/swarm/start`. Owns `SwarmState` locally.                                                                              |
+| `PatientInfoStep`     | Age + gender + optional conditions. One step, no doctor selection.                                                                                        |
+| `DoctorOrbRow`        | Row of orbs for relevant doctors only. `waiting` = dim, `active` = glowing pulse animation, `done` = checkmark.                                           |
+| `LiveFeedLine`        | Single line below orbs. Updates on `doctor_activated` and `doctor_token` events.                                                                          |
+| `ClarificationBubble` | Renders on `question_ready`. Doctor avatar + question text + inline text input + submit. On submit calls `POST /api/swarm/answer`. Max 2 visible.         |
+| `SynthesisCard`       | Renders on `synthesis_complete`. Urgency badge, ranked next steps, questions for GP, disclaimer. Emergency urgency → renders immediately with "Call 000". |
 
 Patient never sees: hypothesis names, confidence scores, debate content, sub-agent count.
 
@@ -207,10 +250,10 @@ File: `src/app/doctor/page.tsx` (existing, extended)
 
 Doctor portal reads from existing `SymptomCheck` records and triggers `streamDoctorConsultation` (updated to use swarm). Swarm state is passed as a prop to a new `SwarmDebugPanel` component.
 
-| Component | Data source |
-|-----------|-------------|
-| `SwarmDebugPanel` | SSE stream from doctor portal trigger. Per-doctor hypothesis bars + confidence %. Debate transcript. Q&A log. |
-| `DifferentialRanking` | `synthesis.rankedHypotheses` — sorted table across all doctors. |
+| Component             | Data source                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `SwarmDebugPanel`     | SSE stream from doctor portal trigger. Per-doctor hypothesis bars + confidence %. Debate transcript. Q&A log. |
+| `DifferentialRanking` | `synthesis.rankedHypotheses` — sorted table across all doctors.                                               |
 
 **Note:** SOAP note / PDF export is **out of scope for MVP** (listed in Section 10 Out of Scope). The doctor UI shows the swarm output in-app only.
 
@@ -247,6 +290,7 @@ Triage node uses Groq JSON mode. Model: `llama-3.3-70b-versatile` (confirmed JSO
 ## 11. Performance Constraints
 
 The 30-second end-to-end target applies under these conditions:
+
 - Groq paid plan (Dev Console free tier will serialize parallel requests due to RPM limits)
 - Sub-agent responses capped at 200 tokens each
 - Max 4 sub-agents per doctor × max 4 relevant doctors = 16 parallel sub-agent calls
@@ -259,22 +303,22 @@ Set `maxDuration = 60` in `next.config.ts` for `/api/swarm/start`.
 
 ## 12. Fixes from agent-review.md
 
-| Issue | Fix |
-|-------|-----|
-| #1 Sequential specialists | Promise.all fan-out in swarm.ts |
-| #2 Node-level streaming | llm.stream() + doctor_token events |
-| #3 LLM per node | Single LLM instance per swarm run |
-| #4 Triage silent fail-open | JSON mode + "urgent" fallback + error log |
-| #5 Doctor triage regex | Structured JSON in both pipelines |
-| #6 Naive keyword routing | LLM-based routing inside triage |
-| #7 LLM instantiation | Lifted to swarm factory |
-| #8 No auth/rate limit | Input cap 2000 chars + IP rate limiter |
-| #9 Hardcoded urgency | Synthesis determines urgency from debate |
-| #10 No session resume | Out of scope MVP — noted in Section 10 |
-| #11 SSE error handling | Structured error event before close |
-| #12 Missing guardrails | Scope boundaries block added to all 6 specialist prompts |
-| #13 No-op router | Removed — replaced by conditional fan-out |
-| #14 No observability | LangSmith env vars + pino on API routes |
+| Issue                      | Fix                                                      |
+| -------------------------- | -------------------------------------------------------- |
+| #1 Sequential specialists  | Promise.all fan-out in swarm.ts                          |
+| #2 Node-level streaming    | llm.stream() + doctor_token events                       |
+| #3 LLM per node            | Single LLM instance per swarm run                        |
+| #4 Triage silent fail-open | JSON mode + "urgent" fallback + error log                |
+| #5 Doctor triage regex     | Structured JSON in both pipelines                        |
+| #6 Naive keyword routing   | LLM-based routing inside triage                          |
+| #7 LLM instantiation       | Lifted to swarm factory                                  |
+| #8 No auth/rate limit      | Input cap 2000 chars + IP rate limiter                   |
+| #9 Hardcoded urgency       | Synthesis determines urgency from debate                 |
+| #10 No session resume      | Out of scope MVP — noted in Section 10                   |
+| #11 SSE error handling     | Structured error event before close                      |
+| #12 Missing guardrails     | Scope boundaries block added to all 6 specialist prompts |
+| #13 No-op router           | Removed — replaced by conditional fan-out                |
+| #14 No observability       | LangSmith env vars + pino on API routes                  |
 
 ---
 

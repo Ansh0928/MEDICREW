@@ -5,8 +5,13 @@ export const triageAgent: AgentDefinition = {
   role: "triage",
   name: "Triage AI",
   emoji: "🚨",
-  description: "Assesses urgency and identifies red flags requiring immediate attention",
-  specialties: ["emergency assessment", "red flag identification", "urgency classification"],
+  description:
+    "Assesses urgency and identifies red flags requiring immediate attention",
+  specialties: [
+    "emergency assessment",
+    "red flag identification",
+    "urgency classification",
+  ],
   systemPrompt: `You are Triage AI, an experienced triage assistant. Your role is to assess the urgency of patient symptoms and identify any red flags that require immediate medical attention.
 
 ## Your Responsibilities:

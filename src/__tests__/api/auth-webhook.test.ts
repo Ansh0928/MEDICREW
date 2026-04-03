@@ -23,9 +23,7 @@ const VALID_USER_CREATED_EVENT = {
   type: "user.created",
   data: {
     id: "user_clerk123",
-    email_addresses: [
-      { email_address: "jane@example.com", id: "email_1" },
-    ],
+    email_addresses: [{ email_address: "jane@example.com", id: "email_1" }],
     primary_email_address_id: "email_1",
     first_name: "Jane",
     last_name: "Doe",
@@ -69,13 +67,15 @@ describe("POST /api/auth/webhook", () => {
           email: "jane@example.com",
           name: "Jane Doe",
         }),
-      })
+      }),
     );
   });
 
   it("returns 200 without creating patient for non-user.created events", async () => {
     const { POST } = await import("@/app/api/auth/webhook/route");
-    const res = await POST(makeWebhookRequest({ type: "user.updated", data: {} }) as any);
+    const res = await POST(
+      makeWebhookRequest({ type: "user.updated", data: {} }) as any,
+    );
     expect(res.status).toBe(200);
     expect(prisma.patient.create).not.toHaveBeenCalled();
   });
@@ -95,7 +95,7 @@ describe("POST /api/auth/webhook", () => {
           email: "jane@example.com",
           name: "Jane Doe",
         }),
-      })
+      }),
     );
   });
 
@@ -103,14 +103,18 @@ describe("POST /api/auth/webhook", () => {
     const { POST } = await import("@/app/api/auth/webhook/route");
     const event = {
       ...VALID_USER_CREATED_EVENT,
-      data: { ...VALID_USER_CREATED_EVENT.data, first_name: null, last_name: null },
+      data: {
+        ...VALID_USER_CREATED_EVENT.data,
+        first_name: null,
+        last_name: null,
+      },
     };
     const res = await POST(makeWebhookRequest(event) as any);
     expect(res.status).toBe(200);
     expect(prisma.patient.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ name: "jane@example.com" }),
-      })
+      }),
     );
   });
 });

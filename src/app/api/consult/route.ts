@@ -16,6 +16,8 @@ import {
 } from "@/lib/consultation-intake";
 import { canStartConsultation } from "@/lib/subscription";
 
+export const dynamic = "force-dynamic";
+
 interface APIError extends Error {
   status?: number;
   statusText?: string;

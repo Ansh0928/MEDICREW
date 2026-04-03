@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getDoctorAuth } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const { doctor, error } = await getDoctorAuth();
   if (error) return error;
 
   if (!doctor!.clinicId) {
-    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Doctor not assigned to a clinic" },
+      { status: 403 },
+    );
   }
 
   // Fetch active patients scoped to this doctor's clinic
@@ -62,15 +67,25 @@ export async function GET() {
       }
 
       // Compute urgency trend from last 5 check-ins (responded only)
-      const responseScore: Record<string, number> = { better: -1, same: 0, worse: 1 };
+      const responseScore: Record<string, number> = {
+        better: -1,
+        same: 0,
+        worse: 1,
+      };
       const respondedCheckIns = p.checkIns.filter((c) => c.response !== null);
-      let urgencyTrend: "improving" | "stable" | "worsening" | "insufficient_data";
+      let urgencyTrend:
+        | "improving"
+        | "stable"
+        | "worsening"
+        | "insufficient_data";
       if (respondedCheckIns.length < 2) {
         urgencyTrend = "insufficient_data";
       } else {
         const avgScore =
-          respondedCheckIns.reduce((sum, c) => sum + (responseScore[c.response!] ?? 0), 0) /
-          respondedCheckIns.length;
+          respondedCheckIns.reduce(
+            (sum, c) => sum + (responseScore[c.response!] ?? 0),
+            0,
+          ) / respondedCheckIns.length;
         if (avgScore <= -0.3) {
           urgencyTrend = "improving";
         } else if (avgScore >= 0.3) {
@@ -88,7 +103,8 @@ export async function GET() {
         >) ?? {};
       const lastAgentActivity =
         Object.values(statuses).sort(
-          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
         )[0] ?? null;
 
       return {

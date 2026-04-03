@@ -12,25 +12,26 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|----------------|
-| Create | `src/lib/intake-types.ts` | Shared `IntakeAnswer`, `IntakeQuestion` types |
-| Create | `src/app/api/consult/intake/route.ts` | Stateless AI intake question endpoint |
-| Create | `src/components/consult/BodyMap.tsx` | SVG front/back body diagram |
-| Create | `src/components/consult/IntakeConversation.tsx` | Adaptive Q&A orchestrator |
-| Create | `src/components/consult/TriageTransparencyPanel.tsx` | Shared orbs + live feed panel |
-| Create | `src/__tests__/api/consult-intake.test.ts` | API unit tests |
-| Create | `src/__tests__/components/intake-conversation.test.tsx` | Component tests (jsdom) |
-| Create | `src/__tests__/components/triage-transparency-panel.test.tsx` | Panel component tests (jsdom) |
-| Modify | `src/lib/consultation-intake.ts` | Extend `buildPatientContext()` for historySummary intake fields |
-| Modify | `src/components/consult/SwarmChat.tsx` | Add `"intake"` + `"confirm"` steps; use `TriageTransparencyPanel` |
-| Modify | `src/components/consult/HuddleRoom.tsx` | Add `TriageTransparencyPanel` as team overview panel |
+| Action | Path                                                          | Responsibility                                                    |
+| ------ | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Create | `src/lib/intake-types.ts`                                     | Shared `IntakeAnswer`, `IntakeQuestion` types                     |
+| Create | `src/app/api/consult/intake/route.ts`                         | Stateless AI intake question endpoint                             |
+| Create | `src/components/consult/BodyMap.tsx`                          | SVG front/back body diagram                                       |
+| Create | `src/components/consult/IntakeConversation.tsx`               | Adaptive Q&A orchestrator                                         |
+| Create | `src/components/consult/TriageTransparencyPanel.tsx`          | Shared orbs + live feed panel                                     |
+| Create | `src/__tests__/api/consult-intake.test.ts`                    | API unit tests                                                    |
+| Create | `src/__tests__/components/intake-conversation.test.tsx`       | Component tests (jsdom)                                           |
+| Create | `src/__tests__/components/triage-transparency-panel.test.tsx` | Panel component tests (jsdom)                                     |
+| Modify | `src/lib/consultation-intake.ts`                              | Extend `buildPatientContext()` for historySummary intake fields   |
+| Modify | `src/components/consult/SwarmChat.tsx`                        | Add `"intake"` + `"confirm"` steps; use `TriageTransparencyPanel` |
+| Modify | `src/components/consult/HuddleRoom.tsx`                       | Add `TriageTransparencyPanel` as team overview panel              |
 
 ---
 
 ## Task 1: Shared Types — `src/lib/intake-types.ts`
 
 **Files:**
+
 - Create: `src/lib/intake-types.ts`
 
 - [ ] **Step 1: Create the types file**
@@ -56,10 +57,10 @@ export interface IntakeQuestion {
   questionId: string;
   question: string;
   type: IntakeQuestionType;
-  options?: string[];  // for chips / emotional
-  min?: number;        // for slider
-  max?: number;        // for slider
-  done: boolean;       // true = this is the last question (confirm step)
+  options?: string[]; // for chips / emotional
+  min?: number; // for slider
+  max?: number; // for slider
+  done: boolean; // true = this is the last question (confirm step)
 }
 
 /** Builds a natural-language symptoms string from intake answers for the swarm. */
@@ -73,13 +74,16 @@ export function buildSymptomsFromAnswers(answers: IntakeAnswer[]): string {
 }
 
 /** Builds a historySummary string from structured intake answers (for buildPatientContext). */
-export function buildHistorySummaryFromAnswers(answers: IntakeAnswer[]): string {
+export function buildHistorySummaryFromAnswers(
+  answers: IntakeAnswer[],
+): string {
   const structured = ["location", "duration", "severity", "emotional"];
   const parts = answers
     .filter((a) => structured.includes(a.questionId) && a.answer.trim())
     .map((a) => {
       if (a.questionId === "severity") return `Severity: ${a.answer}/10`;
-      if (a.questionId === "emotional") return `Emotional state: ${a.answer.replace(/^.*?\s/, "")}`;
+      if (a.questionId === "emotional")
+        return `Emotional state: ${a.answer.replace(/^.*?\s/, "")}`;
       return `${a.question}: ${a.answer}`;
     });
   return parts.join(". ");
@@ -98,6 +102,7 @@ git commit -m "feat(intake): add IntakeAnswer/IntakeQuestion types and builder u
 ## Task 2: Intake API — `/api/consult/intake`
 
 **Files:**
+
 - Create: `src/app/api/consult/intake/route.ts`
 - Create: `src/__tests__/api/consult-intake.test.ts`
 
@@ -168,21 +173,35 @@ describe("POST /api/consult/intake", () => {
       }),
     });
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where is your main symptom?", answer: "Chest" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          {
+            questionId: "location",
+            question: "Where is your main symptom?",
+            answer: "Chest",
+          },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.question).toBe("Does the chest pain radiate to your arm or jaw?");
+    expect(data.question).toBe(
+      "Does the chest pain radiate to your arm or jaw?",
+    );
     expect(data.type).toBe("chips");
   });
 
   it("falls back to static questions when LLM times out", async () => {
     mockInvoke.mockRejectedValueOnce(new Error("timeout"));
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where?", answer: "Chest" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          { questionId: "location", question: "Where?", answer: "Chest" },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
     // Should still return a valid question (static fallback)
@@ -194,9 +213,13 @@ describe("POST /api/consult/intake", () => {
   it("falls back when LLM returns malformed JSON", async () => {
     mockInvoke.mockResolvedValueOnce({ content: "not valid json at all" });
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where?", answer: "Back" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          { questionId: "location", question: "Where?", answer: "Back" },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data).toHaveProperty("questionId");
@@ -226,7 +249,9 @@ describe("POST /api/consult/intake", () => {
     vi.mocked(getAuthenticatedPatient).mockResolvedValueOnce({
       patient: null,
       needsOnboarding: false,
-      error: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 }),
+      error: new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      }),
     });
 
     const res = await POST(makeRequest({ answers: [] }));
@@ -304,7 +329,8 @@ const STATIC_QUESTIONS: IntakeQuestion[] = [
   },
 ];
 
-const CONFIRM_QUESTION: IntakeQuestion = STATIC_QUESTIONS[STATIC_QUESTIONS.length - 1];
+const CONFIRM_QUESTION: IntakeQuestion =
+  STATIC_QUESTIONS[STATIC_QUESTIONS.length - 1];
 
 // ── Input schema ──────────────────────────────────────────────────────────────
 const IntakeAnswerSchema = z.object({
@@ -367,7 +393,12 @@ Return ONLY valid JSON in this exact format:
   const parsed = JSON.parse(jsonMatch[0]) as IntakeQuestion;
 
   // Validate required fields
-  if (!parsed.questionId || !parsed.question || !parsed.type || typeof parsed.done !== "boolean") {
+  if (
+    !parsed.questionId ||
+    !parsed.question ||
+    !parsed.type ||
+    typeof parsed.done !== "boolean"
+  ) {
     throw new Error("LLM response missing required fields");
   }
 
@@ -376,7 +407,11 @@ Return ONLY valid JSON in this exact format:
 
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
-  const { patient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+  const {
+    patient,
+    needsOnboarding,
+    error: authError,
+  } = await getAuthenticatedPatient();
   if (authError) return authError;
   if (needsOnboarding) {
     return NextResponse.json({ error: "Onboarding required" }, { status: 403 });
@@ -384,11 +419,13 @@ export async function POST(request: NextRequest) {
   // patient is used for auth verification — intake is stateless so we don't write to DB here
   void patient;
 
-  const bodyResult = IntakeRequestSchema.safeParse(await request.json().catch(() => null));
+  const bodyResult = IntakeRequestSchema.safeParse(
+    await request.json().catch(() => null),
+  );
   if (!bodyResult.success) {
     return NextResponse.json(
       { error: bodyResult.error.issues[0]?.message ?? "Invalid request" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -435,6 +472,7 @@ git commit -m "feat(intake): /api/consult/intake — adaptive AI questions with 
 ## Task 3: BodyMap Component
 
 **Files:**
+
 - Create: `src/components/consult/BodyMap.tsx`
 - Create: `src/__tests__/components/intake-conversation.test.tsx` (tests added later in Task 5)
 
@@ -469,16 +507,64 @@ interface Region {
 }
 
 const REGIONS: Region[] = [
-  { id: "Head",       label: "Head",       x: 38, y: 4,   w: 24, h: 20, view: "front" },
-  { id: "Neck",       label: "Neck",       x: 45, y: 24,  w: 10, h: 10, view: "front" },
-  { id: "Chest",      label: "Chest",      x: 28, y: 34,  w: 44, h: 28, view: "front" },
-  { id: "Left arm",   label: "L. Arm",     x: 8,  y: 34,  w: 18, h: 40, view: "front" },
-  { id: "Right arm",  label: "R. Arm",     x: 74, y: 34,  w: 18, h: 40, view: "front" },
-  { id: "Abdomen",    label: "Abdomen",    x: 28, y: 62,  w: 44, h: 28, view: "front" },
-  { id: "Left leg",   label: "L. Leg",     x: 28, y: 90,  w: 20, h: 48, view: "front" },
-  { id: "Right leg",  label: "R. Leg",     x: 52, y: 90,  w: 20, h: 48, view: "front" },
-  { id: "Lower back", label: "Lower back", x: 28, y: 62,  w: 44, h: 28, view: "back" },
-  { id: "Full back",  label: "Upper back", x: 28, y: 34,  w: 44, h: 28, view: "back" },
+  { id: "Head", label: "Head", x: 38, y: 4, w: 24, h: 20, view: "front" },
+  { id: "Neck", label: "Neck", x: 45, y: 24, w: 10, h: 10, view: "front" },
+  { id: "Chest", label: "Chest", x: 28, y: 34, w: 44, h: 28, view: "front" },
+  { id: "Left arm", label: "L. Arm", x: 8, y: 34, w: 18, h: 40, view: "front" },
+  {
+    id: "Right arm",
+    label: "R. Arm",
+    x: 74,
+    y: 34,
+    w: 18,
+    h: 40,
+    view: "front",
+  },
+  {
+    id: "Abdomen",
+    label: "Abdomen",
+    x: 28,
+    y: 62,
+    w: 44,
+    h: 28,
+    view: "front",
+  },
+  {
+    id: "Left leg",
+    label: "L. Leg",
+    x: 28,
+    y: 90,
+    w: 20,
+    h: 48,
+    view: "front",
+  },
+  {
+    id: "Right leg",
+    label: "R. Leg",
+    x: 52,
+    y: 90,
+    w: 20,
+    h: 48,
+    view: "front",
+  },
+  {
+    id: "Lower back",
+    label: "Lower back",
+    x: 28,
+    y: 62,
+    w: 44,
+    h: 28,
+    view: "back",
+  },
+  {
+    id: "Full back",
+    label: "Upper back",
+    x: 28,
+    y: 34,
+    w: 44,
+    h: 28,
+    view: "back",
+  },
 ];
 
 interface BodyMapProps {
@@ -499,7 +585,9 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
             key={v}
             onClick={() => setView(v)}
             className={`px-4 py-1 capitalize transition-colors ${
-              view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+              view === v
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             {v}
@@ -525,7 +613,9 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
                 rx={4}
                 className="cursor-pointer transition-all"
                 fill={isSelected ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                stroke={isSelected ? "hsl(var(--primary))" : "hsl(var(--border))"}
+                stroke={
+                  isSelected ? "hsl(var(--primary))" : "hsl(var(--border))"
+                }
                 strokeWidth={1}
                 onClick={() => onSelect(r.id)}
                 aria-label={r.label}
@@ -537,7 +627,11 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize={5}
-                fill={isSelected ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))"}
+                fill={
+                  isSelected
+                    ? "hsl(var(--primary-foreground))"
+                    : "hsl(var(--muted-foreground))"
+                }
                 className="pointer-events-none select-none"
               >
                 {r.label}
@@ -549,7 +643,8 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
 
       {selected && (
         <p className="text-xs text-muted-foreground">
-          Selected: <span className="text-foreground font-medium">{selected}</span>
+          Selected:{" "}
+          <span className="text-foreground font-medium">{selected}</span>
         </p>
       )}
     </div>
@@ -569,6 +664,7 @@ git commit -m "feat(intake): BodyMap SVG component — front/back region tap sel
 ## Task 4: IntakeConversation Component
 
 **Files:**
+
 - Create: `src/components/consult/IntakeConversation.tsx`
 - Create: `src/__tests__/components/intake-conversation.test.tsx`
 
@@ -643,8 +739,12 @@ describe("IntakeConversation", () => {
     mockIntakeResponse(bodyMapQuestion);
     render(<IntakeConversation onComplete={vi.fn()} />);
     await waitFor(() => {
-      expect(screen.getByText("Where is your main symptom?")).toBeInTheDocument();
-      expect(screen.getByLabelText("Body diagram — tap to select location")).toBeInTheDocument();
+      expect(
+        screen.getByText("Where is your main symptom?"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Body diagram — tap to select location"),
+      ).toBeInTheDocument();
     });
   });
 
@@ -690,10 +790,12 @@ describe("IntakeConversation", () => {
     const onComplete = vi.fn();
     mockIntakeResponse(confirmQuestion);
     render(<IntakeConversation onComplete={onComplete} />);
-    await waitFor(() => screen.getByText("Anything else you'd like the care team to know?"));
+    await waitFor(() =>
+      screen.getByText("Anything else you'd like the care team to know?"),
+    );
     await user.click(screen.getByRole("button", { name: /submit/i }));
     expect(onComplete).toHaveBeenCalledWith(
-      expect.any(Array),  // answers
+      expect.any(Array), // answers
       expect.any(String), // symptoms string
       expect.any(String), // historySummary string
     );
@@ -726,42 +828,58 @@ Expected: FAIL — `IntakeConversation` not found
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { BodyMap, BodyRegion } from "./BodyMap";
-import { IntakeAnswer, IntakeQuestion, buildSymptomsFromAnswers, buildHistorySummaryFromAnswers } from "@/lib/intake-types";
+import {
+  IntakeAnswer,
+  IntakeQuestion,
+  buildSymptomsFromAnswers,
+  buildHistorySummaryFromAnswers,
+} from "@/lib/intake-types";
 
 interface IntakeConversationProps {
-  onComplete: (answers: IntakeAnswer[], symptoms: string, historySummary: string) => void;
+  onComplete: (
+    answers: IntakeAnswer[],
+    symptoms: string,
+    historySummary: string,
+  ) => void;
 }
 
 export function IntakeConversation({ onComplete }: IntakeConversationProps) {
   const [answers, setAnswers] = useState<IntakeAnswer[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<IntakeQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<IntakeQuestion | null>(
+    null,
+  );
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNextQuestion = useCallback(async (answersToSend: IntakeAnswer[]) => {
-    setIsLoading(true);
-    setError(null);
-    setCurrentAnswer("");
+  const fetchNextQuestion = useCallback(
+    async (answersToSend: IntakeAnswer[]) => {
+      setIsLoading(true);
+      setError(null);
+      setCurrentAnswer("");
 
-    try {
-      const res = await fetch("/api/consult/intake", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: answersToSend }),
-      });
-      if (!res.ok) throw new Error(`intake API error ${res.status}`);
-      const question: IntakeQuestion = await res.json();
-      setCurrentQuestion(question);
-    } catch {
-      setError("Connection issue — please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        const res = await fetch("/api/consult/intake", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: answersToSend }),
+        });
+        if (!res.ok) throw new Error(`intake API error ${res.status}`);
+        const question: IntakeQuestion = await res.json();
+        setCurrentQuestion(question);
+      } catch {
+        setError("Connection issue — please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   // Fetch first question on mount
-  useEffect(() => { fetchNextQuestion([]); }, [fetchNextQuestion]);
+  useEffect(() => {
+    fetchNextQuestion([]);
+  }, [fetchNextQuestion]);
 
   const handleNext = useCallback(() => {
     if (!currentQuestion || !currentAnswer.trim()) return;
@@ -793,7 +911,9 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
   }, [answers, fetchNextQuestion]);
 
   const isNextDisabled =
-    isLoading || !currentAnswer.trim() || (currentQuestion?.type === "body-map" && !currentAnswer);
+    isLoading ||
+    !currentAnswer.trim() ||
+    (currentQuestion?.type === "body-map" && !currentAnswer);
 
   if (isLoading && !currentQuestion) {
     return (
@@ -834,7 +954,9 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
       </div>
 
       {/* Question */}
-      <p className="text-sm font-medium text-center">{currentQuestion.question}</p>
+      <p className="text-sm font-medium text-center">
+        {currentQuestion.question}
+      </p>
 
       {/* Input by type */}
       {currentQuestion.type === "body-map" && (
@@ -850,7 +972,15 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
             type="range"
             min={currentQuestion.min ?? 1}
             max={currentQuestion.max ?? 10}
-            value={currentAnswer || String(Math.round(((currentQuestion.min ?? 1) + (currentQuestion.max ?? 10)) / 2))}
+            value={
+              currentAnswer ||
+              String(
+                Math.round(
+                  ((currentQuestion.min ?? 1) + (currentQuestion.max ?? 10)) /
+                    2,
+                ),
+              )
+            }
             onChange={(e) => setCurrentAnswer(e.target.value)}
             className="w-full accent-primary"
             aria-label={currentQuestion.question}
@@ -858,20 +988,33 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{currentQuestion.min ?? 1} — mild</span>
             <span className="font-medium text-foreground text-sm">
-              {currentAnswer || String(Math.round(((currentQuestion.min ?? 1) + (currentQuestion.max ?? 10)) / 2))}
+              {currentAnswer ||
+                String(
+                  Math.round(
+                    ((currentQuestion.min ?? 1) + (currentQuestion.max ?? 10)) /
+                      2,
+                  ),
+                )}
             </span>
             <span>{currentQuestion.max ?? 10} — severe</span>
           </div>
           {/* Ensure a default answer is set when slider is first rendered */}
-          {!currentAnswer && (() => {
-            const defaultVal = String(Math.round(((currentQuestion.min ?? 1) + (currentQuestion.max ?? 10)) / 2));
-            setCurrentAnswer(defaultVal);
-            return null;
-          })()}
+          {!currentAnswer &&
+            (() => {
+              const defaultVal = String(
+                Math.round(
+                  ((currentQuestion.min ?? 1) + (currentQuestion.max ?? 10)) /
+                    2,
+                ),
+              );
+              setCurrentAnswer(defaultVal);
+              return null;
+            })()}
         </div>
       )}
 
-      {(currentQuestion.type === "chips" || currentQuestion.type === "emotional") && (
+      {(currentQuestion.type === "chips" ||
+        currentQuestion.type === "emotional") && (
         <div className="flex flex-wrap gap-2 justify-center">
           {(currentQuestion.options ?? []).map((opt) => (
             <button
@@ -974,6 +1117,7 @@ git commit -m "feat(intake): IntakeConversation adaptive Q&A component"
 ## Task 5: TriageTransparencyPanel — Shared Component
 
 **Files:**
+
 - Create: `src/components/consult/TriageTransparencyPanel.tsx`
 - Create: `src/__tests__/components/triage-transparency-panel.test.tsx`
 
@@ -992,7 +1136,7 @@ import type { OrbState } from "@/components/consult/TriageTransparencyPanel";
 describe("TriageTransparencyPanel", () => {
   it("renders nothing when isVisible is false", () => {
     const { container } = render(
-      <TriageTransparencyPanel orbs={[]} liveFeed="" isVisible={false} />
+      <TriageTransparencyPanel orbs={[]} liveFeed="" isVisible={false} />,
     );
     expect(container.firstChild).toBeNull();
   });
@@ -1002,7 +1146,9 @@ describe("TriageTransparencyPanel", () => {
       { role: "gp", status: "active" },
       { role: "cardiology", status: "waiting" },
     ];
-    render(<TriageTransparencyPanel orbs={orbs} liveFeed="" isVisible={true} />);
+    render(
+      <TriageTransparencyPanel orbs={orbs} liveFeed="" isVisible={true} />,
+    );
     expect(screen.getByLabelText(/alex ai.*thinking/i)).toBeInTheDocument();
   });
 
@@ -1012,13 +1158,21 @@ describe("TriageTransparencyPanel", () => {
         orbs={[]}
         liveFeed="Jordan AI is reviewing your symptoms..."
         isVisible={true}
-      />
+      />,
     );
-    expect(screen.getByText("Jordan AI is reviewing your symptoms...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Jordan AI is reviewing your symptoms..."),
+    ).toBeInTheDocument();
   });
 
   it("renders 'Your care team' heading", () => {
-    render(<TriageTransparencyPanel orbs={[{ role: "gp", status: "done" }]} liveFeed="" isVisible={true} />);
+    render(
+      <TriageTransparencyPanel
+        orbs={[{ role: "gp", status: "done" }]}
+        liveFeed=""
+        isVisible={true}
+      />,
+    );
     expect(screen.getByText(/your care team/i)).toBeInTheDocument();
   });
 });
@@ -1060,7 +1214,11 @@ interface TriageTransparencyPanelProps {
  * Shared panel showing agent activations + live feed.
  * Used in SwarmChat (patient view) and HuddleRoom (doctor team overview).
  */
-export function TriageTransparencyPanel({ orbs, liveFeed, isVisible }: TriageTransparencyPanelProps) {
+export function TriageTransparencyPanel({
+  orbs,
+  liveFeed,
+  isVisible,
+}: TriageTransparencyPanelProps) {
   if (!isVisible) return null;
 
   return (
@@ -1095,6 +1253,7 @@ git commit -m "feat(intake): TriageTransparencyPanel shared component"
 ## Task 6: Update SwarmChat — Wire New Steps
 
 **Files:**
+
 - Modify: `src/components/consult/SwarmChat.tsx`
 
 This task replaces the free-text symptom input with the new flow. The `step` state machine becomes `"info" | "intake" | "chat"`. The `"confirm"` step is handled inside `IntakeConversation` (it's the final `done=true` question from the API).
@@ -1122,7 +1281,11 @@ type Step = "info" | "intake" | "chat";
 export function SwarmChat() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("info");
-  const [patientInfo, setPatientInfo] = useState({ age: "", gender: "", knownConditions: "" });
+  const [patientInfo, setPatientInfo] = useState({
+    age: "",
+    gender: "",
+    knownConditions: "",
+  });
   // Set by IntakeConversation onComplete
   const [builtSymptoms, setBuiltSymptoms] = useState("");
   const [historySummary, setHistorySummary] = useState("");
@@ -1132,13 +1295,16 @@ export function SwarmChat() {
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const updateOrb = useCallback((role: DoctorRole, status: OrbState["status"]) => {
-    setOrbs((prev) => {
-      const existing = prev.find((o) => o.role === role);
-      if (!existing) return [...prev, { role, status }];
-      return prev.map((o) => o.role === role ? { ...o, status } : o);
-    });
-  }, []);
+  const updateOrb = useCallback(
+    (role: DoctorRole, status: OrbState["status"]) => {
+      setOrbs((prev) => {
+        const existing = prev.find((o) => o.role === role);
+        if (!existing) return [...prev, { role, status }];
+        return prev.map((o) => (o.role === role ? { ...o, status } : o));
+      });
+    },
+    [],
+  );
 
   const handleEvent = (event: SwarmEvent) => {
     switch (event.type) {
@@ -1147,18 +1313,25 @@ export function SwarmChat() {
         break;
       case "doctor_activated":
         updateOrb(event.role, "active");
-        setLiveFeed(`${agentRegistry[event.role]?.name ?? event.role} is reviewing your symptoms...`);
+        setLiveFeed(
+          `${agentRegistry[event.role]?.name ?? event.role} is reviewing your symptoms...`,
+        );
         break;
       case "doctor_complete":
         updateOrb(event.role, "done");
         break;
       case "phase_changed":
-        if (event.phase === "debate") setLiveFeed("Your care team is discussing your case...");
-        if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
+        if (event.phase === "debate")
+          setLiveFeed("Your care team is discussing your case...");
+        if (event.phase === "synthesis")
+          setLiveFeed("Preparing your recommendations...");
         break;
       case "synthesis_complete":
         setSynthesis(event.data);
-        trackEvent(ANALYTICS_EVENTS.consultationCompleted, { surface: "swarm_chat", urgency: event.data.urgency });
+        trackEvent(ANALYTICS_EVENTS.consultationCompleted, {
+          surface: "swarm_chat",
+          urgency: event.data.urgency,
+        });
         setIsLoading(false);
         break;
       case "done":
@@ -1167,7 +1340,10 @@ export function SwarmChat() {
         break;
       case "error":
         setError(event.message);
-        trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", message: event.message });
+        trackEvent(ANALYTICS_EVENTS.consultationErrored, {
+          surface: "swarm_chat",
+          message: event.message,
+        });
         break;
     }
   };
@@ -1181,7 +1357,10 @@ export function SwarmChat() {
     setLiveFeed("");
 
     try {
-      trackEvent(ANALYTICS_EVENTS.consultationStarted, { surface: "swarm_chat", source: "consult_page" });
+      trackEvent(ANALYTICS_EVENTS.consultationStarted, {
+        surface: "swarm_chat",
+        source: "consult_page",
+      });
 
       const payload = {
         symptoms,
@@ -1202,7 +1381,9 @@ export function SwarmChat() {
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({ error: "Request failed" }));
+        const errBody = await res
+          .json()
+          .catch(() => ({ error: "Request failed" }));
         if (res.status === 403 && errBody.redirectTo) {
           router.push(errBody.redirectTo);
           return;
@@ -1210,23 +1391,33 @@ export function SwarmChat() {
         const msg =
           res.status === 429
             ? `Too many requests. Please wait ${errBody.retryAfter ?? 60} seconds.`
-            : errBody.error ?? "Failed to start consultation.";
+            : (errBody.error ?? "Failed to start consultation.");
         setError(msg);
-        trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", status: res.status, error: msg });
+        trackEvent(ANALYTICS_EVENTS.consultationErrored, {
+          surface: "swarm_chat",
+          status: res.status,
+          error: msg,
+        });
         return;
       }
 
       const contentType = res.headers.get("content-type") ?? "";
       if (contentType.includes("application/json")) {
         const data = await res.json();
-        if (data.error) { setError(data.error); return; }
+        if (data.error) {
+          setError(data.error);
+          return;
+        }
         setIsLoading(false);
         return;
       }
 
       // SSE stream
       const reader = res.body?.getReader();
-      if (!reader) { setError("Stream unavailable"); return; }
+      if (!reader) {
+        setError("Stream unavailable");
+        return;
+      }
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -1241,13 +1432,18 @@ export function SwarmChat() {
           const payload = line.slice(6).trim();
           try {
             handleEvent(JSON.parse(payload) as SwarmEvent);
-          } catch { /* skip malformed */ }
+          } catch {
+            /* skip malformed */
+          }
         }
       }
       decoder.decode();
     } catch {
       setError("Connection issue. Please try again.");
-      trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", error: "connection_issue" });
+      trackEvent(ANALYTICS_EVENTS.consultationErrored, {
+        surface: "swarm_chat",
+        error: "connection_issue",
+      });
     } finally {
       setIsLoading(false);
       setLiveFeed("");
@@ -1272,7 +1468,9 @@ export function SwarmChat() {
         <div className="text-center">
           <div className="text-4xl mb-2">🏥</div>
           <h2 className="text-xl font-bold">Tell us about yourself</h2>
-          <p className="text-sm text-muted-foreground mt-1">Helps your AI care team give better guidance</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Helps your AI care team give better guidance
+          </p>
         </div>
         <div className="space-y-3">
           <input
@@ -1280,7 +1478,9 @@ export function SwarmChat() {
             placeholder="Age"
             aria-label="Age"
             value={patientInfo.age}
-            onChange={(e) => setPatientInfo({ ...patientInfo, age: e.target.value })}
+            onChange={(e) =>
+              setPatientInfo({ ...patientInfo, age: e.target.value })
+            }
             className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
           />
           <div role="group" aria-label="Biological sex" className="flex gap-2">
@@ -1289,7 +1489,9 @@ export function SwarmChat() {
                 key={g}
                 onClick={() => setPatientInfo({ ...patientInfo, gender: g })}
                 className={`flex-1 py-2 rounded-lg border-2 text-sm transition-colors ${
-                  patientInfo.gender === g ? "border-primary bg-primary/10" : "border-border"
+                  patientInfo.gender === g
+                    ? "border-primary bg-primary/10"
+                    : "border-border"
                 }`}
               >
                 {g}
@@ -1300,7 +1502,12 @@ export function SwarmChat() {
             type="text"
             placeholder="Known conditions (optional)"
             value={patientInfo.knownConditions}
-            onChange={(e) => setPatientInfo({ ...patientInfo, knownConditions: e.target.value })}
+            onChange={(e) =>
+              setPatientInfo({
+                ...patientInfo,
+                knownConditions: e.target.value,
+              })
+            }
             className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
           />
         </div>
@@ -1321,10 +1528,16 @@ export function SwarmChat() {
       <div className="w-full max-w-lg mx-auto p-8 space-y-5 border rounded-xl">
         <div className="text-center mb-2">
           <h2 className="text-lg font-bold">What brings you in today?</h2>
-          <p className="text-xs text-muted-foreground mt-1">Answer a few questions so your care team is ready</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Answer a few questions so your care team is ready
+          </p>
         </div>
         <IntakeConversation
-          onComplete={(answers: IntakeAnswer[], symptoms: string, summary: string) => {
+          onComplete={(
+            answers: IntakeAnswer[],
+            symptoms: string,
+            summary: string,
+          ) => {
             setBuiltSymptoms(symptoms);
             setHistorySummary(summary);
             setStep("chat");
@@ -1359,14 +1572,18 @@ export function SwarmChat() {
       {!synthesis && !isLoading && (
         <div className="mt-auto text-center space-y-3 py-8">
           <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Connecting your care team...</p>
+          <p className="text-sm text-muted-foreground">
+            Connecting your care team...
+          </p>
         </div>
       )}
 
       {isLoading && orbs.length === 0 && (
         <div className="mt-auto text-center space-y-3 py-8">
           <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Starting consultation...</p>
+          <p className="text-sm text-muted-foreground">
+            Starting consultation...
+          </p>
         </div>
       )}
     </div>
@@ -1394,6 +1611,7 @@ git commit -m "feat(intake): wire SwarmChat — info → intake → chat flow wi
 ## Task 7: Update HuddleRoom — Add TriageTransparencyPanel
 
 **Files:**
+
 - Modify: `src/components/consult/HuddleRoom.tsx`
 
 Add the `TriageTransparencyPanel` as a collapsible "Team Overview" sidebar panel in HuddleRoom. The doctor already has the full graph view — this adds a compact orb summary so the team status is visible at a glance alongside the existing visualization.
@@ -1401,6 +1619,7 @@ Add the `TriageTransparencyPanel` as a collapsible "Team Overview" sidebar panel
 - [ ] **Step 1: Read the current HuddleRoom imports and state (already done — lines 1-25 in the file)**
 
 HuddleRoom already tracks `isRunning` and handles `doctor_activated`/`doctor_complete` events. We need to:
+
 1. Import `TriageTransparencyPanel` and `OrbState`
 2. Add `orbState: OrbState[]` + `liveFeedText: string` state vars
 3. Update `handleEvent` to keep them in sync
@@ -1443,15 +1662,17 @@ case "doctor_activated":
 Also find `case "doctor_complete":` and add after existing code:
 
 ```typescript
-  setOrbState((prev) =>
-    prev.map((o) => o.role === event.role ? { ...o, status: "done" as const } : o)
-  );
+setOrbState((prev) =>
+  prev.map((o) =>
+    o.role === event.role ? { ...o, status: "done" as const } : o,
+  ),
+);
 ```
 
 Also find `case "synthesis_complete":` and add:
 
 ```typescript
-  setLiveFeedText("");
+setLiveFeedText("");
 ```
 
 - [ ] **Step 5: Add TriageTransparencyPanel to HuddleRoom render**
@@ -1487,6 +1708,7 @@ git commit -m "feat(intake): add TriageTransparencyPanel to HuddleRoom doctor vi
 ## Task 8: Extend buildPatientContext — historySummary Pass-Through
 
 **Files:**
+
 - Modify: `src/lib/consultation-intake.ts`
 - Test: existing `src/__tests__/lib/consultation-intake.test.ts` if present, otherwise inline
 
@@ -1506,15 +1728,30 @@ Add to the relevant test file (or create `src/__tests__/lib/intake-context.test.
 // src/__tests__/lib/intake-context.test.ts
 import { describe, it, expect } from "vitest";
 import { buildPatientContext } from "@/lib/consultation-intake";
-import { buildSymptomsFromAnswers, buildHistorySummaryFromAnswers } from "@/lib/intake-types";
+import {
+  buildSymptomsFromAnswers,
+  buildHistorySummaryFromAnswers,
+} from "@/lib/intake-types";
 import type { IntakeAnswer } from "@/lib/intake-types";
 
 const sampleAnswers: IntakeAnswer[] = [
-  { questionId: "location", question: "Where is your main symptom?", answer: "Chest" },
+  {
+    questionId: "location",
+    question: "Where is your main symptom?",
+    answer: "Chest",
+  },
   { questionId: "duration", question: "How long?", answer: "A few days" },
   { questionId: "severity", question: "How severe?", answer: "7" },
-  { questionId: "emotional", question: "How are you feeling?", answer: "😟 Anxious" },
-  { questionId: "associated", question: "Any other symptoms?", answer: "shortness of breath" },
+  {
+    questionId: "emotional",
+    question: "How are you feeling?",
+    answer: "😟 Anxious",
+  },
+  {
+    questionId: "associated",
+    question: "Any other symptoms?",
+    answer: "shortness of breath",
+  },
 ];
 
 describe("intake context building", () => {
@@ -1605,24 +1842,25 @@ git commit -m "feat(intake): guided adaptive intake + triage transparency — co
 
 **Spec coverage check:**
 
-| Requirement | Task |
-|-------------|------|
-| Guided question sequence replacing free-text | Task 4 + Task 6 |
-| Adaptive AI-driven questions | Task 2 (AI endpoint) + Task 4 (component) |
-| Body map | Task 3 |
-| Pain slider (1–10) | Task 4 (slider type in IntakeConversation) |
-| Duration chips | Task 2 (static questions) + Task 4 |
-| Emotional check | Task 2 (static questions) + Task 4 |
-| "Anything to add?" confirm step | Task 2 (`done=true` question) + Task 4 |
-| LLM failure fallback to static | Task 2 |
-| Triage visible to patient | Task 5 + Task 6 |
-| Triage visible to doctor (same component) | Task 5 + Task 7 |
-| `historySummary` flows to AI context | Task 1 + Task 8 |
-| Tests for all new paths | Tasks 2, 4, 5, 8 |
+| Requirement                                  | Task                                       |
+| -------------------------------------------- | ------------------------------------------ |
+| Guided question sequence replacing free-text | Task 4 + Task 6                            |
+| Adaptive AI-driven questions                 | Task 2 (AI endpoint) + Task 4 (component)  |
+| Body map                                     | Task 3                                     |
+| Pain slider (1–10)                           | Task 4 (slider type in IntakeConversation) |
+| Duration chips                               | Task 2 (static questions) + Task 4         |
+| Emotional check                              | Task 2 (static questions) + Task 4         |
+| "Anything to add?" confirm step              | Task 2 (`done=true` question) + Task 4     |
+| LLM failure fallback to static               | Task 2                                     |
+| Triage visible to patient                    | Task 5 + Task 6                            |
+| Triage visible to doctor (same component)    | Task 5 + Task 7                            |
+| `historySummary` flows to AI context         | Task 1 + Task 8                            |
+| Tests for all new paths                      | Tasks 2, 4, 5, 8                           |
 
 **Placeholder scan:** None found — all steps contain exact code.
 
 **Type consistency check:**
+
 - `IntakeAnswer` defined in Task 1, used in Tasks 2, 4, 6, 8 ✓
 - `IntakeQuestion` defined in Task 1, used in Tasks 2, 4 ✓
 - `OrbState` defined in Task 5, used in Tasks 6, 7 ✓

@@ -1,53 +1,130 @@
 <h2>MediCrew Swarm Architecture</h2>
-<p class="subtitle">7 senior doctors + swarm of sub-agents exploring all diagnostic possibilities in parallel</p>
+<p class="subtitle">
+  7 senior doctors + swarm of sub-agents exploring all diagnostic possibilities
+  in parallel
+</p>
 
-<div style="font-family: monospace; font-size: 0.8rem; background: #0f172a; color: #e2e8f0; padding: 1.5rem; border-radius: 12px; line-height: 1.8; margin-bottom: 1.5rem;">
+<div
+  style="
+    font-family: monospace;
+    font-size: 0.8rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 12px;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  "
+>
+  <div style="color: #94a3b8; margin-bottom: 0.5rem">
+    ── PATIENT INPUT ──────────────────────────────────
+  </div>
+  <div style="color: #fbbf24">
+    "chest pain, sweating, arm tingling for 2 hours"
+  </div>
+  <div style="margin: 0.5rem 0; color: #94a3b8">↓ immediately</div>
 
-<div style="color: #94a3b8; margin-bottom: 0.5rem;">── PATIENT INPUT ──────────────────────────────────</div>
-<div style="color: #fbbf24;">"chest pain, sweating, arm tingling for 2 hours"</div>
-<div style="margin: 0.5rem 0; color: #94a3b8;">↓ immediately</div>
+  <div style="color: #94a3b8; margin-bottom: 0.5rem">
+    ── LAYER 1: TRIAGE (instant, fast model) ──────────
+  </div>
+  <div style="color: #f87171">
+    🚨 Triage → URGENT | launches swarm for: [cardiac, neuro, anxiety, musculo]
+  </div>
+  <div style="margin: 0.5rem 0; color: #94a3b8">↓ parallel launch</div>
 
-<div style="color: #94a3b8; margin-bottom: 0.5rem;">── LAYER 1: TRIAGE (instant, fast model) ──────────</div>
-<div style="color: #f87171;">🚨 Triage → URGENT | launches swarm for: [cardiac, neuro, anxiety, musculo]</div>
-<div style="margin: 0.5rem 0; color: #94a3b8;">↓ parallel launch</div>
+  <div style="color: #94a3b8; margin-bottom: 0.5rem">
+    ── LAYER 2: 7 SENIOR DOCTORS (parallel) ───────────
+  </div>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    "
+  >
+    <div style="color: #818cf8">👨‍⚕️ GP (reads all sub-agents)</div>
+    <div style="color: #f472b6">❤️ Cardiologist → spawns 4 sub-agents</div>
+    <div style="color: #34d399">🧠 Mental Health → spawns 2 sub-agents</div>
+    <div style="color: #fb923c">🦴 Orthopedic → spawns 2 sub-agents</div>
+    <div style="color: #38bdf8">🫁 Gastro → spawns 2 sub-agents</div>
+    <div style="color: #a78bfa">🔬 Derm (low relevance → 1 sub-agent)</div>
+  </div>
+  <div style="margin: 0.5rem 0; color: #94a3b8">↓ each spawns swarm</div>
 
-<div style="color: #94a3b8; margin-bottom: 0.5rem;">── LAYER 2: 7 SENIOR DOCTORS (parallel) ───────────</div>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-  <div style="color: #818cf8;">👨‍⚕️ GP (reads all sub-agents)</div>
-  <div style="color: #f472b6;">❤️  Cardiologist → spawns 4 sub-agents</div>
-  <div style="color: #34d399;">🧠  Mental Health → spawns 2 sub-agents</div>
-  <div style="color: #fb923c;">🦴  Orthopedic → spawns 2 sub-agents</div>
-  <div style="color: #38bdf8;">🫁  Gastro → spawns 2 sub-agents</div>
-  <div style="color: #a78bfa;">🔬  Derm (low relevance → 1 sub-agent)</div>
-</div>
-<div style="margin: 0.5rem 0; color: #94a3b8;">↓ each spawns swarm</div>
+  <div style="color: #94a3b8; margin-bottom: 0.5rem">
+    ── LAYER 3: SUB-AGENT SWARM (all hypotheses) ──────
+  </div>
+  <div
+    style="
+      background: #1e293b;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border-left: 3px solid #f472b6;
+    "
+  >
+    <div style="color: #f472b6">❤️ CARDIOLOGY SWARM (parallel):</div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ sub-agent-1: "ACS / STEMI hypothesis" → confidence: 72%
+    </div>
+    <div style="color: #fbbf24; margin-left: 1rem">
+      │ ⚠️ NEEDS: "Any previous cardiac history?" → asks patient
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ sub-agent-2: "Unstable angina hypothesis" → confidence: 45%
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ sub-agent-3: "Aortic dissection hypothesis" → confidence: 18%
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      └ sub-agent-4: "Pericarditis hypothesis" → confidence: 12%
+    </div>
+  </div>
+  <div
+    style="
+      background: #1e293b;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border-left: 3px solid #34d399;
+      margin-top: 0.5rem;
+    "
+  >
+    <div style="color: #34d399">🧠 MENTAL HEALTH SWARM:</div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ sub-agent-1: "Panic attack hypothesis" → confidence: 35%
+    </div>
+    <div style="color: #fbbf24; margin-left: 1rem">
+      │ ⚠️ NEEDS: "Any recent stress or anxiety?" → asks patient
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      └ sub-agent-2: "Somatic anxiety hypothesis" → confidence: 20%
+    </div>
+  </div>
+  <div style="margin: 0.5rem 0; color: #94a3b8">
+    ↓ patient answers → affected sub-agents resume with new confidence
+  </div>
 
-<div style="color: #94a3b8; margin-bottom: 0.5rem;">── LAYER 3: SUB-AGENT SWARM (all hypotheses) ──────</div>
-<div style="background: #1e293b; padding: 0.75rem; border-radius: 8px; border-left: 3px solid #f472b6;">
-  <div style="color: #f472b6;">❤️  CARDIOLOGY SWARM (parallel):</div>
-  <div style="color: #cbd5e1; margin-left: 1rem;">├ sub-agent-1: "ACS / STEMI hypothesis" → confidence: 72%</div>
-  <div style="color: #fbbf24; margin-left: 1rem;">│  ⚠️ NEEDS: "Any previous cardiac history?" → asks patient</div>
-  <div style="color: #cbd5e1; margin-left: 1rem;">├ sub-agent-2: "Unstable angina hypothesis" → confidence: 45%</div>
-  <div style="color: #cbd5e1; margin-left: 1rem;">├ sub-agent-3: "Aortic dissection hypothesis" → confidence: 18%</div>
-  <div style="color: #cbd5e1; margin-left: 1rem;">└ sub-agent-4: "Pericarditis hypothesis" → confidence: 12%</div>
-</div>
-<div style="background: #1e293b; padding: 0.75rem; border-radius: 8px; border-left: 3px solid #34d399; margin-top: 0.5rem;">
-  <div style="color: #34d399;">🧠  MENTAL HEALTH SWARM:</div>
-  <div style="color: #cbd5e1; margin-left: 1rem;">├ sub-agent-1: "Panic attack hypothesis" → confidence: 35%</div>
-  <div style="color: #fbbf24; margin-left: 1rem;">│  ⚠️ NEEDS: "Any recent stress or anxiety?" → asks patient</div>
-  <div style="color: #cbd5e1; margin-left: 1rem;">└ sub-agent-2: "Somatic anxiety hypothesis" → confidence: 20%</div>
-</div>
-<div style="margin: 0.5rem 0; color: #94a3b8;">↓ patient answers → affected sub-agents resume with new confidence</div>
+  <div style="color: #94a3b8; margin-bottom: 0.5rem">
+    ── LAYER 4: DOCTOR DEBATE ─────────────────────────
+  </div>
+  <div style="color: #818cf8">
+    GP: "Cardiac and panic both plausible. Need ECG regardless."
+  </div>
+  <div style="color: #f472b6">
+    Cardiology challenges: "ACS confidence jumps to 85% with arm tingling. Don't
+    wait."
+  </div>
+  <div style="color: #34d399">
+    Mental Health: "Agree — rule out cardiac first, then reassess anxiety."
+  </div>
+  <div style="margin: 0.5rem 0; color: #94a3b8">↓ consensus reached</div>
 
-<div style="color: #94a3b8; margin-bottom: 0.5rem;">── LAYER 4: DOCTOR DEBATE ─────────────────────────</div>
-<div style="color: #818cf8;">GP: "Cardiac and panic both plausible. Need ECG regardless."</div>
-<div style="color: #f472b6;">Cardiology challenges: "ACS confidence jumps to 85% with arm tingling. Don't wait."</div>
-<div style="color: #34d399;">Mental Health: "Agree — rule out cardiac first, then reassess anxiety."</div>
-<div style="margin: 0.5rem 0; color: #94a3b8;">↓ consensus reached</div>
-
-<div style="color: #94a3b8; margin-bottom: 0.5rem;">── LAYER 5: SYNTHESIS ─────────────────────────────</div>
-<div style="color: #fbbf24;">⚡ URGENT: Call 000 · Top hypothesis: ACS (85%) · 4 alternatives ranked</div>
-
+  <div style="color: #94a3b8; margin-bottom: 0.5rem">
+    ── LAYER 5: SYNTHESIS ─────────────────────────────
+  </div>
+  <div style="color: #fbbf24">
+    ⚡ URGENT: Call 000 · Top hypothesis: ACS (85%) · 4 alternatives ranked
+  </div>
 </div>
 
 <div class="options">
@@ -55,14 +132,20 @@
     <div class="letter">✓</div>
     <div class="content">
       <h3>Yes — this is the architecture</h3>
-      <p>Triage → 7 parallel senior doctors → each spawns a swarm of sub-agents per hypothesis → doctors debate → synthesis. Patient questions surface in real-time from sub-agents that need more info.</p>
+      <p>
+        Triage → 7 parallel senior doctors → each spawns a swarm of sub-agents
+        per hypothesis → doctors debate → synthesis. Patient questions surface
+        in real-time from sub-agents that need more info.
+      </p>
     </div>
   </div>
   <div class="option" data-choice="tweak" onclick="toggleSelect(this)">
     <div class="letter">~</div>
     <div class="content">
       <h3>Close — needs tweaking</h3>
-      <p>Right direction but something's off. Tell me what to change in terminal.</p>
+      <p>
+        Right direction but something's off. Tell me what to change in terminal.
+      </p>
     </div>
   </div>
 </div>

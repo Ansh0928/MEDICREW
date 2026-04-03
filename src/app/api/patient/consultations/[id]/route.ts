@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { patient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
   if (needsOnboarding)
     return NextResponse.json(
       { error: "Onboarding required", redirect: "/onboarding" },
-      { status: 403 }
+      { status: 403 },
     );
 
   const { id } = await params;

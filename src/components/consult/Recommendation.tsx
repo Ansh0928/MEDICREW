@@ -49,7 +49,10 @@ const urgencyConfig: Record<
   },
 };
 
-export function Recommendation({ recommendation, onStartNew }: RecommendationProps) {
+export function Recommendation({
+  recommendation,
+  onStartNew,
+}: RecommendationProps) {
   const config = urgencyConfig[recommendation.urgency];
 
   return (

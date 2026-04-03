@@ -110,7 +110,7 @@ completed: "2026-03-26"
 - **Found during:** Task 2 (patient delete endpoint)
 - **Issue:** Plan's test template only mocked prisma.patient.update, but the DELETE handler fetches the current email via findUnique first (to preserve in deletedEmail) — test would have failed without the additional mock
 - **Fix:** Added findUnique to the mock factory and to the test setup, matching the actual implementation
-- **Files modified:** src/__tests__/api/patient-delete.test.ts
+- **Files modified:** src/**tests**/api/patient-delete.test.ts
 - **Verification:** bun run test -- patient-delete.test.ts passes 2/2
 - **Committed in:** 06506ed (Task 2 commit)
 
@@ -135,8 +135,9 @@ None — no external service configuration required.
 - All Phase 1 foundation-compliance plans are now complete
 
 ---
-*Phase: 01-foundation-compliance*
-*Completed: 2026-03-26*
+
+_Phase: 01-foundation-compliance_
+_Completed: 2026-03-26_
 
 ## Self-Check: PASSED
 

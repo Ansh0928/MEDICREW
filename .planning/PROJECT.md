@@ -76,12 +76,13 @@ Patients feel continuously monitored and cared for by a real medical team — no
 
 ## Key Decisions
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| LangGraph over PydanticAI | Already integrated with 8 agents — reuse, don't rewrite | — Pending |
-| Supabase for prod DB | PostgreSQL compliance, real-time subscriptions for care team status | — Pending |
-| Patient-first UX pivot | Heidi = doctor tool; Medicrew = patient experience platform | — Pending |
-| Named doctors with personalities | Patients trust named, consistent doctors more than anonymous AI | — Pending |
+| Decision                         | Rationale                                                           | Outcome   |
+| -------------------------------- | ------------------------------------------------------------------- | --------- |
+| LangGraph over PydanticAI        | Already integrated with 8 agents — reuse, don't rewrite             | — Pending |
+| Supabase for prod DB             | PostgreSQL compliance, real-time subscriptions for care team status | — Pending |
+| Patient-first UX pivot           | Heidi = doctor tool; Medicrew = patient experience platform         | — Pending |
+| Named doctors with personalities | Patients trust named, consistent doctors more than anonymous AI     | — Pending |
 
 ---
-*Last updated: 2026-03-26 — Phase 3 complete (Proactive Care Loop — 10/10 requirements verified)*
+
+_Last updated: 2026-03-26 — Phase 3 complete (Proactive Care Loop — 10/10 requirements verified)_

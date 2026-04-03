@@ -36,7 +36,7 @@ export const getAgent = (role: AgentRole): AgentDefinition => {
 // Get all specialist agents (excluding triage and orchestrator)
 export const getSpecialistAgents = (): AgentDefinition[] => {
   return Object.values(agentRegistry).filter(
-    (agent) => !["triage", "orchestrator"].includes(agent.role)
+    (agent) => !["triage", "orchestrator"].includes(agent.role),
   );
 };
 

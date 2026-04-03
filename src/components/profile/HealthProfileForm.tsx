@@ -39,19 +39,31 @@ interface HealthProfileFormProps {
   onProfileUpdated: (updated: PatientProfile) => void;
 }
 
-export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFormProps) {
+export function HealthProfileForm({
+  profile,
+  onProfileUpdated,
+}: HealthProfileFormProps) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [saveMessage, setSaveMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Editable state
-  const [knownConditions, setKnownConditions] = useState(profile.knownConditions ?? "");
-  const [medications, setMedications] = useState<string[]>(profile.medications ?? []);
+  const [knownConditions, setKnownConditions] = useState(
+    profile.knownConditions ?? "",
+  );
+  const [medications, setMedications] = useState<string[]>(
+    profile.medications ?? [],
+  );
   const [allergies, setAllergies] = useState<string[]>(profile.allergies ?? []);
   const [emergencyContact, setEmergencyContact] = useState<EmergencyContact>(
-    profile.emergencyContact ?? {}
+    profile.emergencyContact ?? {},
   );
-  const [gpDetails, setGpDetails] = useState<GpDetails>(profile.gpDetails ?? {});
+  const [gpDetails, setGpDetails] = useState<GpDetails>(
+    profile.gpDetails ?? {},
+  );
 
   // Temp inputs for list fields
   const [newMedication, setNewMedication] = useState("");
@@ -83,7 +95,8 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
           knownConditions: knownConditions || null,
           medications,
           allergies,
-          emergencyContact: Object.keys(emergencyContact).length > 0 ? emergencyContact : null,
+          emergencyContact:
+            Object.keys(emergencyContact).length > 0 ? emergencyContact : null,
           gpDetails: Object.keys(gpDetails).length > 0 ? gpDetails : null,
         }),
       });
@@ -150,7 +163,12 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={handleCancel} disabled={saving}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={saving}
+            >
               Cancel
             </Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
@@ -168,7 +186,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
           </div>
           {formattedDob && (
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Date of Birth</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                Date of Birth
+              </p>
               <p className="text-sm font-medium">{formattedDob}</p>
             </div>
           )}
@@ -182,7 +202,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
 
         {/* Known Conditions */}
         <div>
-          <Label className="text-xs font-medium text-muted-foreground">Known Conditions</Label>
+          <Label className="text-xs font-medium text-muted-foreground">
+            Known Conditions
+          </Label>
           {editing ? (
             <Textarea
               className="mt-1"
@@ -202,7 +224,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
 
         {/* Medications */}
         <div>
-          <Label className="text-xs font-medium text-muted-foreground">Medications</Label>
+          <Label className="text-xs font-medium text-muted-foreground">
+            Medications
+          </Label>
           <div className="mt-1 flex flex-wrap gap-1">
             {medications.map((med, i) => (
               <Badge key={i} variant="secondary" className="gap-1">
@@ -220,7 +244,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
               </Badge>
             ))}
             {medications.length === 0 && (
-              <span className="text-sm text-muted-foreground">None recorded</span>
+              <span className="text-sm text-muted-foreground">
+                None recorded
+              </span>
             )}
           </div>
           {editing && (
@@ -228,11 +254,18 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
               <Input
                 value={newMedication}
                 onChange={(e) => setNewMedication(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMedication())}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addMedication())
+                }
                 placeholder="Add medication"
                 className="h-8 text-sm"
               />
-              <Button type="button" size="sm" variant="outline" onClick={addMedication}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={addMedication}
+              >
                 <Plus className="w-3 h-3" />
               </Button>
             </div>
@@ -241,10 +274,16 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
 
         {/* Allergies */}
         <div>
-          <Label className="text-xs font-medium text-muted-foreground">Allergies</Label>
+          <Label className="text-xs font-medium text-muted-foreground">
+            Allergies
+          </Label>
           <div className="mt-1 flex flex-wrap gap-1">
             {allergies.map((allergy, i) => (
-              <Badge key={i} variant="outline" className="gap-1 border-amber-400 text-amber-700 dark:text-amber-400">
+              <Badge
+                key={i}
+                variant="outline"
+                className="gap-1 border-amber-400 text-amber-700 dark:text-amber-400"
+              >
                 {allergy}
                 {editing && (
                   <button
@@ -259,7 +298,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
               </Badge>
             ))}
             {allergies.length === 0 && (
-              <span className="text-sm text-muted-foreground">None recorded</span>
+              <span className="text-sm text-muted-foreground">
+                None recorded
+              </span>
             )}
           </div>
           {editing && (
@@ -267,11 +308,18 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
               <Input
                 value={newAllergy}
                 onChange={(e) => setNewAllergy(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAllergy())}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addAllergy())
+                }
                 placeholder="Add allergy"
                 className="h-8 text-sm"
               />
-              <Button type="button" size="sm" variant="outline" onClick={addAllergy}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={addAllergy}
+              >
                 <Plus className="w-3 h-3" />
               </Button>
             </div>
@@ -280,14 +328,19 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
 
         {/* Emergency Contact */}
         <div>
-          <Label className="text-xs font-medium text-muted-foreground">Emergency Contact</Label>
+          <Label className="text-xs font-medium text-muted-foreground">
+            Emergency Contact
+          </Label>
           {editing ? (
             <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Input
                 placeholder="Full name"
                 value={emergencyContact.name ?? ""}
                 onChange={(e) =>
-                  setEmergencyContact((prev) => ({ ...prev, name: e.target.value }))
+                  setEmergencyContact((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
                 }
                 className="text-sm"
               />
@@ -295,7 +348,10 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
                 placeholder="Phone number"
                 value={emergencyContact.phone ?? ""}
                 onChange={(e) =>
-                  setEmergencyContact((prev) => ({ ...prev, phone: e.target.value }))
+                  setEmergencyContact((prev) => ({
+                    ...prev,
+                    phone: e.target.value,
+                  }))
                 }
                 className="text-sm"
               />
@@ -312,7 +368,8 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
               />
             </div>
           ) : profile.emergencyContact &&
-            (profile.emergencyContact.name || profile.emergencyContact.phone) ? (
+            (profile.emergencyContact.name ||
+              profile.emergencyContact.phone) ? (
             <div className="mt-1 text-sm">
               <p>
                 {profile.emergencyContact.name}
@@ -320,7 +377,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
                   ` (${profile.emergencyContact.relationship})`}
               </p>
               {profile.emergencyContact.phone && (
-                <p className="text-muted-foreground">{profile.emergencyContact.phone}</p>
+                <p className="text-muted-foreground">
+                  {profile.emergencyContact.phone}
+                </p>
               )}
             </div>
           ) : (
@@ -330,7 +389,9 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
 
         {/* GP Details */}
         <div>
-          <Label className="text-xs font-medium text-muted-foreground">GP Details</Label>
+          <Label className="text-xs font-medium text-muted-foreground">
+            GP Details
+          </Label>
           {editing ? (
             <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Input
@@ -345,7 +406,10 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
                 placeholder="Practice name"
                 value={gpDetails.practice ?? ""}
                 onChange={(e) =>
-                  setGpDetails((prev) => ({ ...prev, practice: e.target.value }))
+                  setGpDetails((prev) => ({
+                    ...prev,
+                    practice: e.target.value,
+                  }))
                 }
                 className="text-sm"
               />
@@ -358,14 +422,19 @@ export function HealthProfileForm({ profile, onProfileUpdated }: HealthProfileFo
                 className="text-sm"
               />
             </div>
-          ) : profile.gpDetails && (profile.gpDetails.name || profile.gpDetails.practice) ? (
+          ) : profile.gpDetails &&
+            (profile.gpDetails.name || profile.gpDetails.practice) ? (
             <div className="mt-1 text-sm">
               <p>{profile.gpDetails.name}</p>
               {profile.gpDetails.practice && (
-                <p className="text-muted-foreground">{profile.gpDetails.practice}</p>
+                <p className="text-muted-foreground">
+                  {profile.gpDetails.practice}
+                </p>
               )}
               {profile.gpDetails.phone && (
-                <p className="text-muted-foreground">{profile.gpDetails.phone}</p>
+                <p className="text-muted-foreground">
+                  {profile.gpDetails.phone}
+                </p>
               )}
             </div>
           ) : (

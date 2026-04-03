@@ -30,14 +30,54 @@ import { speak, stopSpeaking } from "@/lib/voice";
 
 // Doctor/Specialist options
 const DOCTOR_OPTIONS = [
-  { id: "auto", name: "Auto", emoji: "✨", description: "Let AI choose the right specialists" },
-  { id: "gp", name: "General Practitioner", emoji: "👨‍⚕️", description: "For general health concerns" },
-  { id: "cardiology", name: "Cardiologist", emoji: "❤️", description: "Heart and cardiovascular issues" },
-  { id: "mental_health", name: "Mental Health", emoji: "🧠", description: "Anxiety, depression, stress" },
-  { id: "dermatology", name: "Dermatologist", emoji: "🩹", description: "Skin, hair, nail conditions" },
-  { id: "orthopedic", name: "Orthopedic", emoji: "🦴", description: "Bones, joints, muscles" },
-  { id: "gastro", name: "Gastroenterologist", emoji: "🫃", description: "Digestive system issues" },
-  { id: "physiotherapy", name: "Physiotherapist", emoji: "🏃‍♂️", description: "Rehabilitation, injuries, movement" },
+  {
+    id: "auto",
+    name: "Auto",
+    emoji: "✨",
+    description: "Let AI choose the right specialists",
+  },
+  {
+    id: "gp",
+    name: "General Practitioner",
+    emoji: "👨‍⚕️",
+    description: "For general health concerns",
+  },
+  {
+    id: "cardiology",
+    name: "Cardiologist",
+    emoji: "❤️",
+    description: "Heart and cardiovascular issues",
+  },
+  {
+    id: "mental_health",
+    name: "Mental Health",
+    emoji: "🧠",
+    description: "Anxiety, depression, stress",
+  },
+  {
+    id: "dermatology",
+    name: "Dermatologist",
+    emoji: "🩹",
+    description: "Skin, hair, nail conditions",
+  },
+  {
+    id: "orthopedic",
+    name: "Orthopedic",
+    emoji: "🦴",
+    description: "Bones, joints, muscles",
+  },
+  {
+    id: "gastro",
+    name: "Gastroenterologist",
+    emoji: "🫃",
+    description: "Digestive system issues",
+  },
+  {
+    id: "physiotherapy",
+    name: "Physiotherapist",
+    emoji: "🏃‍♂️",
+    description: "Rehabilitation, injuries, movement",
+  },
 ];
 
 // Chat message type for the conversation
@@ -142,13 +182,15 @@ export function ConsultationFlow() {
     setCurrentAgentStep("triage");
 
     // Build conversation history for context (limit to last 3 exchanges to avoid timeout)
-    const recentUserMessages = chatMessages.filter(m => m.role === "user").slice(-3);
-    const recentAgentSummary = agentMessages.slice(-2).map(m =>
-      `${m.agentName}: ${m.content.substring(0, 300)}`
-    );
+    const recentUserMessages = chatMessages
+      .filter((m) => m.role === "user")
+      .slice(-3);
+    const recentAgentSummary = agentMessages
+      .slice(-2)
+      .map((m) => `${m.agentName}: ${m.content.substring(0, 300)}`);
     const conversationHistory = [
-      ...recentUserMessages.map(m => `Patient: ${m.content}`),
-      ...recentAgentSummary
+      ...recentUserMessages.map((m) => `Patient: ${m.content}`),
+      ...recentAgentSummary,
     ].join("\n\n");
 
     // Build the full context including conversation history
@@ -164,7 +206,8 @@ export function ConsultationFlow() {
         body: JSON.stringify({
           symptoms: fullSymptoms,
           stream: true,
-          preferredSpecialist: selectedDoctor.id !== "auto" ? selectedDoctor.id : undefined,
+          preferredSpecialist:
+            selectedDoctor.id !== "auto" ? selectedDoctor.id : undefined,
         }),
       });
 
@@ -184,7 +227,9 @@ export function ConsultationFlow() {
         if (done) break;
 
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((line) => line.startsWith("data: "));
+        const lines = chunk
+          .split("\n")
+          .filter((line) => line.startsWith("data: "));
 
         for (const line of lines) {
           const data = line.replace("data: ", "").trim();
@@ -195,7 +240,9 @@ export function ConsultationFlow() {
 
             // Handle error events from the API
             if (event.error) {
-              setError(event.message || "Something went wrong. Please try again.");
+              setError(
+                event.message || "Something went wrong. Please try again.",
+              );
               setIsLoading(false);
               setCurrentAgentStep("");
               return;
@@ -205,7 +252,9 @@ export function ConsultationFlow() {
 
             if (event.data?.messages) {
               setAgentMessages((prev) => [...prev, ...event.data.messages]);
-              const newRoles = event.data.messages.map((m: AgentMessage) => m.role);
+              const newRoles = event.data.messages.map(
+                (m: AgentMessage) => m.role,
+              );
               setActiveAgents((prev) => [...new Set([...prev, ...newRoles])]);
             }
 
@@ -229,7 +278,11 @@ export function ConsultationFlow() {
       if (err instanceof TypeError && err.message.includes("fetch")) {
         setError("Connection lost. Please check your internet and try again.");
       } else {
-        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again.",
+        );
       }
     } finally {
       setIsLoading(false);
@@ -238,7 +291,10 @@ export function ConsultationFlow() {
   };
 
   // Save consultation to database
-  const saveConsultation = async (symptoms: string, consultationResult: ConsultationState) => {
+  const saveConsultation = async (
+    symptoms: string,
+    consultationResult: ConsultationState,
+  ) => {
     try {
       const patientEmail = localStorage.getItem("patientEmail");
       if (!patientEmail) return; // No patient logged in, skip saving
@@ -246,7 +302,9 @@ export function ConsultationFlow() {
       // First get the patient ID
       const patientsRes = await fetch("/api/patients");
       const patients = await patientsRes.json();
-      const patient = patients.find((p: { email: string }) => p.email === patientEmail);
+      const patient = patients.find(
+        (p: { email: string }) => p.email === patientEmail,
+      );
 
       if (!patient) return;
 
@@ -329,7 +387,9 @@ export function ConsultationFlow() {
                         </p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showDoctorDropdown ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      className={`w-5 h-5 text-muted-foreground transition-transform ${showDoctorDropdown ? "rotate-180" : ""}`}
+                    />
                   </button>
 
                   {showDoctorDropdown && (
@@ -341,8 +401,9 @@ export function ConsultationFlow() {
                             setSelectedDoctor(doc);
                             setShowDoctorDropdown(false);
                           }}
-                          className={`w-full flex items-center gap-3 p-4 hover:bg-muted transition-colors text-left ${selectedDoctor.id === doc.id ? "bg-primary/5" : ""
-                            }`}
+                          className={`w-full flex items-center gap-3 p-4 hover:bg-muted transition-colors text-left ${
+                            selectedDoctor.id === doc.id ? "bg-primary/5" : ""
+                          }`}
                         >
                           <span className="text-2xl">{doc.emoji}</span>
                           <div className="flex-1">
@@ -402,7 +463,9 @@ export function ConsultationFlow() {
                       type="number"
                       placeholder="Enter your age"
                       value={patientInfo.age}
-                      onChange={(e) => setPatientInfo({ ...patientInfo, age: e.target.value })}
+                      onChange={(e) =>
+                        setPatientInfo({ ...patientInfo, age: e.target.value })
+                      }
                       min={0}
                       max={120}
                     />
@@ -417,11 +480,14 @@ export function ConsultationFlow() {
                       {["Male", "Female", "Other"].map((g) => (
                         <button
                           key={g}
-                          onClick={() => setPatientInfo({ ...patientInfo, gender: g })}
-                          className={`flex-1 py-3 px-4 rounded-lg border-2 transition-colors ${patientInfo.gender === g
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:border-primary/50"
-                            }`}
+                          onClick={() =>
+                            setPatientInfo({ ...patientInfo, gender: g })
+                          }
+                          className={`flex-1 py-3 px-4 rounded-lg border-2 transition-colors ${
+                            patientInfo.gender === g
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border hover:border-primary/50"
+                          }`}
                         >
                           {g}
                         </button>
@@ -437,7 +503,12 @@ export function ConsultationFlow() {
                     <Input
                       placeholder="e.g., Diabetes, Hypertension, Asthma"
                       value={patientInfo.knownConditions}
-                      onChange={(e) => setPatientInfo({ ...patientInfo, knownConditions: e.target.value })}
+                      onChange={(e) =>
+                        setPatientInfo({
+                          ...patientInfo,
+                          knownConditions: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -478,7 +549,8 @@ export function ConsultationFlow() {
                   <p className="font-medium text-sm">{selectedDoctor.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {patientInfo.age}y {patientInfo.gender}
-                    {patientInfo.knownConditions && ` • ${patientInfo.knownConditions}`}
+                    {patientInfo.knownConditions &&
+                      ` • ${patientInfo.knownConditions}`}
                   </p>
                 </div>
               </div>
@@ -496,17 +568,25 @@ export function ConsultationFlow() {
                     key={msg.id}
                     className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                      }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
                       {msg.role === "user" ? "👤" : selectedDoctor.emoji}
                     </div>
-                    <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                      }`}>
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -555,7 +635,9 @@ export function ConsultationFlow() {
                               setError(null);
                               // Retry the last message if there was one
                               if (chatMessages.length > 0) {
-                                const lastUserMessage = chatMessages.filter(m => m.role === "user").pop();
+                                const lastUserMessage = chatMessages
+                                  .filter((m) => m.role === "user")
+                                  .pop();
                                 if (lastUserMessage) {
                                   setInputMessage(lastUserMessage.content);
                                 }
@@ -600,7 +682,9 @@ export function ConsultationFlow() {
                     <div className="absolute bottom-2 right-2">
                       <VoiceInput
                         onTranscript={handleVoiceTranscript}
-                        onInterimTranscript={(text) => setInputMessage((prev) => prev + text)}
+                        onInterimTranscript={(text) =>
+                          setInputMessage((prev) => prev + text)
+                        }
                       />
                     </div>
                   </div>

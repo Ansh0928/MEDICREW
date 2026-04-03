@@ -88,16 +88,16 @@ L7  SYNTHESIS           Reads all rectified recommendations + MDT notes.
 
 Named agents follow AHPRA framing: "[Name] AI — [Specialty]". All agents are clearly AI.
 
-| Role | Name | Specialty |
-|------|------|-----------|
-| Lead — Physiotherapy | Emma AI | Physiotherapy |
-| Lead — GP | Alex AI | General Practice |
-| Lead — Cardiology | Jordan AI | Cardiology |
-| Lead — Mental Health | Maya AI | Mental Health |
-| Resident — Conservative | Kai | Conservative |
-| Resident — Pharmacological | Priya | Pharmacological |
-| Resident — Investigative | Zoe | Investigative |
-| Resident — Red-flag | Sam | Red-flag |
+| Role                       | Name      | Specialty        |
+| -------------------------- | --------- | ---------------- |
+| Lead — Physiotherapy       | Emma AI   | Physiotherapy    |
+| Lead — GP                  | Alex AI   | General Practice |
+| Lead — Cardiology          | Jordan AI | Cardiology       |
+| Lead — Mental Health       | Maya AI   | Mental Health    |
+| Resident — Conservative    | Kai       | Conservative     |
+| Resident — Pharmacological | Priya     | Pharmacological  |
+| Resident — Investigative   | Zoe       | Investigative    |
+| Resident — Red-flag        | Sam       | Red-flag         |
 
 Residents are reused across specialties (each specialty spawns its own instances of Kai/Priya/Zoe/Sam with specialty-specific context injected into the prompt).
 
@@ -109,20 +109,55 @@ Avatars: DiceBear `notionists-neutral` style via `https://api.dicebear.com/8.x/n
 
 ```typescript
 type SwarmEvent =
-  | { type: 'triage_complete'; data: { urgency: string; relevantSpecialties: string[]; redFlags: string[] } }
-  | { type: 'phase_changed'; phase: SwarmPhase }
-  | { type: 'doctor_activated'; role: string; name: string }
-  | { type: 'doctor_complete'; role: string }
-  | { type: 'hypothesis_found'; role: string; residentRole: string; hypothesisId: string; name: string; confidence: number }
-  | { type: 'question_ready'; clarificationId: string; role: string; question: string }
-  | { type: 'debate_message'; role: string; residentRole: string; messageType: 'agree' | 'challenge' | 'add_context'; content: string; referencingHypothesisId?: string }  // same UUID string as hypothesis_found.hypothesisId
-  | { type: 'rectification_complete'; role: string; summary: string }
-  | { type: 'mdt_message'; role: string; messageType: 'agree' | 'note' | 'escalate'; content: string }
-  | { type: 'synthesis_complete'; data: SynthesisResult }
-  | { type: 'followup_routed'; questionType: 'simple' | 'complex'; activatedRoles: string[] }
-  | { type: 'followup_answer'; answer: string }
-  | { type: 'error'; message: string }
-  | { type: 'done' }
+  | {
+      type: "triage_complete";
+      data: {
+        urgency: string;
+        relevantSpecialties: string[];
+        redFlags: string[];
+      };
+    }
+  | { type: "phase_changed"; phase: SwarmPhase }
+  | { type: "doctor_activated"; role: string; name: string }
+  | { type: "doctor_complete"; role: string }
+  | {
+      type: "hypothesis_found";
+      role: string;
+      residentRole: string;
+      hypothesisId: string;
+      name: string;
+      confidence: number;
+    }
+  | {
+      type: "question_ready";
+      clarificationId: string;
+      role: string;
+      question: string;
+    }
+  | {
+      type: "debate_message";
+      role: string;
+      residentRole: string;
+      messageType: "agree" | "challenge" | "add_context";
+      content: string;
+      referencingHypothesisId?: string;
+    } // same UUID string as hypothesis_found.hypothesisId
+  | { type: "rectification_complete"; role: string; summary: string }
+  | {
+      type: "mdt_message";
+      role: string;
+      messageType: "agree" | "note" | "escalate";
+      content: string;
+    }
+  | { type: "synthesis_complete"; data: SynthesisResult }
+  | {
+      type: "followup_routed";
+      questionType: "simple" | "complex";
+      activatedRoles: string[];
+    }
+  | { type: "followup_answer"; answer: string }
+  | { type: "error"; message: string }
+  | { type: "done" };
 ```
 
 ---
@@ -143,10 +178,12 @@ Complex: involves new symptoms, contradicts the recommendation, or requires re-e
 The primary lead is determined at synthesis time: the lead doctor whose specialty contributed
 the highest-confidence rectification. If only one specialty was activated, that lead is primary.
 This lead is stored in SwarmState as `primaryLeadRole` and used for all simple follow-ups.
+
 - Huddle UI: only the primary lead avatar lights up with a pulse ring.
 - Routing chip visible to patient: "Routing to [Lead Name] directly"
 
 **Complex route:** A second LLM classifier call (same model as triage) reads the follow-up question + original symptoms + synthesis output, and returns `{ relevantResidentRoles: string[] }`. Only those residents re-activate (not the full swarm). Residents debate → lead rectifies → answer shown.
+
 - Huddle UI: relevant resident avatars re-animate, SVG connection lines appear.
 - Routing chip: "Re-activating relevant specialists"
 
@@ -188,6 +225,7 @@ Heidi Health-inspired 3-column layout:
 **Tabs:** Team Huddle | Patient Profile | Notes
 
 **Huddle area (Team Huddle tab):**
+
 - Progress steps inline: Triage → Specialist → Residents → Debate → Review → Results
 - Agents arranged in a circle using trigonometry:
   - Primary lead: fixed at centre (determined by primaryLeadRole from SwarmState)
@@ -212,6 +250,7 @@ Heidi Health-inspired 3-column layout:
 - Right chat panel: live text feed of debate messages (overflow hidden, newest at bottom)
 
 **Bottom input bar:**
+
 - Text input + send button
 - Routing chip appears after send (shows where question was routed)
 
@@ -243,16 +282,19 @@ Return: { hypothesis, confidence (0–100), reasoning (max 3 sentences) }
 ## 9. API Endpoints
 
 ### `POST /api/swarm/start`
+
 Start consultation. Returns SSE stream.
 Request: `{ symptoms, patientInfo: { age, gender, knownConditions? } }`
 Response: `text/event-stream`
 
 ### `POST /api/swarm/answer`
+
 Submit patient answer to clarification question.
 Request: `{ sessionId, clarificationId, answer }`
 Response: `{ ok: true }`
 
 ### `POST /api/swarm/followup`
+
 Submit follow-up question after synthesis.
 Request: `{ sessionId, question }`
 Response: SSE stream (re-uses same event schema, ends with `followup_answer` + `done`)

@@ -22,12 +22,18 @@ vi.mock("@/lib/email/resend", () => ({
 }));
 
 vi.mock("@upstash/redis", () => {
-  class Redis { static fromEnv() { return new Redis(); } }
+  class Redis {
+    static fromEnv() {
+      return new Redis();
+    }
+  }
   return { Redis };
 });
 vi.mock("@upstash/ratelimit", () => {
   class Ratelimit {
-    limit = vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60_000 });
+    limit = vi
+      .fn()
+      .mockResolvedValue({ success: true, reset: Date.now() + 60_000 });
     static slidingWindow = vi.fn().mockReturnValue({ type: "sliding" });
   }
   return { Ratelimit };
@@ -37,12 +43,12 @@ vi.mock("@/lib/auth", () => ({
   getAuthenticatedPatient: vi.fn(),
 }));
 
-const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_P1 = { patient: { id: "p1" }, error: null };
 const AUTH_NONE = {
   patient: null,
-  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+  error: new Response(JSON.stringify({ error: "Authentication required" }), {
     status: 401,
-    headers: { 'content-type': 'application/json' },
+    headers: { "content-type": "application/json" },
   }),
 };
 
@@ -70,7 +76,7 @@ describe("GET /api/checkin", () => {
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
     expect(prisma.checkIn.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { patientId: "p1" } })
+      expect.objectContaining({ where: { patientId: "p1" } }),
     );
   });
 });
@@ -82,11 +88,13 @@ describe("POST /api/checkin/respond", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
-    const res = await POST(new Request("http://localhost/api/checkin/respond", {
-      method: "POST",
-      body: JSON.stringify({ checkInId: "ci-1", response: "better" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
+    const res = await POST(
+      new Request("http://localhost/api/checkin/respond", {
+        method: "POST",
+        body: JSON.stringify({ checkInId: "ci-1", response: "better" }),
+        headers: { "Content-Type": "application/json" },
+      }) as any,
+    );
     expect(res.status).toBe(401);
   });
 
@@ -94,11 +102,13 @@ describe("POST /api/checkin/respond", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
-    const res = await POST(new Request("http://localhost/api/checkin/respond", {
-      method: "POST",
-      body: JSON.stringify({ response: "better" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
+    const res = await POST(
+      new Request("http://localhost/api/checkin/respond", {
+        method: "POST",
+        body: JSON.stringify({ response: "better" }),
+        headers: { "Content-Type": "application/json" },
+      }) as any,
+    );
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toMatch(/checkInId/);
@@ -108,11 +118,13 @@ describe("POST /api/checkin/respond", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
-    const res = await POST(new Request("http://localhost/api/checkin/respond", {
-      method: "POST",
-      body: JSON.stringify({ checkInId: "ci-1", response: "excellent" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
+    const res = await POST(
+      new Request("http://localhost/api/checkin/respond", {
+        method: "POST",
+        body: JSON.stringify({ checkInId: "ci-1", response: "excellent" }),
+        headers: { "Content-Type": "application/json" },
+      }) as any,
+    );
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toMatch(/better.*same.*worse/i);
@@ -122,11 +134,13 @@ describe("POST /api/checkin/respond", () => {
     const { getAuthenticatedPatient } = await import("@/lib/auth");
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_P1 as any);
     const { POST } = await import("@/app/api/checkin/respond/route");
-    const res = await POST(new Request("http://localhost/api/checkin/respond", {
-      method: "POST",
-      body: JSON.stringify({ checkInId: "nonexistent", response: "better" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
+    const res = await POST(
+      new Request("http://localhost/api/checkin/respond", {
+        method: "POST",
+        body: JSON.stringify({ checkInId: "nonexistent", response: "better" }),
+        headers: { "Content-Type": "application/json" },
+      }) as any,
+    );
     expect(res.status).toBe(404);
   });
 });

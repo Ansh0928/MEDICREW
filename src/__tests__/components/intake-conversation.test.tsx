@@ -64,8 +64,12 @@ describe("IntakeConversation", () => {
     mockIntakeResponse(bodyMapQuestion);
     render(<IntakeConversation onComplete={vi.fn()} />);
     await waitFor(() => {
-      expect(screen.getByText("Where is your main symptom?")).toBeInTheDocument();
-      expect(screen.getByLabelText("Body diagram — tap to select location")).toBeInTheDocument();
+      expect(
+        screen.getByText("Where is your main symptom?"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Body diagram — tap to select location"),
+      ).toBeInTheDocument();
     });
   });
 
@@ -111,10 +115,12 @@ describe("IntakeConversation", () => {
     const onComplete = vi.fn();
     mockIntakeResponse(confirmQuestion);
     render(<IntakeConversation onComplete={onComplete} />);
-    await waitFor(() => screen.getByText("Anything else you'd like the care team to know?"));
+    await waitFor(() =>
+      screen.getByText("Anything else you'd like the care team to know?"),
+    );
     await user.click(screen.getByRole("button", { name: /submit/i }));
     expect(onComplete).toHaveBeenCalledWith(
-      expect.any(Array),  // answers
+      expect.any(Array), // answers
       expect.any(String), // symptoms string
       expect.any(String), // historySummary string
     );

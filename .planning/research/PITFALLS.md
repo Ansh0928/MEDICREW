@@ -18,15 +18,17 @@ Mistakes that cause regulatory shutdown, legal liability, or full rewrites.
 Software intended to "monitor," "diagnose," or "recommend treatment" for a disease meets the TGA's definition of a Software as Medical Device (SaMD) under the Therapeutic Goods Act 1989. Medicrew's agents explicitly do symptom triage, specialist routing, care recommendations, and escalation — all functions that fall squarely within TGA's regulated scope. Shipping without ARTG registration exposes the product to forced market withdrawal and civil penalties.
 
 **Why it happens:**
-Founders assume the "it's just information, not diagnosis" defence holds. TGA explicitly rejected this: regulation is based on *intended purpose* as defined by the manufacturer, not the technology used. The AHPRA AI guidelines and TGA's 2025 compliance update both confirm AI tools that suggest diagnoses or treatments are regulated devices. TGA also began actively targeting AI health software in its 2025 compliance sweep.
+Founders assume the "it's just information, not diagnosis" defence holds. TGA explicitly rejected this: regulation is based on _intended purpose_ as defined by the manufacturer, not the technology used. The AHPRA AI guidelines and TGA's 2025 compliance update both confirm AI tools that suggest diagnoses or treatments are regulated devices. TGA also began actively targeting AI health software in its 2025 compliance sweep.
 
 **Consequences:**
+
 - Forced withdrawal from Australian market
 - Significant civil penalties under Therapeutic Goods Act 1989
 - Retrospective ARTG registration is slow (6–18 months typical)
 - Personal liability exposure for directors
 
 **Prevention:**
+
 - Conduct TGA SaMD classification assessment in Phase 1 (before public launch)
 - Consult a TGA regulatory affairs specialist to determine classification risk level
 - If classification risk is too high, scope agents explicitly as "health information tools" not diagnostic tools — rewrite agent system prompts to use language like "based on similar symptoms, you may want to speak with a doctor about X" rather than "you have condition Y"
@@ -34,6 +36,7 @@ Founders assume the "it's just information, not diagnosis" defence holds. TGA ex
 - Consider the TGA's Excluded SaMD provisions: software used for administrative purposes or general wellness with no diagnostic function may qualify for exclusion
 
 **Warning signs:**
+
 - Agent outputs contain sentences like "Based on your symptoms, this is likely [condition]"
 - Landing page or UI uses words like "monitored by doctors" in a diagnostic framing
 - TGA classification questionnaire returns Class IIa or higher
@@ -51,12 +54,14 @@ The core product value is explicitly "patients feel monitored by real doctors." 
 The UX goal ("patients trust named, consistent doctors more than anonymous AI") is correct from a product standpoint, but collides with the legal requirement that patients must be informed when interacting with AI. AHPRA has confirmed it uses automated bots to scan websites for compliance violations. Research also shows patients feel deceived when they discover AI was used without disclosure — trust collapses entirely, not partially.
 
 **Consequences:**
+
 - AHPRA investigation and advertising compliance orders
 - Reputational damage if media characterises product as "AI pretending to be real doctors"
-- User trust collapse: research (Springer Nature, 2025) confirms trust is *higher* when AI is clearly disclosed versus covertly used
+- User trust collapse: research (Springer Nature, 2025) confirms trust is _higher_ when AI is clearly disclosed versus covertly used
 - Risk of ACL breach (Australian Consumer Law) for misleading representations
 
 **Prevention:**
+
 - Rebrand internal language from "feels like real doctors" to "your dedicated AI care team" — patients can still emotionally connect without being misled
 - Every named agent interaction must include a persistent, non-dismissible disclosure: "Dr. Alex is an AI assistant. For urgent medical needs, call 000 or see a GP."
 - Onboarding must explicitly obtain informed consent that the care team is AI-powered
@@ -65,6 +70,7 @@ The UX goal ("patients trust named, consistent doctors more than anonymous AI") 
 - Apply same disclosure standards to notifications: "Your care team has an update" should read "Your AI care team has an update"
 
 **Warning signs:**
+
 - Any UI copy that implies human oversight without specifying it is AI
 - "Dr." title used for AI agents anywhere in user-facing surfaces
 - Onboarding flow lacks explicit AI disclosure before first consultation
@@ -82,12 +88,14 @@ LLMs generate plausible-sounding but factually incorrect medical information. In
 RAG (Retrieval-Augmented Generation) with PubMed citations is listed as a feature requirement, but RAG does not prevent hallucination if the retrieval step fails, is incomplete, or if the LLM confabulates between retrieved documents. Agents drawing on patient history + live LLM inference create compounding failure modes.
 
 **Consequences:**
+
 - Patient harm from acting on incorrect medical advice
 - Negligence liability (Australian courts apply ex-post negligence regimes for AI-caused harm)
 - Regulatory sanctions from TGA if the product is classified as SaMD
 - Catastrophic reputational damage
 
 **Prevention:**
+
 - Implement a mandatory "uncertainty disclosure" protocol: every agent output must include explicit confidence framing ("based on common patterns, not medical diagnosis")
 - Never allow agents to state a specific diagnosis as fact — only symptom patterns and suggested follow-up actions
 - PubMed/guideline citations must be fetched and verified via RAG on every response, not generated from model memory
@@ -97,6 +105,7 @@ RAG (Retrieval-Augmented Generation) with PubMed citations is listed as a featur
 - Test escalation logic with adversarial inputs before launch
 
 **Warning signs:**
+
 - Agent outputs include specific drug names, dosages, or medical codes without citation
 - Escalation system relies solely on LLM reasoning rather than rules engine
 - No source traceability between agent output and retrieved document
@@ -116,12 +125,14 @@ The My Health Record Act 2012 (amended by the Modernising My Health Record (Shar
 Startups treat privacy as a checkbox. For health data, it is an ongoing operational obligation with criminal penalties for serious or repeated breaches under the Privacy Act reforms.
 
 **Consequences:**
+
 - Notifiable Data Breach obligations: must notify OAIC and affected individuals within 30 days of awareness of eligible breach
 - Regulatory investigation by OAIC
 - Civil penalties under Privacy Act (2022+ reforms introduced significant penalty increases)
 - My Health Record breaches must also be notified to Australian Digital Health Agency separately
 
 **Prevention:**
+
 - Appoint a Privacy Officer before collecting any patient health data
 - Draft a Health Privacy Policy compliant with APPs 1–13, specifically covering: what data is collected, why, how long retained, overseas processing disclosures
 - Any LLM API call that sends patient data to OpenAI/Groq/Google (overseas) requires either patient consent or a contractual commitment from the overseas processor to meet APP standards — check all provider Data Processing Agreements
@@ -131,6 +142,7 @@ Startups treat privacy as a checkbox. For health data, it is an ongoing operatio
 - Build NDB incident response plan: detection → containment → OAIC notification → patient notification pipeline
 
 **Warning signs:**
+
 - LLM API calls contain patient names, DOB, or health conditions in plain text
 - Supabase project region not confirmed as Sydney (ap-southeast-2)
 - No documented DPA with OpenAI/Groq/Google covering patient data
@@ -148,12 +160,14 @@ LangGraph's default checkpointing model writes a snapshot of the full graph stat
 LangGraph's checkpointing defaults are designed for correctness and replay safety, not storage efficiency. At development scale (SQLite, few users) this is invisible. At production scale (Supabase PostgreSQL, concurrent users), checkpoint accumulation becomes a performance and cost problem within weeks.
 
 **Consequences:**
+
 - PostgreSQL query degradation as checkpoint table grows
 - Supabase storage and egress costs scale unexpectedly
 - Debugging production issues becomes extremely difficult (state explosion)
 - Patient consultation history queries slow down as checkpoint history accumulates
 
 **Prevention:**
+
 - Use "exit" durability mode (checkpoint only at run completion, not intermediate supersteps) to reduce write amplification by ~80%
 - Store heavy RAG payloads (retrieved documents, medical literature) in external storage (S3 or Supabase Storage), keeping only lightweight reference keys in LangGraph state
 - Implement checkpoint TTL: write a background job to prune checkpoints older than 90 days (retain consultation summaries separately in the `Consultation` table)
@@ -161,6 +175,7 @@ LangGraph's checkpointing defaults are designed for correctness and replay safet
 - Index checkpoint tables on `thread_id` and `created_at` from day one
 
 **Warning signs:**
+
 - `langgraph_writes` or `langgraph_checkpoint_blobs` tables growing faster than consultation volume suggests
 - Agent response latency increasing week-over-week without traffic increase
 - Supabase storage costs trending up unexpectedly
@@ -179,6 +194,7 @@ LangGraph's checkpointing defaults are designed for correctness and replay safet
 Supabase RLS is enabled but policies are incomplete, allowing patients to query other patients' consultation records. Service role key used server-side bypasses RLS entirely — if this key leaks into client code (common in Next.js SSR/client boundary confusion), all health data is exposed to any authenticated user.
 
 **Prevention:**
+
 - Enable RLS on all health-data tables from day one of migration, not as a follow-up task
 - Write RLS policy tests using `set_config('request.jwt.claims', ...)` before any patient data enters the database
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in any client-side bundle or Next.js component that runs in the browser
@@ -195,7 +211,8 @@ Supabase RLS is enabled but policies are incomplete, allowing patients to query 
 The escalation system is listed as an LLM-driven feature. LLMs are probabilistic — they can and do miss emergency signals (chest pain minimised as anxiety, suicidal ideation missed in ambiguous phrasing). In Australia, failure to escalate a medical emergency is a patient safety failure that creates direct liability.
 
 **Prevention:**
-- Emergency detection must use a deterministic rule layer (keyword matching, regex, sentence classification model trained on medical emergencies) that runs *before* the LLM response pipeline — not inside it
+
+- Emergency detection must use a deterministic rule layer (keyword matching, regex, sentence classification model trained on medical emergencies) that runs _before_ the LLM response pipeline — not inside it
 - Rules must cover: chest pain + shortness of breath, suicidal ideation, stroke symptoms (FAST), severe allergic reaction (anaphylaxis)
 - Emergency rule triggers must bypass all agent routing and fire a hardcoded response: "This sounds like a medical emergency. Call 000 immediately. Do not wait for a callback."
 - Log every emergency trigger with patient ID and timestamp for audit trail
@@ -211,6 +228,7 @@ The escalation system is listed as an LLM-driven feature. LLMs are probabilistic
 The "real agent memory" feature (agents remember prior consultations) requires storing patient health history in LangGraph state or a separate memory store. Without clear retention limits and patient consent for memory use, this creates a growing pool of sensitive health data with uncertain legal basis.
 
 **Prevention:**
+
 - Patient must consent at onboarding to "care team memory" with a plain-English explanation of what is stored
 - Define retention limits: agent memory purged after X days of inactivity or on patient request (APP 13 — right to correction/deletion)
 - Memory retrieval must be scoped: agents only retrieve the requesting patient's own history (RLS + thread_id scoping)
@@ -226,6 +244,7 @@ The "real agent memory" feature (agents remember prior consultations) requires s
 The proactive check-in system ("How are you feeling?") sends outbound messages to patients. Under Australian Spam Act 2003, commercial electronic messages require prior consent and a functional unsubscribe mechanism. Under Privacy Act APPs, proactive health communications require consent for the specific communication purpose. Automated health messages to patients who have not explicitly opted in may also raise AHPRA advertising compliance questions.
 
 **Prevention:**
+
 - Onboarding consent flow must include explicit opt-in for proactive check-in messages, separate from general terms
 - All notification emails/SMS must include a clear unsubscribe mechanism that works within 5 business days (Spam Act requirement)
 - Do not send check-ins until patient has completed at least one consultation (establishes existing relationship)
@@ -244,6 +263,7 @@ The proactive check-in system ("How are you feeling?") sends outbound messages t
 Multi-agent consultation flow (triage → GP → specialist) makes 3–5 sequential LLM calls. Groq is fast (~200ms) but under load, or when falling back to OpenAI, total consultation latency can reach 15–30 seconds. Patients interpret latency as unreliability, not backend processing.
 
 **Prevention:**
+
 - Implement streaming from the first agent in the pipeline while downstream agents pre-compute
 - Show "Dr. Alex is reviewing your case..." UI state during processing, not a spinner
 - Set a 10-second agent timeout with graceful fallback response rather than hanging
@@ -258,6 +278,7 @@ Multi-agent consultation flow (triage → GP → specialist) makes 3–5 sequent
 Existing consultation history, doctor records, and notification data in SQLite is silently lost or corrupted during migration because Prisma SQLite schema and Prisma PostgreSQL schema have diverged (e.g., boolean handling, JSON field types, integer vs bigint IDs).
 
 **Prevention:**
+
 - Run migration in shadow mode first: migrate schema without data, then ETL data separately
 - Write validation queries: row counts and key field samples must match between SQLite and Supabase after migration
 - Keep SQLite as read-only backup for 30 days post-migration
@@ -272,6 +293,7 @@ Existing consultation history, doctor records, and notification data in SQLite i
 The stated loop requirement ("continuous health check → auto-fix → improvement suggestions") is broad enough to justify infinite feature additions. Combined with the existing active features list (13 items), there is a high risk of shipping nothing fully compliant rather than shipping something valuable and safe.
 
 **Prevention:**
+
 - Apply MoSCoW to the active features list: must-have for launch vs. can-defer
 - The compliance layer (AHPRA disclaimers, 000 escalation, Privacy Act consent) is always Must Have — nothing ships without it
 - The "loop requirement" should be scoped to: symptom check-in → agent review → notification to patient. Anything beyond that is Phase 3+
@@ -283,33 +305,33 @@ The stated loop requirement ("continuous health check → auto-fix → improveme
 
 ## Australian-Specific Risk Register
 
-| Risk | Regulation | Severity | Mitigation Summary |
-|------|------------|----------|--------------------|
-| SaMD classification without ARTG registration | TGA / Therapeutic Goods Act 1989 | CRITICAL | TGA classification assessment in Phase 1; scope agent outputs as health information not diagnosis |
-| AI agent impersonating registered practitioner | AHPRA / Health Practitioner Regulation National Law | CRITICAL | Remove "Dr." titles from AI agents; mandatory AI disclosure in every interaction |
-| Health data sent to overseas LLM providers without consent or DPA | Privacy Act 1988 APP 8 | HIGH | Audit all LLM API providers; document DPAs; get patient consent for overseas processing |
-| Notifiable data breach not reported within 30 days | Privacy Act 1988 NDB Scheme | HIGH | Build NDB incident response plan before launch |
-| My Health Record integration without participation agreement | My Health Records Act 2012 | MEDIUM | Do not integrate My Health Record until formal participation agreement is in place |
-| Proactive check-ins without opt-in consent | Spam Act 2003 | MEDIUM | Explicit check-in consent at onboarding; unsubscribe mechanism in all messages |
-| Misleading advertising about AI capabilities | AHPRA Advertising Guidelines / ACL | HIGH | Legal review of all marketing copy before publication |
-| Failing to escalate medical emergency | Common law duty of care | CRITICAL | Deterministic emergency detection rules, not LLM-only |
-| NSW patients subject to HRIP Act in addition to Privacy Act | Health Records and Information Privacy Act 2002 (NSW) | MEDIUM | Privacy legal review for NSW-specific obligations if NSW patients are in scope |
+| Risk                                                              | Regulation                                            | Severity | Mitigation Summary                                                                                |
+| ----------------------------------------------------------------- | ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------- |
+| SaMD classification without ARTG registration                     | TGA / Therapeutic Goods Act 1989                      | CRITICAL | TGA classification assessment in Phase 1; scope agent outputs as health information not diagnosis |
+| AI agent impersonating registered practitioner                    | AHPRA / Health Practitioner Regulation National Law   | CRITICAL | Remove "Dr." titles from AI agents; mandatory AI disclosure in every interaction                  |
+| Health data sent to overseas LLM providers without consent or DPA | Privacy Act 1988 APP 8                                | HIGH     | Audit all LLM API providers; document DPAs; get patient consent for overseas processing           |
+| Notifiable data breach not reported within 30 days                | Privacy Act 1988 NDB Scheme                           | HIGH     | Build NDB incident response plan before launch                                                    |
+| My Health Record integration without participation agreement      | My Health Records Act 2012                            | MEDIUM   | Do not integrate My Health Record until formal participation agreement is in place                |
+| Proactive check-ins without opt-in consent                        | Spam Act 2003                                         | MEDIUM   | Explicit check-in consent at onboarding; unsubscribe mechanism in all messages                    |
+| Misleading advertising about AI capabilities                      | AHPRA Advertising Guidelines / ACL                    | HIGH     | Legal review of all marketing copy before publication                                             |
+| Failing to escalate medical emergency                             | Common law duty of care                               | CRITICAL | Deterministic emergency detection rules, not LLM-only                                             |
+| NSW patients subject to HRIP Act in addition to Privacy Act       | Health Records and Information Privacy Act 2002 (NSW) | MEDIUM   | Privacy legal review for NSW-specific obligations if NSW patients are in scope                    |
 
 ---
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
+| Phase Topic                                     | Likely Pitfall                                                            | Mitigation                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | Patient onboarding (medical history collection) | Privacy Act — collecting sensitive info without clear purpose and consent | Privacy policy + consent flow reviewed by privacy lawyer before launch |
-| Named care team UI (Dr. Alex avatars) | AHPRA advertising — misleading practitioner representation | Remove "Dr." title; add mandatory AI disclosure on every view |
-| Proactive check-in system | Spam Act consent + AHPRA advertising | Explicit opt-in; existing-patient-only rule |
-| Escalation system | LLM false negative on emergency | Deterministic rules layer; adversarial testing |
-| Supabase migration | RLS misconfiguration; SQLite data loss | RLS test suite; shadow migration with row-count validation |
-| LangGraph checkpointing | PostgreSQL write amplification at scale | Exit-mode checkpointing; heavy payload externalisation to storage |
-| Agent memory (personalised history) | Privacy Act — purpose limitation; patient right to deletion | Consent at onboarding; Delete My Data flow in patient portal |
-| PubMed/guideline citations | LLM hallucination of citations | RAG-only citations; never generate citations from model memory |
-| Push/email notifications | Spam Act 2003 | Unsubscribe mechanism in every message; consent documented |
+| Named care team UI (Dr. Alex avatars)           | AHPRA advertising — misleading practitioner representation                | Remove "Dr." title; add mandatory AI disclosure on every view          |
+| Proactive check-in system                       | Spam Act consent + AHPRA advertising                                      | Explicit opt-in; existing-patient-only rule                            |
+| Escalation system                               | LLM false negative on emergency                                           | Deterministic rules layer; adversarial testing                         |
+| Supabase migration                              | RLS misconfiguration; SQLite data loss                                    | RLS test suite; shadow migration with row-count validation             |
+| LangGraph checkpointing                         | PostgreSQL write amplification at scale                                   | Exit-mode checkpointing; heavy payload externalisation to storage      |
+| Agent memory (personalised history)             | Privacy Act — purpose limitation; patient right to deletion               | Consent at onboarding; Delete My Data flow in patient portal           |
+| PubMed/guideline citations                      | LLM hallucination of citations                                            | RAG-only citations; never generate citations from model memory         |
+| Push/email notifications                        | Spam Act 2003                                                             | Unsubscribe mechanism in every message; consent documented             |
 
 ---
 

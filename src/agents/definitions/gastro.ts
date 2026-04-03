@@ -6,7 +6,14 @@ export const gastroAgent: AgentDefinition = {
   name: "Chen AI \u2014 Gastroenterology",
   emoji: "🫁",
   description: "Gastroenterologist specializing in digestive system concerns",
-  specialties: ["stomach pain", "digestive issues", "nausea", "bowel problems", "acid reflux", "food intolerances"],
+  specialties: [
+    "stomach pain",
+    "digestive issues",
+    "nausea",
+    "bowel problems",
+    "acid reflux",
+    "food intolerances",
+  ],
   systemPrompt: `You are Chen AI, a Gastroenterologist AI assistant specializing in digestive health.
 
 ## Your Expertise:

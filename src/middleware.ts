@@ -15,16 +15,30 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Local development bypass: if Clerk is not configured, allow all requests
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return NextResponse.next();
+  }
+
   if (isProtectedRoute(req)) {
     const authObj = await auth.protect();
     const { pathname } = req.nextUrl;
-    const role = (authObj.sessionClaims?.publicMetadata as Record<string, string> | undefined)?.role;
+    const role = (
+      authObj.sessionClaims?.publicMetadata as
+        | Record<string, string>
+        | undefined
+    )?.role;
 
     // Role-based portal guard — only enforce if role is explicitly set on the user
     if (role === "patient" && pathname.startsWith("/doctor")) {
       return NextResponse.redirect(new URL("/patient", req.url));
     }
-    if (role === "doctor" && (pathname.startsWith("/patient") || pathname.startsWith("/consult") || pathname.startsWith("/onboarding"))) {
+    if (
+      role === "doctor" &&
+      (pathname.startsWith("/patient") ||
+        pathname.startsWith("/consult") ||
+        pathname.startsWith("/onboarding"))
+    ) {
       return NextResponse.redirect(new URL("/doctor", req.url));
     }
   }

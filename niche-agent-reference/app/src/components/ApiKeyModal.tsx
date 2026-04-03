@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Key, Check, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Key, Check, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 interface ApiKeyModalProps {
   open: boolean;
@@ -12,11 +18,11 @@ interface ApiKeyModalProps {
 }
 
 export default function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState("");
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('healthai_api_key');
+    const savedKey = localStorage.getItem("healthai_api_key");
     if (savedKey) {
       setApiKey(savedKey);
       setIsSaved(true);
@@ -25,9 +31,9 @@ export default function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
 
   const handleSave = () => {
     if (apiKey.trim()) {
-      localStorage.setItem('healthai_api_key', apiKey.trim());
+      localStorage.setItem("healthai_api_key", apiKey.trim());
       setIsSaved(true);
-      toast.success('API key saved! AI features are now active.');
+      toast.success("API key saved! AI features are now active.");
       onOpenChange(false);
       // Reload to apply the new API key
       window.location.reload();
@@ -35,10 +41,10 @@ export default function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
   };
 
   const handleClear = () => {
-    localStorage.removeItem('healthai_api_key');
-    setApiKey('');
+    localStorage.removeItem("healthai_api_key");
+    setApiKey("");
     setIsSaved(false);
-    toast.info('API key removed. Using fallback AI mode.');
+    toast.info("API key removed. Using fallback AI mode.");
   };
 
   return (
@@ -50,10 +56,11 @@ export default function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
             OpenAI API Configuration
           </DialogTitle>
           <DialogDescription>
-            Add your OpenAI API key to enable real AI-powered symptom analysis and diagnostic assistance.
+            Add your OpenAI API key to enable real AI-powered symptom analysis
+            and diagnostic assistance.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="api-key">OpenAI API Key</Label>
@@ -69,17 +76,21 @@ export default function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
               className="font-mono"
             />
             <p className="text-xs text-[#5A6B7F]">
-              Your API key is stored locally in your browser and never sent to our servers.
+              Your API key is stored locally in your browser and never sent to
+              our servers.
             </p>
           </div>
 
           <div className="bg-[#F6F8FA] rounded-lg p-4 text-sm">
-            <p className="font-medium text-[#0F1A2A] mb-2">Don't have an API key?</p>
+            <p className="font-medium text-[#0F1A2A] mb-2">
+              Don't have an API key?
+            </p>
             <ol className="text-[#5A6B7F] space-y-1 list-decimal list-inside">
-              <li>Go to{' '}
-                <a 
-                  href="https://platform.openai.com/api-keys" 
-                  target="_blank" 
+              <li>
+                Go to{" "}
+                <a
+                  href="https://platform.openai.com/api-keys"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#1E6FD9] hover:underline inline-flex items-center gap-1"
                 >
@@ -106,12 +117,12 @@ export default function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
               Remove Key
             </Button>
           )}
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             className="flex-1 bg-[#1E6FD9] hover:bg-[#1a5fc0] text-white"
             disabled={!apiKey.trim()}
           >
-            {isSaved ? 'Update Key' : 'Save API Key'}
+            {isSaved ? "Update Key" : "Save API Key"}
           </Button>
         </div>
       </DialogContent>

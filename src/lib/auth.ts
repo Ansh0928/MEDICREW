@@ -1,47 +1,102 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { Doctor } from "@prisma/client";
+import type { Doctor, Patient } from "@prisma/client";
+
+// Local development demo users
+const DEMO_DOCTOR = {
+  id: "demo-doc-123",
+  name: "Dr. Demo (Local)",
+  email: "doctor@demo.com",
+  specialty: "General Practice",
+  clerkUserId: "demo-user-id",
+  createdAt: new Date(),
+  clinicId: null,
+} as unknown as Doctor;
+
+const DEMO_PATIENT = {
+  id: "demo-pat-456",
+  name: "John Smith (Local)",
+  email: "patient@demo.com",
+  age: 35,
+  gender: "male",
+  knownConditions: "none",
+  deletedAt: null,
+  deletedEmail: null,
+  clerkUserId: "demo-user-id",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+} as unknown as Patient;
 
 export async function getDoctorAuth(): Promise<{
   doctor: Doctor | null;
   error: NextResponse | null;
 }> {
+  // Local development bypass
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return { doctor: DEMO_DOCTOR as Doctor, error: null };
+  }
+
   const { userId, sessionClaims } = await auth();
   if (!userId) {
     return {
       doctor: null,
-      error: NextResponse.json({ error: "Authentication required" }, { status: 401 }),
+      error: NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      ),
     };
   }
-  const role = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.role;
+  const role = (
+    sessionClaims?.publicMetadata as Record<string, string> | undefined
+  )?.role;
   if (role !== "doctor") {
     return {
       doctor: null,
-      error: NextResponse.json({ error: "Doctor access required" }, { status: 403 }),
+      error: NextResponse.json(
+        { error: "Doctor access required" },
+        { status: 403 },
+      ),
     };
   }
-  const doctor = await prisma.doctor.findUnique({ where: { clerkUserId: userId } });
+  const doctor = await prisma.doctor.findFirst({
+    where: { clerkUserId: userId },
+  });
   if (!doctor) {
     return {
       doctor: null,
-      error: NextResponse.json({ error: "Doctor profile not found" }, { status: 403 }),
+      error: NextResponse.json(
+        { error: "Doctor profile not found" },
+        { status: 403 },
+      ),
     };
   }
   return { doctor, error: null };
 }
 
-export async function getAuthenticatedPatient() {
+export async function getAuthenticatedPatient(): Promise<{
+  patient: Patient | null;
+  needsOnboarding: boolean;
+  error: NextResponse | null;
+}> {
+  // Local development bypass
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return { patient: DEMO_PATIENT, needsOnboarding: false, error: null };
+  }
+
   const { userId } = await auth();
   if (!userId) {
     return {
       patient: null,
       needsOnboarding: false,
-      error: NextResponse.json({ error: "Authentication required" }, { status: 401 }),
+      error: NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      ),
     };
   }
 
-  let patient = await prisma.patient.findUnique({
+  let patient = await prisma.patient.findFirst({
     where: { clerkUserId: userId },
   });
 
@@ -66,7 +121,7 @@ export async function getAuthenticatedPatient() {
       } catch {
         // Race condition: another request created the row between our findUnique
         // and create — fetch it now.
-        patient = await prisma.patient.findUnique({
+        patient = await prisma.patient.findFirst({
           where: { clerkUserId: userId },
         });
       }

@@ -16,7 +16,11 @@ type Step = "info" | "intake" | "chat";
 export function SwarmChat() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("info");
-  const [patientInfo, setPatientInfo] = useState({ age: "", gender: "", knownConditions: "" });
+  const [patientInfo, setPatientInfo] = useState({
+    age: "",
+    gender: "",
+    knownConditions: "",
+  });
   // Set by IntakeConversation onComplete
   const [builtSymptoms, setBuiltSymptoms] = useState("");
   const [historySummary, setHistorySummary] = useState("");
@@ -26,13 +30,16 @@ export function SwarmChat() {
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const updateOrb = useCallback((role: DoctorRole, status: OrbState["status"]) => {
-    setOrbs((prev) => {
-      const existing = prev.find((o) => o.role === role);
-      if (!existing) return [...prev, { role, status }];
-      return prev.map((o) => o.role === role ? { ...o, status } : o);
-    });
-  }, []);
+  const updateOrb = useCallback(
+    (role: DoctorRole, status: OrbState["status"]) => {
+      setOrbs((prev) => {
+        const existing = prev.find((o) => o.role === role);
+        if (!existing) return [...prev, { role, status }];
+        return prev.map((o) => (o.role === role ? { ...o, status } : o));
+      });
+    },
+    [],
+  );
 
   const handleEvent = (event: SwarmEvent) => {
     switch (event.type) {
@@ -41,18 +48,25 @@ export function SwarmChat() {
         break;
       case "doctor_activated":
         updateOrb(event.role, "active");
-        setLiveFeed(`${agentRegistry[event.role]?.name ?? event.role} is reviewing your symptoms...`);
+        setLiveFeed(
+          `${agentRegistry[event.role]?.name ?? event.role} is reviewing your symptoms...`,
+        );
         break;
       case "doctor_complete":
         updateOrb(event.role, "done");
         break;
       case "phase_changed":
-        if (event.phase === "debate") setLiveFeed("Your care team is discussing your case...");
-        if (event.phase === "synthesis") setLiveFeed("Preparing your recommendations...");
+        if (event.phase === "debate")
+          setLiveFeed("Your care team is discussing your case...");
+        if (event.phase === "synthesis")
+          setLiveFeed("Preparing your recommendations...");
         break;
       case "synthesis_complete":
         setSynthesis(event.data);
-        trackEvent(ANALYTICS_EVENTS.consultationCompleted, { surface: "swarm_chat", urgency: event.data.urgency });
+        trackEvent(ANALYTICS_EVENTS.consultationCompleted, {
+          surface: "swarm_chat",
+          urgency: event.data.urgency,
+        });
         setIsLoading(false);
         break;
       case "done":
@@ -61,12 +75,18 @@ export function SwarmChat() {
         break;
       case "error":
         setError(event.message);
-        trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", message: event.message });
+        trackEvent(ANALYTICS_EVENTS.consultationErrored, {
+          surface: "swarm_chat",
+          message: event.message,
+        });
         break;
     }
   };
 
-  const startConsultation = async (symptoms: string, summaryOverride?: string) => {
+  const startConsultation = async (
+    symptoms: string,
+    summaryOverride?: string,
+  ) => {
     if (!symptoms.trim() || isLoading) return;
     setIsLoading(true);
     setError(null);
@@ -75,7 +95,10 @@ export function SwarmChat() {
     setLiveFeed("");
 
     try {
-      trackEvent(ANALYTICS_EVENTS.consultationStarted, { surface: "swarm_chat", source: "consult_page" });
+      trackEvent(ANALYTICS_EVENTS.consultationStarted, {
+        surface: "swarm_chat",
+        source: "consult_page",
+      });
 
       const payload = {
         symptoms,
@@ -96,7 +119,9 @@ export function SwarmChat() {
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({ error: "Request failed" }));
+        const errBody = await res
+          .json()
+          .catch(() => ({ error: "Request failed" }));
         if (res.status === 403 && errBody.redirectTo) {
           router.push(errBody.redirectTo);
           return;
@@ -104,23 +129,33 @@ export function SwarmChat() {
         const msg =
           res.status === 429
             ? `Too many requests. Please wait ${errBody.retryAfter ?? 60} seconds.`
-            : errBody.error ?? "Failed to start consultation.";
+            : (errBody.error ?? "Failed to start consultation.");
         setError(msg);
-        trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", status: res.status, error: msg });
+        trackEvent(ANALYTICS_EVENTS.consultationErrored, {
+          surface: "swarm_chat",
+          status: res.status,
+          error: msg,
+        });
         return;
       }
 
       const contentType = res.headers.get("content-type") ?? "";
       if (contentType.includes("application/json")) {
         const data = await res.json();
-        if (data.error) { setError(data.error); return; }
+        if (data.error) {
+          setError(data.error);
+          return;
+        }
         setIsLoading(false);
         return;
       }
 
       // SSE stream
       const reader = res.body?.getReader();
-      if (!reader) { setError("Stream unavailable"); return; }
+      if (!reader) {
+        setError("Stream unavailable");
+        return;
+      }
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -135,13 +170,18 @@ export function SwarmChat() {
           const payload = line.slice(6).trim();
           try {
             handleEvent(JSON.parse(payload) as SwarmEvent);
-          } catch { /* skip malformed */ }
+          } catch {
+            /* skip malformed */
+          }
         }
       }
       decoder.decode();
     } catch {
       setError("Connection issue. Please try again.");
-      trackEvent(ANALYTICS_EVENTS.consultationErrored, { surface: "swarm_chat", error: "connection_issue" });
+      trackEvent(ANALYTICS_EVENTS.consultationErrored, {
+        surface: "swarm_chat",
+        error: "connection_issue",
+      });
     } finally {
       setIsLoading(false);
       setLiveFeed("");
@@ -166,7 +206,9 @@ export function SwarmChat() {
         <div className="text-center">
           <div className="text-4xl mb-2">🏥</div>
           <h2 className="text-xl font-bold">Tell us about yourself</h2>
-          <p className="text-sm text-muted-foreground mt-1">Helps your AI care team give better guidance</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Helps your AI care team give better guidance
+          </p>
         </div>
         <div className="space-y-3">
           <input
@@ -174,7 +216,9 @@ export function SwarmChat() {
             placeholder="Age"
             aria-label="Age"
             value={patientInfo.age}
-            onChange={(e) => setPatientInfo({ ...patientInfo, age: e.target.value })}
+            onChange={(e) =>
+              setPatientInfo({ ...patientInfo, age: e.target.value })
+            }
             className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
           />
           <div role="group" aria-label="Biological sex" className="flex gap-2">
@@ -183,7 +227,9 @@ export function SwarmChat() {
                 key={g}
                 onClick={() => setPatientInfo({ ...patientInfo, gender: g })}
                 className={`flex-1 py-2 rounded-lg border-2 text-sm transition-colors ${
-                  patientInfo.gender === g ? "border-primary bg-primary/10" : "border-border"
+                  patientInfo.gender === g
+                    ? "border-primary bg-primary/10"
+                    : "border-border"
                 }`}
               >
                 {g}
@@ -194,7 +240,12 @@ export function SwarmChat() {
             type="text"
             placeholder="Known conditions (optional)"
             value={patientInfo.knownConditions}
-            onChange={(e) => setPatientInfo({ ...patientInfo, knownConditions: e.target.value })}
+            onChange={(e) =>
+              setPatientInfo({
+                ...patientInfo,
+                knownConditions: e.target.value,
+              })
+            }
             className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
           />
         </div>
@@ -215,10 +266,16 @@ export function SwarmChat() {
       <div className="w-full max-w-lg mx-auto p-8 space-y-5 border rounded-xl">
         <div className="text-center mb-2">
           <h2 className="text-lg font-bold">What brings you in today?</h2>
-          <p className="text-xs text-muted-foreground mt-1">Answer a few questions so your care team is ready</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Answer a few questions so your care team is ready
+          </p>
         </div>
         <IntakeConversation
-          onComplete={(answers: IntakeAnswer[], symptoms: string, summary: string) => {
+          onComplete={(
+            answers: IntakeAnswer[],
+            symptoms: string,
+            summary: string,
+          ) => {
             setBuiltSymptoms(symptoms);
             setHistorySummary(summary);
             setStep("chat");
@@ -253,14 +310,18 @@ export function SwarmChat() {
       {!synthesis && !isLoading && (
         <div className="mt-auto text-center space-y-3 py-8">
           <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Connecting your care team...</p>
+          <p className="text-sm text-muted-foreground">
+            Connecting your care team...
+          </p>
         </div>
       )}
 
       {isLoading && orbs.length === 0 && (
         <div className="mt-auto text-center space-y-3 py-8">
           <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Starting consultation...</p>
+          <p className="text-sm text-muted-foreground">
+            Starting consultation...
+          </p>
         </div>
       )}
     </div>

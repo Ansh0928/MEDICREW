@@ -12,7 +12,9 @@ import type {
   TreatmentPlanSuggestion,
 } from "@/types/doctors-patients";
 
-const getJsonFromResponse = (content: string): Record<string, unknown> | null => {
+const getJsonFromResponse = (
+  content: string,
+): Record<string, unknown> | null => {
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
   try {
@@ -26,7 +28,7 @@ const getJsonFromResponse = (content: string): Record<string, unknown> | null =>
 export async function analyzeSymptoms(
   symptoms: string[],
   duration: string,
-  additionalInfo: string
+  additionalInfo: string,
 ): Promise<AIAssessment> {
   const llm = createModel(0.3);
   const prompt = `You are a medical triage AI assistant. Analyze the following patient symptoms and provide a structured assessment.
@@ -53,7 +55,7 @@ Guidelines:
 
   const response = await llm.invoke([
     new SystemMessage(
-      "You are a medical triage AI. Always respond with valid JSON only."
+      "You are a medical triage AI. Always respond with valid JSON only.",
     ),
     new HumanMessage(prompt),
   ]);
@@ -61,7 +63,8 @@ Guidelines:
   const parsed = getJsonFromResponse(content);
   if (parsed) {
     return {
-      urgencyLevel: (parsed.urgencyLevel as AIAssessment["urgencyLevel"]) ?? "medium",
+      urgencyLevel:
+        (parsed.urgencyLevel as AIAssessment["urgencyLevel"]) ?? "medium",
       possibleConditions: Array.isArray(parsed.possibleConditions)
         ? parsed.possibleConditions.slice(0, 4)
         : ["Further evaluation needed"],
@@ -70,7 +73,8 @@ Guidelines:
       questionsToAsk: Array.isArray(parsed.questionsToAsk)
         ? parsed.questionsToAsk.slice(0, 4)
         : ["Please describe symptoms in detail"],
-      confidence: typeof parsed.confidence === "number" ? parsed.confidence : 75,
+      confidence:
+        typeof parsed.confidence === "number" ? parsed.confidence : 75,
       reasoning: (parsed.reasoning as string) ?? "Based on symptom analysis",
     };
   }
@@ -80,7 +84,7 @@ Guidelines:
 function fallbackAssessment(
   symptoms: string[],
   duration: string,
-  additionalInfo: string
+  additionalInfo: string,
 ): AIAssessment {
   const criticalKeywords = [
     "severe",
@@ -91,7 +95,7 @@ function fallbackAssessment(
     "emergency",
   ];
   const hasCritical = criticalKeywords.some((k) =>
-    (symptoms.join(" ") + " " + additionalInfo).toLowerCase().includes(k)
+    (symptoms.join(" ") + " " + additionalInfo).toLowerCase().includes(k),
   );
   const urgencyLevel = hasCritical ? "critical" : "medium";
   return {
@@ -118,7 +122,7 @@ function fallbackAssessment(
 
 /** Generate diagnostic insights for a doctor reviewing a case (Gemini). */
 export async function generateDoctorInsights(
-  symptomCheck: SymptomCheck
+  symptomCheck: SymptomCheck,
 ): Promise<DoctorInsights> {
   const llm = createModel(0.3);
   const prompt = `As a medical AI assisting doctors, analyze this patient case and provide diagnostic insights.
@@ -139,7 +143,7 @@ Respond with JSON only:
 
   const response = await llm.invoke([
     new SystemMessage(
-      "You are a medical AI assisting doctors. Respond with valid JSON only."
+      "You are a medical AI assisting doctors. Respond with valid JSON only.",
     ),
     new HumanMessage(prompt),
   ]);
@@ -163,7 +167,10 @@ Respond with JSON only:
   return {
     differentialDiagnosis: symptomCheck.aiAssessment.possibleConditions,
     recommendedTests: ["CBC", "Basic metabolic panel", "Physical examination"],
-    redFlags: symptomCheck.aiAssessment.urgencyLevel === "critical" ? ["Requires immediate evaluation"] : [],
+    redFlags:
+      symptomCheck.aiAssessment.urgencyLevel === "critical"
+        ? ["Requires immediate evaluation"]
+        : [],
     aiConfidence: symptomCheck.aiAssessment.confidence,
   };
 }
@@ -171,7 +178,7 @@ Respond with JSON only:
 /** Generate treatment plan suggestion (Gemini). */
 export async function generateTreatmentPlan(
   diagnosis: string,
-  symptoms: string[]
+  symptoms: string[],
 ): Promise<TreatmentPlanSuggestion> {
   const llm = createModel(0.3);
   const prompt = `As a medical AI, suggest a treatment plan.
@@ -196,7 +203,9 @@ Respond with JSON only:
     return {
       medications: Array.isArray(parsed.medications) ? parsed.medications : [],
       lifestyle: Array.isArray(parsed.lifestyle) ? parsed.lifestyle : [],
-      followUp: (parsed.followUp as string) ?? "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
+      followUp:
+        (parsed.followUp as string) ??
+        "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
     };
   }
   return {
@@ -204,7 +213,11 @@ Respond with JSON only:
       "Symptomatic treatment as needed",
       "Follow prescribing guidelines",
     ],
-    lifestyle: ["Rest and adequate hydration", "Avoid strenuous activities", "Balanced diet"],
+    lifestyle: [
+      "Rest and adequate hydration",
+      "Avoid strenuous activities",
+      "Balanced diet",
+    ],
     followUp: "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
   };
 }

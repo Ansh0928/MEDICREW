@@ -1,104 +1,125 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Heart, 
-  LogOut, 
-  User, 
-  History, 
-  Plus, 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Heart,
+  LogOut,
+  User,
+  History,
+  Plus,
   Activity,
   Clock,
   AlertCircle,
   CheckCircle,
   ChevronRight,
   Sparkles,
-  Loader2
-} from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { analyzeSymptoms } from '@/services/aiService';
-import { addSymptomCheck, getSymptomChecksByPatient } from '@/services/dataService';
-import type { AIAssessment, SymptomCheck } from '@/types';
-import { toast } from 'sonner';
+  Loader2,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { analyzeSymptoms } from "@/services/aiService";
+import {
+  addSymptomCheck,
+  getSymptomChecksByPatient,
+} from "@/services/dataService";
+import type { AIAssessment, SymptomCheck } from "@/types";
+import { toast } from "sonner";
 
 const COMMON_SYMPTOMS = [
-  'Headache', 'Fever', 'Cough', 'Fatigue', 'Chest pain',
-  'Shortness of breath', 'Abdominal pain', 'Back pain',
-  'Nausea', 'Dizziness', 'Rash', 'Joint pain'
+  "Headache",
+  "Fever",
+  "Cough",
+  "Fatigue",
+  "Chest pain",
+  "Shortness of breath",
+  "Abdominal pain",
+  "Back pain",
+  "Nausea",
+  "Dizziness",
+  "Rash",
+  "Joint pain",
 ];
 
 const DURATIONS = [
-  'Less than 1 day',
-  '1-3 days',
-  '4-7 days',
-  '1-2 weeks',
-  'More than 2 weeks'
+  "Less than 1 day",
+  "1-3 days",
+  "4-7 days",
+  "1-2 weeks",
+  "More than 2 weeks",
 ];
 
 export default function PatientPortal() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'check' | 'history'>('check');
-  
+  const [activeTab, setActiveTab] = useState<"check" | "history">("check");
+
   // Symptom check form state
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-  const [customSymptom, setCustomSymptom] = useState('');
-  const [duration, setDuration] = useState('');
-  const [additionalInfo, setAdditionalInfo] = useState('');
+  const [customSymptom, setCustomSymptom] = useState("");
+  const [duration, setDuration] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<AIAssessment | null>(null);
-  const [submittedCheck, setSubmittedCheck] = useState<SymptomCheck | null>(null);
+  const [submittedCheck, setSubmittedCheck] = useState<SymptomCheck | null>(
+    null,
+  );
 
   const handleSymptomToggle = (symptom: string) => {
-    setSelectedSymptoms(prev => 
-      prev.includes(symptom) 
-        ? prev.filter(s => s !== symptom)
-        : [...prev, symptom]
+    setSelectedSymptoms((prev) =>
+      prev.includes(symptom)
+        ? prev.filter((s) => s !== symptom)
+        : [...prev, symptom],
     );
   };
 
   const handleAddCustomSymptom = () => {
-    if (customSymptom.trim() && !selectedSymptoms.includes(customSymptom.trim())) {
+    if (
+      customSymptom.trim() &&
+      !selectedSymptoms.includes(customSymptom.trim())
+    ) {
       setSelectedSymptoms([...selectedSymptoms, customSymptom.trim()]);
-      setCustomSymptom('');
+      setCustomSymptom("");
     }
   };
 
   const handleAnalyze = async () => {
     if (selectedSymptoms.length === 0) {
-      toast.error('Please select at least one symptom');
+      toast.error("Please select at least one symptom");
       return;
     }
     if (!duration) {
-      toast.error('Please select symptom duration');
+      toast.error("Please select symptom duration");
       return;
     }
 
     setIsAnalyzing(true);
     try {
-      const assessment = await analyzeSymptoms(selectedSymptoms, duration, additionalInfo);
+      const assessment = await analyzeSymptoms(
+        selectedSymptoms,
+        duration,
+        additionalInfo,
+      );
       setAiResult(assessment);
-      
+
       // Save the symptom check
       const newCheck = addSymptomCheck({
-        patientId: user?.id || 'unknown',
-        patientName: user?.name || 'Unknown',
+        patientId: user?.id || "unknown",
+        patientName: user?.name || "Unknown",
         symptoms: selectedSymptoms,
         duration,
         additionalInfo,
         aiAssessment: assessment,
-        status: 'pending',
+        status: "pending",
       });
-      
+
       setSubmittedCheck(newCheck);
-      toast.success('AI analysis complete!');
+      toast.success("AI analysis complete!");
     } catch (error) {
-      toast.error('Analysis failed. Please try again.');
+      toast.error("Analysis failed. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -106,19 +127,23 @@ export default function PatientPortal() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'critical': return 'bg-red-100 text-red-700 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      default: return 'bg-green-100 text-green-700 border-green-200';
+      case "critical":
+        return "bg-red-100 text-red-700 border-red-200";
+      case "high":
+        return "bg-orange-100 text-orange-700 border-orange-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      default:
+        return "bg-green-100 text-green-700 border-green-200";
     }
   };
 
-  const pastChecks = getSymptomChecksByPatient(user?.id || '');
+  const pastChecks = getSymptomChecksByPatient(user?.id || "");
 
   return (
     <div className="min-h-screen bg-[#F6F8FA]">
@@ -130,16 +155,21 @@ export default function PatientPortal() {
               <div className="w-8 h-8 rounded-lg bg-[#1E6FD9] flex items-center justify-center">
                 <Heart className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-semibold text-[#0F1A2A]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+              <span
+                className="text-xl font-semibold text-[#0F1A2A]"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
                 HealthAI
               </span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-[#EAF3FB] rounded-full">
                 <User className="w-4 h-4 text-[#1E6FD9]" />
-                <span className="text-sm font-medium text-[#0F1A2A]">{user?.name}</span>
+                <span className="text-sm font-medium text-[#0F1A2A]">
+                  {user?.name}
+                </span>
               </div>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="p-2 text-[#5A6B7F] hover:text-[#0F1A2A] hover:bg-[#F6F8FA] rounded-lg transition-colors"
               >
@@ -154,33 +184,37 @@ export default function PatientPortal() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#0F1A2A] mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-            Welcome back, {user?.name?.split(' ')[0]}
+          <h1
+            className="text-2xl font-bold text-[#0F1A2A] mb-1"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Welcome back, {user?.name?.split(" ")[0]}
           </h1>
           <p className="text-[#5A6B7F]">
-            Check your symptoms with our AI assistant or view your health history.
+            Check your symptoms with our AI assistant or view your health
+            history.
           </p>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
           <button
-            onClick={() => setActiveTab('check')}
+            onClick={() => setActiveTab("check")}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === 'check' 
-                ? 'bg-[#1E6FD9] text-white' 
-                : 'bg-white text-[#5A6B7F] hover:bg-[#EAF3FB]'
+              activeTab === "check"
+                ? "bg-[#1E6FD9] text-white"
+                : "bg-white text-[#5A6B7F] hover:bg-[#EAF3FB]"
             }`}
           >
             <Plus className="w-4 h-4" />
             New Symptom Check
           </button>
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() => setActiveTab("history")}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === 'history' 
-                ? 'bg-[#1E6FD9] text-white' 
-                : 'bg-white text-[#5A6B7F] hover:bg-[#EAF3FB]'
+              activeTab === "history"
+                ? "bg-[#1E6FD9] text-white"
+                : "bg-white text-[#5A6B7F] hover:bg-[#EAF3FB]"
             }`}
           >
             <History className="w-4 h-4" />
@@ -188,7 +222,7 @@ export default function PatientPortal() {
           </button>
         </div>
 
-        {activeTab === 'check' && (
+        {activeTab === "check" && (
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Symptom Check Form */}
             <Card className="border-[#EAF3FB]">
@@ -205,14 +239,14 @@ export default function PatientPortal() {
                     Select your symptoms
                   </Label>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {COMMON_SYMPTOMS.map(symptom => (
+                    {COMMON_SYMPTOMS.map((symptom) => (
                       <button
                         key={symptom}
                         onClick={() => handleSymptomToggle(symptom)}
                         className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                           selectedSymptoms.includes(symptom)
-                            ? 'bg-[#1E6FD9] text-white border-[#1E6FD9]'
-                            : 'bg-white text-[#5A6B7F] border-[#EAF3FB] hover:border-[#1E6FD9]'
+                            ? "bg-[#1E6FD9] text-white border-[#1E6FD9]"
+                            : "bg-white text-[#5A6B7F] border-[#EAF3FB] hover:border-[#1E6FD9]"
                         }`}
                       >
                         {symptom}
@@ -224,10 +258,12 @@ export default function PatientPortal() {
                       placeholder="Add other symptom..."
                       value={customSymptom}
                       onChange={(e) => setCustomSymptom(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddCustomSymptom()}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleAddCustomSymptom()
+                      }
                       className="rounded-full"
                     />
-                    <Button 
+                    <Button
                       onClick={handleAddCustomSymptom}
                       variant="outline"
                       className="rounded-full px-4"
@@ -237,13 +273,13 @@ export default function PatientPortal() {
                   </div>
                   {selectedSymptoms.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {selectedSymptoms.map(symptom => (
-                        <span 
+                      {selectedSymptoms.map((symptom) => (
+                        <span
                           key={symptom}
                           className="inline-flex items-center gap-1 px-3 py-1 bg-[#EAF3FB] rounded-full text-sm text-[#0F1A2A]"
                         >
                           {symptom}
-                          <button 
+                          <button
                             onClick={() => handleSymptomToggle(symptom)}
                             className="text-[#5A6B7F] hover:text-red-500"
                           >
@@ -261,14 +297,14 @@ export default function PatientPortal() {
                     How long have you had these symptoms?
                   </Label>
                   <div className="flex flex-wrap gap-2">
-                    {DURATIONS.map(d => (
+                    {DURATIONS.map((d) => (
                       <button
                         key={d}
                         onClick={() => setDuration(d)}
                         className={`px-4 py-2 rounded-full text-sm border transition-colors ${
                           duration === d
-                            ? 'bg-[#1E6FD9] text-white border-[#1E6FD9]'
-                            : 'bg-white text-[#5A6B7F] border-[#EAF3FB] hover:border-[#1E6FD9]'
+                            ? "bg-[#1E6FD9] text-white border-[#1E6FD9]"
+                            : "bg-white text-[#5A6B7F] border-[#EAF3FB] hover:border-[#1E6FD9]"
                         }`}
                       >
                         {d}
@@ -291,9 +327,11 @@ export default function PatientPortal() {
                 </div>
 
                 {/* Submit Button */}
-                <Button 
+                <Button
                   onClick={handleAnalyze}
-                  disabled={isAnalyzing || selectedSymptoms.length === 0 || !duration}
+                  disabled={
+                    isAnalyzing || selectedSymptoms.length === 0 || !duration
+                  }
                   className="w-full bg-[#1E6FD9] hover:bg-[#1a5fc0] text-white rounded-xl"
                 >
                   {isAnalyzing ? (
@@ -323,18 +361,24 @@ export default function PatientPortal() {
                 <CardContent className="space-y-6">
                   {/* Urgency Level */}
                   <div>
-                    <Label className="text-sm text-[#5A6B7F] mb-2 block">Urgency Level</Label>
-                    <Badge className={`text-sm px-4 py-2 ${getUrgencyColor(aiResult.urgencyLevel)}`}>
+                    <Label className="text-sm text-[#5A6B7F] mb-2 block">
+                      Urgency Level
+                    </Label>
+                    <Badge
+                      className={`text-sm px-4 py-2 ${getUrgencyColor(aiResult.urgencyLevel)}`}
+                    >
                       {aiResult.urgencyLevel.toUpperCase()}
                     </Badge>
                   </div>
 
                   {/* Possible Conditions */}
                   <div>
-                    <Label className="text-sm text-[#5A6B7F] mb-2 block">Possible Conditions</Label>
+                    <Label className="text-sm text-[#5A6B7F] mb-2 block">
+                      Possible Conditions
+                    </Label>
                     <div className="flex flex-wrap gap-2">
                       {aiResult.possibleConditions.map((condition, idx) => (
-                        <span 
+                        <span
                           key={idx}
                           className="px-3 py-1.5 bg-[#EAF3FB] rounded-lg text-sm text-[#0F1A2A]"
                         >
@@ -349,8 +393,12 @@ export default function PatientPortal() {
                     <div className="flex items-start gap-3">
                       <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-orange-800 mb-1">Recommended Action</div>
-                        <div className="text-sm text-orange-700">{aiResult.recommendedAction}</div>
+                        <div className="font-medium text-orange-800 mb-1">
+                          Recommended Action
+                        </div>
+                        <div className="text-sm text-orange-700">
+                          {aiResult.recommendedAction}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -359,9 +407,13 @@ export default function PatientPortal() {
                   <div className="flex items-center justify-between pt-4 border-t border-[#EAF3FB]">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-[#5A6B7F]">AI Confidence</span>
+                      <span className="text-sm text-[#5A6B7F]">
+                        AI Confidence
+                      </span>
                     </div>
-                    <span className="text-lg font-semibold text-[#1E6FD9]">{aiResult.confidence}%</span>
+                    <span className="text-lg font-semibold text-[#1E6FD9]">
+                      {aiResult.confidence}%
+                    </span>
                   </div>
 
                   {/* Queue Status */}
@@ -369,10 +421,13 @@ export default function PatientPortal() {
                     <div className="bg-[#E8F5E9] rounded-xl p-4 border border-[#C8E6C9]">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-4 h-4 text-green-600" />
-                        <span className="font-medium text-green-800">Added to Queue</span>
+                        <span className="font-medium text-green-800">
+                          Added to Queue
+                        </span>
                       </div>
                       <p className="text-sm text-green-700">
-                        Your case has been added to the doctor's queue. You will be notified when a doctor reviews your case.
+                        Your case has been added to the doctor's queue. You will
+                        be notified when a doctor reviews your case.
                       </p>
                     </div>
                   )}
@@ -391,15 +446,15 @@ export default function PatientPortal() {
           </div>
         )}
 
-        {activeTab === 'history' && (
+        {activeTab === "history" && (
           <div className="space-y-4">
             {pastChecks.length === 0 ? (
               <Card className="border-[#EAF3FB]">
                 <CardContent className="py-12 text-center">
                   <History className="w-12 h-12 mx-auto mb-4 text-[#CBD5E1]" />
                   <p className="text-[#5A6B7F]">No symptom checks yet</p>
-                  <Button 
-                    onClick={() => setActiveTab('check')}
+                  <Button
+                    onClick={() => setActiveTab("check")}
                     className="mt-4 bg-[#1E6FD9] hover:bg-[#1a5fc0] text-white"
                   >
                     Start Your First Check
@@ -407,33 +462,45 @@ export default function PatientPortal() {
                 </CardContent>
               </Card>
             ) : (
-              pastChecks.map(check => (
+              pastChecks.map((check) => (
                 <Card key={check.id} className="border-[#EAF3FB]">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-sm text-[#5A6B7F]">
-                            {new Date(check.createdAt).toLocaleDateString('en-AU', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            })}
+                            {new Date(check.createdAt).toLocaleDateString(
+                              "en-AU",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
                           </span>
-                          <Badge className={getUrgencyColor(check.aiAssessment.urgencyLevel)}>
+                          <Badge
+                            className={getUrgencyColor(
+                              check.aiAssessment.urgencyLevel,
+                            )}
+                          >
                             {check.aiAssessment.urgencyLevel}
                           </Badge>
-                          <Badge variant="outline" className={
-                            check.status === 'completed' ? 'border-green-200 text-green-600' :
-                            check.status === 'in-review' ? 'border-blue-200 text-blue-600' :
-                            'border-yellow-200 text-yellow-600'
-                          }>
+                          <Badge
+                            variant="outline"
+                            className={
+                              check.status === "completed"
+                                ? "border-green-200 text-green-600"
+                                : check.status === "in-review"
+                                  ? "border-blue-200 text-blue-600"
+                                  : "border-yellow-200 text-yellow-600"
+                            }
+                          >
                             {check.status}
                           </Badge>
                         </div>
                         <div className="flex flex-wrap gap-2 mb-3">
                           {check.symptoms.map((symptom, idx) => (
-                            <span 
+                            <span
                               key={idx}
                               className="px-2 py-1 bg-[#F6F8FA] rounded text-sm text-[#5A6B7F]"
                             >
@@ -442,7 +509,10 @@ export default function PatientPortal() {
                           ))}
                         </div>
                         <p className="text-sm text-[#5A6B7F]">
-                          Possible: {check.aiAssessment.possibleConditions.slice(0, 2).join(', ')}
+                          Possible:{" "}
+                          {check.aiAssessment.possibleConditions
+                            .slice(0, 2)
+                            .join(", ")}
                         </p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-[#CBD5E1]" />

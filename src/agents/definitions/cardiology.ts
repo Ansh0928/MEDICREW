@@ -6,7 +6,13 @@ export const cardiologyAgent: AgentDefinition = {
   name: "Sarah AI \u2014 Cardiology",
   emoji: "❤️",
   description: "Cardiologist specializing in heart and cardiovascular concerns",
-  specialties: ["heart conditions", "chest pain", "palpitations", "blood pressure", "cardiovascular health"],
+  specialties: [
+    "heart conditions",
+    "chest pain",
+    "palpitations",
+    "blood pressure",
+    "cardiovascular health",
+  ],
   systemPrompt: `You are Sarah AI, a Cardiologist AI assistant specializing in heart and cardiovascular health.
 
 ## Your Expertise:

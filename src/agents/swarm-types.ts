@@ -18,12 +18,20 @@ export type ResidentRole =
   | "red-flag";
 
 export const DOCTOR_ROLES: DoctorRole[] = [
-  "gp", "cardiology", "mental_health", "dermatology",
-  "orthopedic", "gastro", "physiotherapy",
+  "gp",
+  "cardiology",
+  "mental_health",
+  "dermatology",
+  "orthopedic",
+  "gastro",
+  "physiotherapy",
 ];
 
 export const RESIDENT_ROLES: ResidentRole[] = [
-  "conservative", "pharmacological", "investigative", "red-flag",
+  "conservative",
+  "pharmacological",
+  "investigative",
+  "red-flag",
 ];
 
 export type DebateMessageType = "agree" | "challenge" | "add_context";
@@ -101,10 +109,29 @@ export type SwarmEvent =
   | { type: "phase_changed"; phase: SwarmPhase }
   | { type: "doctor_activated"; role: DoctorRole; name: string }
   | { type: "doctor_complete"; role: DoctorRole }
-  | { type: "hypothesis_found"; role: DoctorRole; residentRole: ResidentRole; hypothesisId: string; name: string; confidence: number }
-  | { type: "debate_message"; role: DoctorRole; residentRole: ResidentRole; messageType: DebateMessageType; content: string; referencingHypothesisId?: string }
+  | {
+      type: "hypothesis_found";
+      role: DoctorRole;
+      residentRole: ResidentRole;
+      hypothesisId: string;
+      name: string;
+      confidence: number;
+    }
+  | {
+      type: "debate_message";
+      role: DoctorRole;
+      residentRole: ResidentRole;
+      messageType: DebateMessageType;
+      content: string;
+      referencingHypothesisId?: string;
+    }
   | { type: "rectification_complete"; role: DoctorRole; summary: string }
-  | { type: "mdt_message"; role: DoctorRole; messageType: MdtMessageType; content: string }
+  | {
+      type: "mdt_message";
+      role: DoctorRole;
+      messageType: MdtMessageType;
+      content: string;
+    }
   | { type: "synthesis_complete"; data: SwarmSynthesis }
   | {
       type: "gatekeeper_review";
@@ -113,7 +140,11 @@ export type SwarmEvent =
       changed: boolean;
       approvedUrgency: UrgencyLevel;
     }
-  | { type: "followup_routed"; questionType: "simple" | "complex"; activatedRoles: string[] }
+  | {
+      type: "followup_routed";
+      questionType: "simple" | "complex";
+      activatedRoles: string[];
+    }
   | { type: "followup_answer"; answer: string }
   | { type: "error"; message: string }
   | { type: "done" };
@@ -135,4 +166,3 @@ export function createInitialSwarmState(
     currentPhase: "triage",
   };
 }
-

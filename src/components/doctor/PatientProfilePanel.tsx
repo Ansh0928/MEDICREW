@@ -23,7 +23,8 @@ function calcAge(dob: string | null): string {
   const age = today.getFullYear() - birthDate.getFullYear();
   const hadBirthday =
     today.getMonth() > birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+    (today.getMonth() === birthDate.getMonth() &&
+      today.getDate() >= birthDate.getDate());
   return `${hadBirthday ? age : age - 1} years`;
 }
 
@@ -35,14 +36,17 @@ interface SectionProps {
 function Section({ title, children }: SectionProps) {
   return (
     <div className="mb-5">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{title}</h3>
+      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
+        {title}
+      </h3>
       {children}
     </div>
   );
 }
 
 function TagList({ items, emptyText }: { items: string[]; emptyText: string }) {
-  if (items.length === 0) return <p className="text-sm text-gray-400 italic">{emptyText}</p>;
+  if (items.length === 0)
+    return <p className="text-sm text-gray-400 italic">{emptyText}</p>;
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((item) => (
@@ -95,7 +99,10 @@ export function PatientProfilePanel() {
   }
 
   const conditions = profile.knownConditions
-    ? profile.knownConditions.split(",").map((s) => s.trim()).filter(Boolean)
+    ? profile.knownConditions
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
     : [];
 
   return (
@@ -108,7 +115,9 @@ export function PatientProfilePanel() {
           className="w-12 h-12 rounded-full bg-gray-100"
         />
         <div>
-          <h2 className="text-base font-semibold text-gray-900">{profile.name}</h2>
+          <h2 className="text-base font-semibold text-gray-900">
+            {profile.name}
+          </h2>
           <p className="text-sm text-gray-500">
             {calcAge(profile.dateOfBirth)}
             {profile.gender ? ` · ${profile.gender}` : ""}
@@ -121,7 +130,10 @@ export function PatientProfilePanel() {
       </Section>
 
       <Section title="Current Medications">
-        <TagList items={profile.medications} emptyText="No medications recorded" />
+        <TagList
+          items={profile.medications}
+          emptyText="No medications recorded"
+        />
       </Section>
 
       <Section title="Allergies">

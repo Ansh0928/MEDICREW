@@ -83,7 +83,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en-AU" className="scroll-smooth">
-        <body className={`${inter.variable} ${playfair.variable} ${ibmMono.variable} font-sans antialiased`}>
+        <body
+          className={`${inter.variable} ${playfair.variable} ${ibmMono.variable} font-sans antialiased`}
+        >
           <AuthProvider>{children}</AuthProvider>
         </body>
       </html>

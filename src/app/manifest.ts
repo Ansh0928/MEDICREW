@@ -4,7 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MediCrew",
     short_name: "MediCrew",
-    description: "AI health navigation with specialist perspectives and follow-up care summaries.",
+    description:
+      "AI health navigation with specialist perspectives and follow-up care summaries.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

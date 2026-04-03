@@ -4,7 +4,14 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle, Activity, AlertCircle, ExternalLink, ChevronRight } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  Activity,
+  AlertCircle,
+  ExternalLink,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 
 interface CarePlanData {
@@ -71,17 +78,34 @@ function getResponseColor(response: string | null): string {
 }
 
 function getResponseBadgeVariant(
-  response: string | null
+  response: string | null,
 ): "default" | "secondary" | "destructive" | "outline" {
   if (response === "better") return "default";
   if (response === "worse") return "destructive";
   return "secondary";
 }
 
-const RESPONSE_OPTIONS: { value: "better" | "same" | "worse"; label: string; color: string }[] = [
-  { value: "better", label: "Better", color: "bg-green-100 text-green-700 hover:bg-green-200 border-green-300" },
-  { value: "same", label: "Same", color: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-300" },
-  { value: "worse", label: "Worse", color: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300" },
+const RESPONSE_OPTIONS: {
+  value: "better" | "same" | "worse";
+  label: string;
+  color: string;
+}[] = [
+  {
+    value: "better",
+    label: "Better",
+    color: "bg-green-100 text-green-700 hover:bg-green-200 border-green-300",
+  },
+  {
+    value: "same",
+    label: "Same",
+    color:
+      "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-300",
+  },
+  {
+    value: "worse",
+    label: "Worse",
+    color: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300",
+  },
 ];
 
 export function CarePlanDetail() {
@@ -107,7 +131,10 @@ export function CarePlanDetail() {
     fetchCarePlan();
   }, [fetchCarePlan]);
 
-  const handleCheckInResponse = async (checkInId: string, response: "better" | "same" | "worse") => {
+  const handleCheckInResponse = async (
+    checkInId: string,
+    response: "better" | "same" | "worse",
+  ) => {
     setRespondingId(checkInId);
     try {
       const res = await fetch("/api/checkin/respond", {
@@ -151,7 +178,9 @@ export function CarePlanDetail() {
         <CardContent className="pt-6">
           <div className="text-center py-8 text-muted-foreground">
             <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="text-sm mb-4">Start a consultation to begin your care plan</p>
+            <p className="text-sm mb-4">
+              Start a consultation to begin your care plan
+            </p>
             <Link
               href="/consult"
               className="inline-flex rounded-full bg-primary px-5 py-2 text-sm text-primary-foreground hover:opacity-90 transition-opacity"
@@ -166,7 +195,6 @@ export function CarePlanDetail() {
 
   return (
     <div className="space-y-4">
-
       {/* Monitoring Status Card */}
       <Card>
         <CardHeader className="pb-2">
@@ -203,7 +231,8 @@ export function CarePlanDetail() {
               </span>{" "}
               {carePlan.lastAgentActivity.message}{" "}
               <span className="opacity-60">
-                &middot; {formatRelativeTime(carePlan.lastAgentActivity.updatedAt)}
+                &middot;{" "}
+                {formatRelativeTime(carePlan.lastAgentActivity.updatedAt)}
               </span>
             </p>
           )}
@@ -219,35 +248,49 @@ export function CarePlanDetail() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {carePlan.nextCheckIn ? (() => {
-            const isPast = new Date(carePlan.nextCheckIn!.scheduledFor) <= new Date();
-            return (
-              <>
-                <p className="text-sm font-medium">
-                  {isPast ? "Your care team is checking in:" : `Scheduled for ${formatAuDate(carePlan.nextCheckIn!.scheduledFor)}`}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1 mb-3">
-                  {isPast ? "How are your symptoms compared to your last consultation?" : "Your care team will check in with you"}
-                </p>
-                {isPast && (
-                  <div className="flex gap-2 flex-wrap">
-                    {RESPONSE_OPTIONS.map((opt) => (
-                      <Button
-                        key={opt.value}
-                        variant="outline"
-                        size="sm"
-                        disabled={respondingId === carePlan.nextCheckIn!.id}
-                        onClick={() => handleCheckInResponse(carePlan.nextCheckIn!.id, opt.value)}
-                        className={`text-xs border ${opt.color}`}
-                      >
-                        {respondingId === carePlan.nextCheckIn!.id ? "Saving…" : opt.label}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-              </>
-            );
-          })() : (
+          {carePlan.nextCheckIn ? (
+            (() => {
+              const isPast =
+                new Date(carePlan.nextCheckIn!.scheduledFor) <= new Date();
+              return (
+                <>
+                  <p className="text-sm font-medium">
+                    {isPast
+                      ? "Your care team is checking in:"
+                      : `Scheduled for ${formatAuDate(carePlan.nextCheckIn!.scheduledFor)}`}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 mb-3">
+                    {isPast
+                      ? "How are your symptoms compared to your last consultation?"
+                      : "Your care team will check in with you"}
+                  </p>
+                  {isPast && (
+                    <div className="flex gap-2 flex-wrap">
+                      {RESPONSE_OPTIONS.map((opt) => (
+                        <Button
+                          key={opt.value}
+                          variant="outline"
+                          size="sm"
+                          disabled={respondingId === carePlan.nextCheckIn!.id}
+                          onClick={() =>
+                            handleCheckInResponse(
+                              carePlan.nextCheckIn!.id,
+                              opt.value,
+                            )
+                          }
+                          className={`text-xs border ${opt.color}`}
+                        >
+                          {respondingId === carePlan.nextCheckIn!.id
+                            ? "Saving…"
+                            : opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()
+          ) : (
             <p className="text-sm text-muted-foreground">
               No check-ins currently scheduled
             </p>
@@ -262,7 +305,9 @@ export function CarePlanDetail() {
             <CardTitle className="text-base">Care Team Assessment</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-700">{carePlan.latestConsultation.primaryRecommendation}</p>
+            <p className="text-sm text-gray-700">
+              {carePlan.latestConsultation.primaryRecommendation}
+            </p>
             <Link
               href={`/patient/consultation/${carePlan.latestConsultation.id}`}
               className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-2"
@@ -362,7 +407,9 @@ export function CarePlanDetail() {
                       </Badge>
                     )}
                     <span className="text-xs text-muted-foreground ml-auto">
-                      {formatRelativeTime(checkIn.respondedAt ?? checkIn.createdAt)}
+                      {formatRelativeTime(
+                        checkIn.respondedAt ?? checkIn.createdAt,
+                      )}
                     </span>
                   </div>
                   {checkIn.status === "pending" && (
@@ -373,7 +420,9 @@ export function CarePlanDetail() {
                           variant="outline"
                           size="sm"
                           disabled={respondingId === checkIn.id}
-                          onClick={() => handleCheckInResponse(checkIn.id, opt.value)}
+                          onClick={() =>
+                            handleCheckInResponse(checkIn.id, opt.value)
+                          }
                           className={`text-xs border ${opt.color}`}
                         >
                           {respondingId === checkIn.id ? "Saving…" : opt.label}
@@ -397,7 +446,6 @@ export function CarePlanDetail() {
         This care plan summary is for informational purposes only and does not
         constitute a medical diagnosis or treatment plan.
       </p>
-
     </div>
   );
 }

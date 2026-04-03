@@ -1,78 +1,100 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { BodyMap, BodyRegion } from "./BodyMap";
-import { IntakeAnswer, IntakeQuestion, buildSymptomsFromAnswers, buildHistorySummaryFromAnswers } from "@/lib/intake-types";
+import {
+  IntakeAnswer,
+  IntakeQuestion,
+  buildSymptomsFromAnswers,
+  buildHistorySummaryFromAnswers,
+} from "@/lib/intake-types";
 
 interface IntakeConversationProps {
-  onComplete: (answers: IntakeAnswer[], symptoms: string, historySummary: string) => void;
+  onComplete: (
+    answers: IntakeAnswer[],
+    symptoms: string,
+    historySummary: string,
+  ) => void;
 }
 
 export function IntakeConversation({ onComplete }: IntakeConversationProps) {
   const [answers, setAnswers] = useState<IntakeAnswer[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<IntakeQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<IntakeQuestion | null>(
+    null,
+  );
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
 
-  const fetchNextQuestion = useCallback(async (answersToSend: IntakeAnswer[]) => {
-    // Cancel any in-flight request
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+  const fetchNextQuestion = useCallback(
+    async (answersToSend: IntakeAnswer[]) => {
+      // Cancel any in-flight request
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-    setIsLoading(true);
-    setError(null);
-    setCurrentAnswer("");
+      setIsLoading(true);
+      setError(null);
+      setCurrentAnswer("");
 
-    try {
-      const res = await fetch("/api/consult/intake", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: answersToSend }),
-        signal: controller.signal,
-      });
-      if (!res.ok) throw new Error(`intake API error ${res.status}`);
-      const question: IntakeQuestion = await res.json();
-      setCurrentQuestion(question);
-    } catch (err) {
-      if ((err as Error).name === "AbortError") return; // ignore cancelled requests
-      setError("Connection issue — please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        const res = await fetch("/api/consult/intake", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: answersToSend }),
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`intake API error ${res.status}`);
+        const question: IntakeQuestion = await res.json();
+        setCurrentQuestion(question);
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return; // ignore cancelled requests
+        setError("Connection issue — please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   // Fetch first question on mount
-  useEffect(() => { fetchNextQuestion([]); }, [fetchNextQuestion]);
+  useEffect(() => {
+    fetchNextQuestion([]);
+  }, [fetchNextQuestion]);
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, []);
 
-  const handleNext = useCallback((overrideAnswer?: string) => {
-    const answer = (overrideAnswer ?? currentAnswer).trim();
-    if (!currentQuestion || (!answer && currentQuestion.type !== "confirm")) return;
+  const handleNext = useCallback(
+    (overrideAnswer?: string) => {
+      const answer = (overrideAnswer ?? currentAnswer).trim();
+      if (!currentQuestion || (!answer && currentQuestion.type !== "confirm"))
+        return;
 
-    const newAnswer: IntakeAnswer = {
-      questionId: currentQuestion.questionId,
-      question: currentQuestion.question,
-      answer,
-    };
-    const updatedAnswers = [...answers, newAnswer];
-    setAnswers(updatedAnswers);
+      const newAnswer: IntakeAnswer = {
+        questionId: currentQuestion.questionId,
+        question: currentQuestion.question,
+        answer,
+      };
+      const updatedAnswers = [...answers, newAnswer];
+      setAnswers(updatedAnswers);
 
-    if (currentQuestion.done) {
-      const symptoms = buildSymptomsFromAnswers(updatedAnswers);
-      const historySummary = buildHistorySummaryFromAnswers(updatedAnswers);
-      onComplete(updatedAnswers, symptoms, historySummary);
-      return;
-    }
+      if (currentQuestion.done) {
+        const symptoms = buildSymptomsFromAnswers(updatedAnswers);
+        const historySummary = buildHistorySummaryFromAnswers(updatedAnswers);
+        onComplete(updatedAnswers, symptoms, historySummary);
+        return;
+      }
 
-    fetchNextQuestion(updatedAnswers);
-  }, [currentQuestion, currentAnswer, answers, fetchNextQuestion, onComplete]);
+      fetchNextQuestion(updatedAnswers);
+    },
+    [currentQuestion, currentAnswer, answers, fetchNextQuestion, onComplete],
+  );
 
   const handleBack = useCallback(() => {
     if (answers.length === 0) return;
@@ -121,7 +143,9 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
       </div>
 
       {/* Question */}
-      <p className="text-sm font-medium text-center">{currentQuestion.question}</p>
+      <p className="text-sm font-medium text-center">
+        {currentQuestion.question}
+      </p>
 
       {/* Input by type */}
       {currentQuestion.type === "body-map" && (
@@ -139,7 +163,8 @@ export function IntakeConversation({ onComplete }: IntakeConversationProps) {
         />
       )}
 
-      {(currentQuestion.type === "chips" || currentQuestion.type === "emotional") && (
+      {(currentQuestion.type === "chips" ||
+        currentQuestion.type === "emotional") && (
         <div className="flex flex-wrap gap-2 justify-center">
           {(currentQuestion.options ?? []).map((opt) => (
             <button
@@ -260,7 +285,9 @@ function SliderInput({
       />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>{min} — mild</span>
-        <span className="font-medium text-foreground text-sm">{displayVal}</span>
+        <span className="font-medium text-foreground text-sm">
+          {displayVal}
+        </span>
         <span>{max} — severe</span>
       </div>
     </div>

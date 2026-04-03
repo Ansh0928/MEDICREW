@@ -8,20 +8,21 @@
 
 ## Recommended Stack
 
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Database | Supabase PostgreSQL (prod) / SQLite (dev) | Only option that bundles PostgreSQL + Realtime + Auth + Storage as one managed service; Sydney (ap-southeast-2) region required for AU health data sovereignty |
-| ORM | Prisma v6.x (already installed) | Keep as-is; migration is a provider swap only — no ORM change |
-| Real-time | Supabase Realtime (Postgres Changes) | Powers care team status indicators without a separate WebSocket server |
-| LLM Streaming | Vercel AI SDK v6 + `@ai-sdk/langchain` adapter | Already installed; `toUIMessageStream()` bridges LangGraph streams to `useChat` hook |
-| Agent Memory | `@langchain/langgraph-checkpoint-postgres` (PostgresSaver) | Thread-per-consultation checkpointing; official LangChain package |
-| Cross-thread Memory | Custom `patient_memory` table via Prisma | LangGraph InMemoryStore + DB sync; fallback if community checkpointer goes stale |
-| Background Jobs | Inngest v4 | Durable step-level retries for multi-step LLM workflows; zero extra infra on Vercel |
-| Email | Resend + React Email | DKIM/SPF built-in; critical for healthcare email deliverability |
-| Auth | Supabase Auth via `@supabase/ssr` | Only auth system that integrates cleanly with Supabase Realtime user-scoped channels |
-| SSE Streaming | Next.js Route Handler | Correct primitive for unidirectional LLM token streams on Vercel serverless |
+| Layer               | Technology                                                 | Rationale                                                                                                                                                      |
+| ------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Database            | Supabase PostgreSQL (prod) / SQLite (dev)                  | Only option that bundles PostgreSQL + Realtime + Auth + Storage as one managed service; Sydney (ap-southeast-2) region required for AU health data sovereignty |
+| ORM                 | Prisma v6.x (already installed)                            | Keep as-is; migration is a provider swap only — no ORM change                                                                                                  |
+| Real-time           | Supabase Realtime (Postgres Changes)                       | Powers care team status indicators without a separate WebSocket server                                                                                         |
+| LLM Streaming       | Vercel AI SDK v6 + `@ai-sdk/langchain` adapter             | Already installed; `toUIMessageStream()` bridges LangGraph streams to `useChat` hook                                                                           |
+| Agent Memory        | `@langchain/langgraph-checkpoint-postgres` (PostgresSaver) | Thread-per-consultation checkpointing; official LangChain package                                                                                              |
+| Cross-thread Memory | Custom `patient_memory` table via Prisma                   | LangGraph InMemoryStore + DB sync; fallback if community checkpointer goes stale                                                                               |
+| Background Jobs     | Inngest v4                                                 | Durable step-level retries for multi-step LLM workflows; zero extra infra on Vercel                                                                            |
+| Email               | Resend + React Email                                       | DKIM/SPF built-in; critical for healthcare email deliverability                                                                                                |
+| Auth                | Supabase Auth via `@supabase/ssr`                          | Only auth system that integrates cleanly with Supabase Realtime user-scoped channels                                                                           |
+| SSE Streaming       | Next.js Route Handler                                      | Correct primitive for unidirectional LLM token streams on Vercel serverless                                                                                    |
 
 **Key package additions:**
+
 ```bash
 bun add @supabase/supabase-js @supabase/ssr inngest resend @react-email/components @ai-sdk/langchain @skroyc/langgraph-supabase-checkpointer
 ```
@@ -34,20 +35,21 @@ bun add @supabase/supabase-js @supabase/ssr inngest resend @react-email/componen
 
 Must ship before any real users see the product. Missing these makes the product broken or legally non-compliant.
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Symptom intake / consultation flow | Exists | Already built |
-| Consultation history (patient-visible) | Exists | Already built |
-| Secure auth with session management | Exists | Migrate to Supabase Auth |
-| Mobile-responsive UI | Exists | Test and verify |
-| Emergency escalation to 000 | Build | Hard-coded deterministic rules — NOT LLM inference |
-| AHPRA scope-of-practice disclaimers | Build | Must appear on every agent output; hard-coded into prompt templates |
-| Privacy Act / data collection notice | Build | Onboarding screen before any symptom intake |
-| AI disclosure (explicit, persistent) | Build | Non-dismissible disclosure on every agent interaction |
-| Data export + deletion flow | Build | Required under APP 12 (access) and APP 11 (destruction) — OAIC enforcement risk |
-| Patient onboarding: medical history, conditions, medications | Build | Feeds agent context; required for personalization from session 1 |
+| Feature                                                      | Status | Notes                                                                           |
+| ------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------- |
+| Symptom intake / consultation flow                           | Exists | Already built                                                                   |
+| Consultation history (patient-visible)                       | Exists | Already built                                                                   |
+| Secure auth with session management                          | Exists | Migrate to Supabase Auth                                                        |
+| Mobile-responsive UI                                         | Exists | Test and verify                                                                 |
+| Emergency escalation to 000                                  | Build  | Hard-coded deterministic rules — NOT LLM inference                              |
+| AHPRA scope-of-practice disclaimers                          | Build  | Must appear on every agent output; hard-coded into prompt templates             |
+| Privacy Act / data collection notice                         | Build  | Onboarding screen before any symptom intake                                     |
+| AI disclosure (explicit, persistent)                         | Build  | Non-dismissible disclosure on every agent interaction                           |
+| Data export + deletion flow                                  | Build  | Required under APP 12 (access) and APP 11 (destruction) — OAIC enforcement risk |
+| Patient onboarding: medical history, conditions, medications | Build  | Feeds agent context; required for personalization from session 1                |
 
 **Differentiators that define the product (build after table stakes):**
+
 1. Named care team dashboard with avatars and status indicators — highest "feels monitored" ROI
 2. Proactive 48h post-consultation check-in — single biggest differentiator vs. a chatbot
 3. Persistent agent memory across consultations — continuity of care feeling
@@ -109,13 +111,13 @@ These are legal obligations, not product features. Non-compliance triggers regul
 
 Each step enables the next. Do not skip ahead.
 
-| Phase | Steps | What It Delivers | Pitfalls to Avoid |
-|-------|-------|-----------------|-------------------|
-| **Phase 1: Foundation** | 1. Migrate DB to Supabase PostgreSQL (Sydney region); add `CareTeamStatus`, `CheckIn`, `PatientMemory` tables. 2. Enable RLS on all health-data tables with test suite. 3. Integrate `PostgresSaver` into existing consultation graph. | Persistent, realtime-capable storage; memory-enabled consultations | RLS misconfiguration; Supabase region not set to ap-southeast-2; checkpoint bloat strategy undesigned |
-| **Phase 1: Compliance layer** | 4. AHPRA disclaimers in all agent prompt templates. 5. Emergency escalation deterministic rules (keyword + regex, not LLM). 6. Privacy consent flow in onboarding. 7. Data export + deletion endpoints. | Legal minimum to show any user the product | Using LLM for emergency detection; missing AI disclosure on any patient-facing surface |
-| **Phase 2: Core "Feels Monitored" Experience** | 8. Patient onboarding flow + PatientMemory initial write. 9. CareTeamStatus writes + Supabase Realtime subscription in dashboard. 10. SSE streaming for reactive consultation with agent identity surfaced. | The product's core emotional value — named AI care team, live status, streaming responses | Polling instead of Realtime; sharing one thread_id across consultations; injecting full history into every LLM call |
-| **Phase 3: Proactive Care Loop** | 11. Inngest setup + CheckIn graph + cron trigger (48h post-consultation). 12. Resend email notifications. 13. Escalation graph + 6h cron scan. | The differentiator: system-initiated care vs. chatbot | Proactive messages without Spam Act opt-in; LLM-only escalation without rules layer; no adversarial testing of emergency detection |
-| **Phase 4: Retention + Depth** | 14. Symptom journal (patient self-entry). 15. Symptom trend chart. 16. Active care plan on dashboard. | Retention loop; patient agency; visual evidence of monitoring | Scope creep beyond what compliance has been established for |
+| Phase                                          | Steps                                                                                                                                                                                                                                  | What It Delivers                                                                          | Pitfalls to Avoid                                                                                                                  |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1: Foundation**                        | 1. Migrate DB to Supabase PostgreSQL (Sydney region); add `CareTeamStatus`, `CheckIn`, `PatientMemory` tables. 2. Enable RLS on all health-data tables with test suite. 3. Integrate `PostgresSaver` into existing consultation graph. | Persistent, realtime-capable storage; memory-enabled consultations                        | RLS misconfiguration; Supabase region not set to ap-southeast-2; checkpoint bloat strategy undesigned                              |
+| **Phase 1: Compliance layer**                  | 4. AHPRA disclaimers in all agent prompt templates. 5. Emergency escalation deterministic rules (keyword + regex, not LLM). 6. Privacy consent flow in onboarding. 7. Data export + deletion endpoints.                                | Legal minimum to show any user the product                                                | Using LLM for emergency detection; missing AI disclosure on any patient-facing surface                                             |
+| **Phase 2: Core "Feels Monitored" Experience** | 8. Patient onboarding flow + PatientMemory initial write. 9. CareTeamStatus writes + Supabase Realtime subscription in dashboard. 10. SSE streaming for reactive consultation with agent identity surfaced.                            | The product's core emotional value — named AI care team, live status, streaming responses | Polling instead of Realtime; sharing one thread_id across consultations; injecting full history into every LLM call                |
+| **Phase 3: Proactive Care Loop**               | 11. Inngest setup + CheckIn graph + cron trigger (48h post-consultation). 12. Resend email notifications. 13. Escalation graph + 6h cron scan.                                                                                         | The differentiator: system-initiated care vs. chatbot                                     | Proactive messages without Spam Act opt-in; LLM-only escalation without rules layer; no adversarial testing of emergency detection |
+| **Phase 4: Retention + Depth**                 | 14. Symptom journal (patient self-entry). 15. Symptom trend chart. 16. Active care plan on dashboard.                                                                                                                                  | Retention loop; patient agency; visual evidence of monitoring                             | Scope creep beyond what compliance has been established for                                                                        |
 
 **Architecture data flow (two modes):**
 
@@ -124,6 +126,7 @@ Reactive (patient initiates): `POST /api/consultation/start` → writes CareTeam
 Proactive (system initiates): `Vercel Cron → /api/checkin/trigger` (CRON_SECRET protected) → query due patients → load PatientMemory → invoke CheckIn graph → write Notification → Resend email + Supabase Realtime push.
 
 **Anti-patterns to actively avoid:**
+
 - Polling care team status from the client (use Supabase Realtime instead)
 - Running check-in logic synchronously inside a consultation request
 - Reusing one `thread_id` across multiple consultations
@@ -157,32 +160,33 @@ Default LangGraph checkpointing writes state at every superstep — at productio
 
 Unresolved decisions the roadmap must gate on or flag for validation.
 
-| Question | Stakes | When to Resolve |
-|----------|--------|-----------------|
-| TGA SaMD classification outcome — does Medicrew fall under Class I, IIa, or Excluded? | Determines whether public launch is legal as-is or requires ARTG registration | Phase 1 gate — block launch until answered |
-| Remove "Dr." from agent names entirely, or add "(AI)" suffix? | AHPRA compliance + product trust balance | Phase 1, before any user-facing build of agent personas |
-| Which LLM provider(s) will be used? Do their DPAs cover AU health data? (OpenAI, Groq, Anthropic) | Privacy Act APP 8 compliance; data sovereignty | Before any patient data is processed by LLM |
-| Supabase region — is the existing project on ap-southeast-2? | Health data sovereignty — cannot store patient data in US region | Phase 1, before migration |
-| Is the `@skroyc/langgraph-supabase-checkpointer` community package sufficient, or should a custom `BaseCheckpointSaver` be implemented? | Build vs. buy risk; community package has no LangChain SLA | Phase 1, before memory architecture is locked |
-| Will NSW patients be in scope? (NSW HRIP Act adds a separate layer on top of Privacy Act) | Legal scope of privacy compliance | Before launch; requires legal review if NSW is targeted |
-| What is the scope gate for the "continuous monitoring loop"? | Prevents scope creep from expanding feature set before compliance is established | Roadmap planning — apply MoSCoW before any sprint |
-| Doctor / clinical governance: is any real practitioner involved in reviewing escalation outputs? | "Human-in-the-loop" for high-urgency outputs is an AHPRA principle; also reduces liability | Phase 3 (escalation system) design decision |
+| Question                                                                                                                                | Stakes                                                                                     | When to Resolve                                         |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| TGA SaMD classification outcome — does Medicrew fall under Class I, IIa, or Excluded?                                                   | Determines whether public launch is legal as-is or requires ARTG registration              | Phase 1 gate — block launch until answered              |
+| Remove "Dr." from agent names entirely, or add "(AI)" suffix?                                                                           | AHPRA compliance + product trust balance                                                   | Phase 1, before any user-facing build of agent personas |
+| Which LLM provider(s) will be used? Do their DPAs cover AU health data? (OpenAI, Groq, Anthropic)                                       | Privacy Act APP 8 compliance; data sovereignty                                             | Before any patient data is processed by LLM             |
+| Supabase region — is the existing project on ap-southeast-2?                                                                            | Health data sovereignty — cannot store patient data in US region                           | Phase 1, before migration                               |
+| Is the `@skroyc/langgraph-supabase-checkpointer` community package sufficient, or should a custom `BaseCheckpointSaver` be implemented? | Build vs. buy risk; community package has no LangChain SLA                                 | Phase 1, before memory architecture is locked           |
+| Will NSW patients be in scope? (NSW HRIP Act adds a separate layer on top of Privacy Act)                                               | Legal scope of privacy compliance                                                          | Before launch; requires legal review if NSW is targeted |
+| What is the scope gate for the "continuous monitoring loop"?                                                                            | Prevents scope creep from expanding feature set before compliance is established           | Roadmap planning — apply MoSCoW before any sprint       |
+| Doctor / clinical governance: is any real practitioner involved in reviewing escalation outputs?                                        | "Human-in-the-loop" for high-urgency outputs is an AHPRA principle; also reduces liability | Phase 3 (escalation system) design decision             |
 
 ---
 
 ## Confidence Assessment
 
-| Area | Confidence | Basis |
-|------|------------|-------|
-| Stack | HIGH | Official Supabase, Prisma, Vercel AI SDK, Inngest, and LangGraph docs verified |
-| Compliance (TGA, AHPRA, Privacy Act) | HIGH | Official AU regulatory sources; OAIC May 2025 guide; TGA 2025 compliance update |
-| Architecture patterns | HIGH | Verified against official LangGraph.js docs, Supabase Realtime docs, production template |
-| Feature prioritization | MEDIUM | Product judgment + peer-reviewed trust research; no direct AU health AI product benchmarks |
-| Escalation graph design | MEDIUM | Pattern derived by analogy from LangGraph fraud detection; no direct healthcare LangGraph reference |
-| Vercel Cron reliability | MEDIUM | Vercel docs verified; idempotency requirement noted but untested against this codebase |
-| `@skroyc` checkpointer community package | MEDIUM | npm verified, 710/710 test pass rate, but community-maintained — monitor for abandonment |
+| Area                                     | Confidence | Basis                                                                                               |
+| ---------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| Stack                                    | HIGH       | Official Supabase, Prisma, Vercel AI SDK, Inngest, and LangGraph docs verified                      |
+| Compliance (TGA, AHPRA, Privacy Act)     | HIGH       | Official AU regulatory sources; OAIC May 2025 guide; TGA 2025 compliance update                     |
+| Architecture patterns                    | HIGH       | Verified against official LangGraph.js docs, Supabase Realtime docs, production template            |
+| Feature prioritization                   | MEDIUM     | Product judgment + peer-reviewed trust research; no direct AU health AI product benchmarks          |
+| Escalation graph design                  | MEDIUM     | Pattern derived by analogy from LangGraph fraud detection; no direct healthcare LangGraph reference |
+| Vercel Cron reliability                  | MEDIUM     | Vercel docs verified; idempotency requirement noted but untested against this codebase              |
+| `@skroyc` checkpointer community package | MEDIUM     | npm verified, 710/710 test pass rate, but community-maintained — monitor for abandonment            |
 
 **Gaps:**
+
 - No verified data on typical TGA SaMD classification timeline for an AU health AI startup (6–18 months is estimate)
 - No benchmark on Groq/OpenAI DPA adequacy for Australian health data — requires direct review of provider agreements
 - NSW HRIP Act compliance scope not researched in depth — flag if NSW patients are in scope
@@ -192,12 +196,14 @@ Unresolved decisions the roadmap must gate on or flag for validation.
 ## Sources (Aggregated)
 
 **Regulatory (HIGH confidence):**
+
 - AHPRA AI in Healthcare Guidance: https://www.ahpra.gov.au/Resources/Artificial-Intelligence-in-healthcare.aspx
 - OAIC Guide to Health Privacy (May 2025): https://www.oaic.gov.au/privacy/privacy-guidance-for-organisations-and-government-agencies/health-service-providers/guide-to-health-privacy
 - TGA AI and SaMD Regulation: https://www.tga.gov.au/products/medical-devices/software-and-artificial-intelligence
 - Modernising My Health Record (Sharing by Default) Act 2025 FAQ: https://www.health.gov.au/resources/publications/frequently-asked-questions-modernising-my-health-record-sharing-by-default-act-2025
 
 **Stack (HIGH confidence):**
+
 - Supabase Realtime with Next.js: https://supabase.com/docs/guides/realtime/realtime-with-nextjs
 - Prisma + Supabase integration: https://supabase.com/docs/guides/database/prisma
 - Vercel AI SDK — LangChain adapter: https://ai-sdk.dev/providers/adapters/langchain
@@ -205,6 +211,7 @@ Unresolved decisions the roadmap must gate on or flag for validation.
 - @langchain/langgraph-checkpoint-postgres: https://www.npmjs.com/package/@langchain/langgraph-checkpoint-postgres
 
 **Research (HIGH confidence):**
+
 - PMC: Chatbot Persona and Patient Trust: https://pmc.ncbi.nlm.nih.gov/articles/PMC9932873/
 - MIT Medical Hallucination in Foundation Models (2025): https://medical-hallucination2025.github.io/
 - LangGraph JS GitHub Issue #1138 (checkpoint bloat): https://github.com/langchain-ai/langgraphjs/issues/1138

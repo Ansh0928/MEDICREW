@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_request: NextRequest) {
   const { patient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding)
+    return NextResponse.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = patient!.id;
 
   // Query in parallel: latest consultation, next pending check-in, recent check-ins, care team status
@@ -71,7 +77,7 @@ export async function GET(_request: NextRequest) {
     };
     if (Array.isArray(rec.nextSteps)) {
       actionItems = rec.nextSteps.filter(
-        (item): item is string => typeof item === "string"
+        (item): item is string => typeof item === "string",
       );
     }
   }
@@ -89,7 +95,7 @@ export async function GET(_request: NextRequest) {
     >;
     const sorted = Object.values(statuses).sort(
       (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
     if (sorted.length > 0) {
       lastAgentActivity = {
@@ -115,11 +121,15 @@ export async function GET(_request: NextRequest) {
           urgencyLevel: latestConsultation.urgencyLevel,
           createdAt: latestConsultation.createdAt,
           primaryRecommendation: (() => {
-            const rec = latestConsultation.recommendation as { primaryRecommendation?: string } | null;
+            const rec = latestConsultation.recommendation as {
+              primaryRecommendation?: string;
+            } | null;
             return rec?.primaryRecommendation ?? null;
           })(),
           bookingNeeded: (() => {
-            const rec = latestConsultation.recommendation as { bookingNeeded?: boolean } | null;
+            const rec = latestConsultation.recommendation as {
+              bookingNeeded?: boolean;
+            } | null;
             return rec?.bookingNeeded ?? false;
           })(),
         }

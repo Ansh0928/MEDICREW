@@ -16,11 +16,14 @@ function getRatelimit(): Ratelimit {
 }
 
 export async function checkRateLimit(
-  ip: string
+  ip: string,
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
   const { success, reset } = await getRatelimit().limit(ip);
   if (!success) {
-    return { allowed: false, retryAfter: Math.ceil((reset - Date.now()) / 1000) };
+    return {
+      allowed: false,
+      retryAfter: Math.ceil((reset - Date.now()) / 1000),
+    };
   }
   return { allowed: true };
 }

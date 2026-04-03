@@ -3,15 +3,30 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { MedicalHistoryStep } from "@/components/onboarding/MedicalHistoryStep";
 import { ConsentStep } from "@/components/onboarding/ConsentStep";
 import { CareTeamIntroStep } from "@/components/onboarding/CareTeamIntroStep";
 
 const STEP_TITLES = [
-  { title: "Your Medical History", description: "Help your care team understand your health background." },
-  { title: "Privacy Consent", description: "Required under the Australian Privacy Act 1988." },
-  { title: "Meet Your Care Team", description: "Your personalised AI health team is ready." },
+  {
+    title: "Your Medical History",
+    description: "Help your care team understand your health background.",
+  },
+  {
+    title: "Privacy Consent",
+    description: "Required under the Australian Privacy Act 1988.",
+  },
+  {
+    title: "Meet Your Care Team",
+    description: "Your personalised AI health team is ready.",
+  },
 ];
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
@@ -24,18 +39,22 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
               i + 1 < current
                 ? "bg-primary border-primary text-primary-foreground"
                 : i + 1 === current
-                ? "border-primary text-primary"
-                : "border-muted text-muted-foreground"
+                  ? "border-primary text-primary"
+                  : "border-muted text-muted-foreground"
             }`}
           >
             {i + 1 < current ? "\u2713" : i + 1}
           </div>
           {i < total - 1 && (
-            <div className={`h-0.5 w-8 transition-colors ${i + 1 < current ? "bg-primary" : "bg-muted"}`} />
+            <div
+              className={`h-0.5 w-8 transition-colors ${i + 1 < current ? "bg-primary" : "bg-muted"}`}
+            />
           )}
         </div>
       ))}
-      <span className="ml-2 text-xs text-muted-foreground">Step {current} of {total}</span>
+      <span className="ml-2 text-xs text-muted-foreground">
+        Step {current} of {total}
+      </span>
     </div>
   );
 }
@@ -57,9 +76,12 @@ function OnboardingContent() {
     <div className="min-h-screen bg-background flex items-start justify-center pt-12 px-4">
       <div className="w-full max-w-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome to Medicrew</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome to Medicrew
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            Let&apos;s set up your health profile so your care team can help you better.
+            Let&apos;s set up your health profile so your care team can help you
+            better.
           </p>
         </div>
 
@@ -87,7 +109,13 @@ function OnboardingContent() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <OnboardingContent />
     </Suspense>
   );

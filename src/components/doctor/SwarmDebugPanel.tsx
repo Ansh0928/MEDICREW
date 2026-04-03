@@ -8,7 +8,13 @@ interface SwarmDebugPanelProps {
   state: Partial<SwarmState>;
 }
 
-function LeadSwarmCard({ role, swarm }: { role: AgentRole; swarm: SwarmLeadState }) {
+function LeadSwarmCard({
+  role,
+  swarm,
+}: {
+  role: AgentRole;
+  swarm: SwarmLeadState;
+}) {
   const agent = agentRegistry[role];
   return (
     <div className="border rounded-lg p-3 space-y-2">
@@ -24,7 +30,9 @@ function LeadSwarmCard({ role, swarm }: { role: AgentRole; swarm: SwarmLeadState
         <div key={h.id} className="space-y-1">
           <div className="flex justify-between text-xs">
             <span className="truncate max-w-[180px]">{h.name}</span>
-            <span className="text-muted-foreground ml-2 shrink-0">{h.confidence}%</span>
+            <span className="text-muted-foreground ml-2 shrink-0">
+              {h.confidence}%
+            </span>
           </div>
           <div className="w-full bg-muted rounded-full h-1.5">
             <div
@@ -51,7 +59,10 @@ export function SwarmDebugPanel({ state }: SwarmDebugPanelProps) {
       {state.currentPhase && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground border-b pb-2">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          Phase: <span className="text-foreground capitalize">{state.currentPhase}</span>
+          Phase:{" "}
+          <span className="text-foreground capitalize">
+            {state.currentPhase}
+          </span>
         </div>
       )}
 
@@ -59,7 +70,7 @@ export function SwarmDebugPanel({ state }: SwarmDebugPanelProps) {
       {Object.entries(leadSwarms).map(([role, swarm]) =>
         swarm ? (
           <LeadSwarmCard key={role} role={role as AgentRole} swarm={swarm} />
-        ) : null
+        ) : null,
       )}
 
       {Object.keys(leadSwarms).length === 0 && (
@@ -75,8 +86,13 @@ export function SwarmDebugPanel({ state }: SwarmDebugPanelProps) {
               <span className="text-primary font-medium">
                 {agentRegistry[msg.doctorRole]?.name ?? msg.doctorRole}
               </span>
-              <span className="text-muted-foreground capitalize"> [{msg.type}]</span>
-              <p className="text-foreground pl-2 border-l border-muted">{msg.content}</p>
+              <span className="text-muted-foreground capitalize">
+                {" "}
+                [{msg.type}]
+              </span>
+              <p className="text-foreground pl-2 border-l border-muted">
+                {msg.content}
+              </p>
             </div>
           ))}
         </div>

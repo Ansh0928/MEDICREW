@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
-import { appendAnalyticsEvent, listAnalyticsEvents } from "@/lib/analytics/store";
+import {
+  appendAnalyticsEvent,
+  listAnalyticsEvents,
+} from "@/lib/analytics/store";
 import { LANDING_VARIANTS } from "@/lib/marketing/landing-variants";
-import { fetchAnalyticsEventsSince, persistAnalyticsEvent } from "@/lib/analytics/db";
+import {
+  fetchAnalyticsEventsSince,
+  persistAnalyticsEvent,
+} from "@/lib/analytics/db";
+
+export const dynamic = "force-dynamic";
 
 type AnalyticsBody = {
   event?: string;
@@ -27,7 +35,10 @@ export async function POST(request: NextRequest) {
   }
 
   if (!body.event || !allowedEvents.has(body.event)) {
-    return NextResponse.json({ error: "Invalid analytics event" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid analytics event" },
+      { status: 400 },
+    );
   }
 
   const userAgent = request.headers.get("user-agent") ?? "unknown";
@@ -53,11 +64,14 @@ export async function POST(request: NextRequest) {
   try {
     await persistAnalyticsEvent(
       body.event as import("@/lib/analytics/events").AnalyticsEventName,
-      body.properties ?? {}
+      body.properties ?? {},
     );
   } catch (error) {
     // DB write failures should not block product flows.
-    console.warn("[analytics] failed to persist event to DB, using in-memory fallback only", error);
+    console.warn(
+      "[analytics] failed to persist event to DB, using in-memory fallback only",
+      error,
+    );
   }
 
   return NextResponse.json({ ok: true }, { status: 202 });
@@ -73,7 +87,8 @@ export async function GET(request: NextRequest) {
     if (dbEvents.length > 0) {
       events = dbEvents.map((event) => ({
         ts: event.ts.toISOString(),
-        event: event.event as import("@/lib/analytics/events").AnalyticsEventName,
+        event:
+          event.event as import("@/lib/analytics/events").AnalyticsEventName,
         properties: event.properties,
       }));
       source = "database";
@@ -83,20 +98,25 @@ export async function GET(request: NextRequest) {
       source = "database";
     }
   } catch (error) {
-    console.warn("[analytics] failed to read DB events, using in-memory summary", error);
+    console.warn(
+      "[analytics] failed to read DB events, using in-memory summary",
+      error,
+    );
     source = "memory";
   }
 
   const rows = ["all", ...LANDING_VARIANTS, "unknown"].map((variant) => {
-    const scoped = variant === "all"
-      ? events
-      : events.filter((event) => {
-          const value = event.properties.variant;
-          const eventVariant = typeof value === "string" ? value : "unknown";
-          return eventVariant === variant;
-        });
+    const scoped =
+      variant === "all"
+        ? events
+        : events.filter((event) => {
+            const value = event.properties.variant;
+            const eventVariant = typeof value === "string" ? value : "unknown";
+            return eventVariant === variant;
+          });
 
-    const count = (name: string) => scoped.filter((event) => event.event === name).length;
+    const count = (name: string) =>
+      scoped.filter((event) => event.event === name).length;
     const views = count(ANALYTICS_EVENTS.landingViewed);
     const ctaClicks = count(ANALYTICS_EVENTS.landingCtaClick);
     const consultStarts = count(ANALYTICS_EVENTS.consultationStarted);
@@ -112,7 +132,8 @@ export async function GET(request: NextRequest) {
       returnVisits: count(ANALYTICS_EVENTS.returnVisit),
       summaryShares: count(ANALYTICS_EVENTS.summaryShared),
       ctaRate: views > 0 ? ctaClicks / views : 0,
-      completionRate: consultStarts > 0 ? consultCompletions / consultStarts : 0,
+      completionRate:
+        consultStarts > 0 ? consultCompletions / consultStarts : 0,
     };
   });
 
@@ -130,6 +151,6 @@ export async function GET(request: NextRequest) {
       ],
       rows,
     },
-    { status: 200 }
+    { status: 200 },
   );
 }

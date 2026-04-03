@@ -12,14 +12,23 @@ describe("sendCheckInEmail — no RESEND_API_KEY", () => {
 
   it("returns success:false when RESEND_API_KEY is absent", async () => {
     const { sendCheckInEmail } = await import("@/lib/email/resend");
-    const result = await sendCheckInEmail("patient@test.com", "Alice", "How are you feeling?");
+    const result = await sendCheckInEmail(
+      "patient@test.com",
+      "Alice",
+      "How are you feeling?",
+    );
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/RESEND_API_KEY/i);
   });
 
   it("returns success:false for sendEscalationEmail when RESEND_API_KEY is absent", async () => {
     const { sendEscalationEmail } = await import("@/lib/email/resend");
-    const result = await sendEscalationEmail("patient@test.com", "Alice", "Alert", "Escalation body");
+    const result = await sendEscalationEmail(
+      "patient@test.com",
+      "Alice",
+      "Alert",
+      "Escalation body",
+    );
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/RESEND_API_KEY/i);
   });
@@ -41,7 +50,11 @@ describe("sendCheckInEmail — with mocked Resend client", () => {
       },
     }));
     const { sendCheckInEmail } = await import("@/lib/email/resend");
-    const result = await sendCheckInEmail("patient@test.com", "Alice", "How are you feeling?");
+    const result = await sendCheckInEmail(
+      "patient@test.com",
+      "Alice",
+      "How are you feeling?",
+    );
     expect(result.success).toBe(true);
     expect(result.error).toBeUndefined();
   });
@@ -49,11 +62,17 @@ describe("sendCheckInEmail — with mocked Resend client", () => {
   it("returns success:false when Resend throws", async () => {
     vi.doMock("resend", () => ({
       Resend: class {
-        emails = { send: vi.fn().mockRejectedValue(new Error("network failure")) };
+        emails = {
+          send: vi.fn().mockRejectedValue(new Error("network failure")),
+        };
       },
     }));
     const { sendCheckInEmail } = await import("@/lib/email/resend");
-    const result = await sendCheckInEmail("patient@test.com", "Alice", "Check-in");
+    const result = await sendCheckInEmail(
+      "patient@test.com",
+      "Alice",
+      "Check-in",
+    );
     expect(result.success).toBe(false);
     expect(result.error).toContain("network failure");
   });

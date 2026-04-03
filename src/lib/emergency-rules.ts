@@ -1,6 +1,13 @@
 export interface EmergencyResult {
   isEmergency: boolean;
-  category: "cardiac" | "stroke" | "suicide" | "respiratory" | "bleeding" | "overdose" | null;
+  category:
+    | "cardiac"
+    | "stroke"
+    | "suicide"
+    | "respiratory"
+    | "bleeding"
+    | "overdose"
+    | null;
   response: {
     urgency: "emergency";
     message: string;
@@ -15,9 +22,19 @@ const EMERGENCY_PATTERNS: Array<{
   addLifeline?: boolean;
 }> = [
   { regex: /chest pain|heart attack|myocardial/i, category: "cardiac" },
-  { regex: /stroke|FAST|face drooping|arm weak|speech slurred/i, category: "stroke" },
-  { regex: /suicid|want to (kill|harm) (my|them)self|self.harm/i, category: "suicide", addLifeline: true },
-  { regex: /can'?t breathe|difficulty breathing|choking/i, category: "respiratory" },
+  {
+    regex: /stroke|FAST|face drooping|arm weak|speech slurred/i,
+    category: "stroke",
+  },
+  {
+    regex: /suicid|want to (kill|harm) (my|them)self|self.harm/i,
+    category: "suicide",
+    addLifeline: true,
+  },
+  {
+    regex: /can'?t breathe|difficulty breathing|choking/i,
+    category: "respiratory",
+  },
   { regex: /severe bleeding|uncontrolled bleeding/i, category: "bleeding" },
   { regex: /overdose|took too many|poisoning/i, category: "overdose" },
   { regex: /unconscious|not breathing|no pulse/i, category: "cardiac" },

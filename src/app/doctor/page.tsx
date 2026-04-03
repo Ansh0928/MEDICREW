@@ -48,7 +48,11 @@ function UrgencyBadge({ urgency }: { urgency: UrgencyLevel | null }) {
 interface SelectedPatient {
   id: string;
   name: string;
-  latestConsultation: { id: string; symptoms: string; urgencyLevel: string | null } | null;
+  latestConsultation: {
+    id: string;
+    symptoms: string;
+    urgencyLevel: string | null;
+  } | null;
 }
 
 function DoctorPageContent() {
@@ -60,37 +64,46 @@ function DoctorPageContent() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("huddle");
   const [urgency, setUrgency] = useState<UrgencyLevel | null>(null);
   const [currentPhase, setCurrentPhase] = useState<SwarmPhase | null>(null);
-  const [selectedPatient, setSelectedPatient] = useState<SelectedPatient | null>(null);
+  const [selectedPatient, setSelectedPatient] =
+    useState<SelectedPatient | null>(null);
 
   // Load selected patient from URL param
   useEffect(() => {
-    if (!patientId) { setSelectedPatient(null); return; }
+    if (!patientId) {
+      setSelectedPatient(null);
+      return;
+    }
     fetch(`/api/doctor/patients/${patientId}`)
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data) setSelectedPatient({
-          id: data.id,
-          name: data.name,
-          latestConsultation: data.consultations?.[0] ?? null,
-        });
+        if (data)
+          setSelectedPatient({
+            id: data.id,
+            name: data.name,
+            latestConsultation: data.consultations?.[0] ?? null,
+          });
       })
       .catch(() => {});
   }, [patientId]);
 
   // Reactive urgency update from triage_complete SSE (via swarmState)
-  const handleSwarmStateChange = useCallback((state: Partial<SwarmState>) => {
-    setSwarmState(state);
-    if (state.triage?.urgency && !urgency) {
-      setUrgency(state.triage.urgency);
-    }
-  }, [urgency]);
+  const handleSwarmStateChange = useCallback(
+    (state: Partial<SwarmState>) => {
+      setSwarmState(state);
+      if (state.triage?.urgency && !urgency) {
+        setUrgency(state.triage.urgency);
+      }
+    },
+    [urgency],
+  );
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href).catch(() => {});
   }, []);
 
   const patientName = selectedPatient?.name ?? "Jordan K.";
-  const patientSymptom = selectedPatient?.latestConsultation?.symptoms?.slice(0, 50) ?? "Back pain";
+  const patientSymptom =
+    selectedPatient?.latestConsultation?.symptoms?.slice(0, 50) ?? "Back pain";
   const latestConsultId = selectedPatient?.latestConsultation?.id;
   const consultDate = new Date().toLocaleDateString("en-AU", {
     day: "numeric",
@@ -116,7 +129,9 @@ function DoctorPageContent() {
               </h2>
               <UrgencyBadge urgency={urgency} />
               {currentPhase && !urgency && (
-                <span className="text-xs text-gray-400 capitalize">{currentPhase}…</span>
+                <span className="text-xs text-gray-400 capitalize">
+                  {currentPhase}…
+                </span>
               )}
             </div>
             <p className="text-xs text-gray-500">{consultDate}</p>
@@ -133,12 +148,22 @@ function DoctorPageContent() {
               </Button>
             </Link>
           ) : (
-            <Button variant="outline" size="sm" className="text-xs gap-1.5" disabled>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5"
+              disabled
+            >
               <Calendar className="w-3.5 h-3.5" />
               GP Referral Letter
             </Button>
           )}
-          <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={handleCopyLink}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1.5"
+            onClick={handleCopyLink}
+          >
             <Share2 className="w-3.5 h-3.5" />
             Share
           </Button>
@@ -148,7 +173,11 @@ function DoctorPageContent() {
             onClick={() => setDebugOpen((o) => !o)}
             className="text-xs text-muted-foreground gap-1 ml-1"
           >
-            {debugOpen ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+            {debugOpen ? (
+              <ChevronRight className="w-3 h-3" />
+            ) : (
+              <ChevronLeft className="w-3 h-3" />
+            )}
             Debug
           </Button>
         </div>
@@ -213,7 +242,13 @@ function DoctorPageContent() {
 
 export default function DoctorPage() {
   return (
-    <Suspense fallback={<div className="p-4 text-sm text-gray-500">Loading doctor workspace...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-4 text-sm text-gray-500">
+          Loading doctor workspace...
+        </div>
+      }
+    >
       <DoctorPageContent />
     </Suspense>
   );

@@ -8,7 +8,7 @@ describe("GET /api/patients/[id]", () => {
     const { GET } = await import("@/app/api/patients/[id]/route");
     const res = await GET(
       new Request("http://localhost/api/patients/p1") as any,
-      { params: Promise.resolve({ id: "p1" }) }
+      { params: Promise.resolve({ id: "p1" }) },
     );
     expect(res.status).toBe(410);
   });

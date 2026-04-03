@@ -34,11 +34,17 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <LogoMark size={28} />
-              <span className="font-[family-name:var(--font-mono)] text-sm font-semibold" style={{ color: "#118CFD" }}>
+              <span
+                className="font-[family-name:var(--font-mono)] text-sm font-semibold"
+                style={{ color: "#118CFD" }}
+              >
                 MediCrew
               </span>
             </div>
-            <p className="text-sm max-w-[200px] leading-relaxed" style={{ color: "#637288" }}>
+            <p
+              className="text-sm max-w-[200px] leading-relaxed"
+              style={{ color: "#637288" }}
+            >
               Health navigation, not medical advice.
             </p>
           </div>
@@ -47,15 +53,20 @@ export function Footer() {
           <div className="grid grid-cols-3 gap-12">
             {Object.entries(links).map(([category, items]) => (
               <div key={category}>
-                <p className="font-[family-name:var(--font-mono)] text-xs font-medium mb-4 tracking-wide" style={{ color: "#12181B" }}>
+                <p
+                  className="font-[family-name:var(--font-mono)] text-xs font-medium mb-4 tracking-wide"
+                  style={{ color: "#12181B" }}
+                >
                   {category}
                 </p>
                 <ul className="flex flex-col gap-2.5">
                   {items.map((item) => (
                     <li key={item.label}>
-                      <Link href={item.href}
+                      <Link
+                        href={item.href}
                         className="text-sm hover:opacity-70 transition-opacity"
-                        style={{ color: "#00329D" }}>
+                        style={{ color: "#00329D" }}
+                      >
                         {item.label}
                       </Link>
                     </li>
@@ -67,9 +78,14 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
-          style={{ borderTop: "1px solid #E5E7EB" }}>
-          <p className="font-[family-name:var(--font-mono)] text-xs" style={{ color: "#637288" }}>
+        <div
+          className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
+          style={{ borderTop: "1px solid #E5E7EB" }}
+        >
+          <p
+            className="font-[family-name:var(--font-mono)] text-xs"
+            style={{ color: "#637288" }}
+          >
             © {new Date().getFullYear()} MediCrew. All rights reserved.
           </p>
           <div className="flex gap-5">
@@ -78,9 +94,16 @@ export function Footer() {
               { label: "Terms", href: "/terms" },
               { label: "Cookies", href: "/cookies" },
             ].map((l) => (
-              <Link key={l.label} href={l.href}
+              <Link
+                key={l.label}
+                href={l.href}
                 className="font-[family-name:var(--font-mono)] text-xs hover:opacity-70 transition-opacity"
-                style={{ color: "#F7C543", textDecoration: "underline", textDecorationColor: "#F7C543" }}>
+                style={{
+                  color: "#F7C543",
+                  textDecoration: "underline",
+                  textDecorationColor: "#F7C543",
+                }}
+              >
                 {l.label}
               </Link>
             ))}

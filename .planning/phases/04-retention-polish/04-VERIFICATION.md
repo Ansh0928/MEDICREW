@@ -28,18 +28,18 @@ human_verification:
 
 ### Observable Truths
 
-| # | Truth | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | Patient can view a line chart of symptom severity over time on the profile page | VERIFIED | `SymptomTrendChart.tsx` (153 lines) renders `LineChart` with `ResponsiveContainer`, imported and rendered at `src/app/patient/profile/page.tsx:135` |
-| 2 | Chart renders data from existing SymptomJournal entries with dates on X-axis and severity 1-5 on Y-axis | VERIFIED | `YAxis domain={[1, 5]} ticks={[1,2,3,4,5]}` with `severityLabels` map; `XAxis dataKey="date"` with `formatDate` formatter present at lines 121-132 |
-| 3 | Chart displays an AHPRA health information disclaimer | VERIFIED | Lines 146-149: "This chart shows self-reported symptom data for informational purposes only. It is not a medical diagnosis." |
-| 4 | Patient dashboard Care Plan tab shows current monitoring status (active/inactive) | VERIFIED | `CarePlanDetail.tsx` line 144-153: Badge renders "Active Monitoring" or "Inactive" from `monitoringStatus` field |
-| 5 | Care Plan tab displays next scheduled check-in date and time | VERIFIED | `CarePlanDetail.tsx` lines 188-204: renders `formatAuDate(carePlan.nextCheckIn.scheduledFor)` with en-AU + Australia/Sydney timezone |
-| 6 | Care Plan tab lists open action items derived from latest consultation recommendation | VERIFIED | `CarePlanDetail.tsx` lines 215-228: maps `carePlan.actionItems` array to checklist with CheckCircle icons |
-| 7 | Care Plan tab includes AHPRA health information disclaimer | VERIFIED | `CarePlanDetail.tsx` lines 284-288: "This care plan summary is for informational purposes only and does not constitute a medical diagnosis or treatment plan." |
-| 8 | Doctor monitoring queue shows urgency trend direction (improving, stable, worsening) per patient | VERIFIED | `MonitoringQueue.tsx` lines 46-51: `TREND_INDICATOR` map; lines 92-93: `trendInfo` resolved from `patient.urgencyTrend`; lines 114-117: `TrendIcon` + label rendered |
-| 9 | Trend indicator is visual (arrow icon + label) not just text | VERIFIED | `TrendingUp`, `TrendingDown`, `Minus` imported from `lucide-react` line 6; icon rendered as `<TrendIcon className=...>` at line 115 |
-| 10 | Trend is computed from last 3-5 check-in responses, not just the latest one | VERIFIED | `monitoring/route.ts` line 15: `take: 5`; lines 58-73: filters to responded check-ins, computes average score, applies <=−0.3 / >=0.3 thresholds |
+| #   | Truth                                                                                                   | Status   | Evidence                                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Patient can view a line chart of symptom severity over time on the profile page                         | VERIFIED | `SymptomTrendChart.tsx` (153 lines) renders `LineChart` with `ResponsiveContainer`, imported and rendered at `src/app/patient/profile/page.tsx:135`                  |
+| 2   | Chart renders data from existing SymptomJournal entries with dates on X-axis and severity 1-5 on Y-axis | VERIFIED | `YAxis domain={[1, 5]} ticks={[1,2,3,4,5]}` with `severityLabels` map; `XAxis dataKey="date"` with `formatDate` formatter present at lines 121-132                   |
+| 3   | Chart displays an AHPRA health information disclaimer                                                   | VERIFIED | Lines 146-149: "This chart shows self-reported symptom data for informational purposes only. It is not a medical diagnosis."                                         |
+| 4   | Patient dashboard Care Plan tab shows current monitoring status (active/inactive)                       | VERIFIED | `CarePlanDetail.tsx` line 144-153: Badge renders "Active Monitoring" or "Inactive" from `monitoringStatus` field                                                     |
+| 5   | Care Plan tab displays next scheduled check-in date and time                                            | VERIFIED | `CarePlanDetail.tsx` lines 188-204: renders `formatAuDate(carePlan.nextCheckIn.scheduledFor)` with en-AU + Australia/Sydney timezone                                 |
+| 6   | Care Plan tab lists open action items derived from latest consultation recommendation                   | VERIFIED | `CarePlanDetail.tsx` lines 215-228: maps `carePlan.actionItems` array to checklist with CheckCircle icons                                                            |
+| 7   | Care Plan tab includes AHPRA health information disclaimer                                              | VERIFIED | `CarePlanDetail.tsx` lines 284-288: "This care plan summary is for informational purposes only and does not constitute a medical diagnosis or treatment plan."       |
+| 8   | Doctor monitoring queue shows urgency trend direction (improving, stable, worsening) per patient        | VERIFIED | `MonitoringQueue.tsx` lines 46-51: `TREND_INDICATOR` map; lines 92-93: `trendInfo` resolved from `patient.urgencyTrend`; lines 114-117: `TrendIcon` + label rendered |
+| 9   | Trend indicator is visual (arrow icon + label) not just text                                            | VERIFIED | `TrendingUp`, `TrendingDown`, `Minus` imported from `lucide-react` line 6; icon rendered as `<TrendIcon className=...>` at line 115                                  |
+| 10  | Trend is computed from last 3-5 check-in responses, not just the latest one                             | VERIFIED | `monitoring/route.ts` line 15: `take: 5`; lines 58-73: filters to responded check-ins, computes average score, applies <=−0.3 / >=0.3 thresholds                     |
 
 **Score:** 10/10 truths verified
 
@@ -47,38 +47,38 @@ human_verification:
 
 ### Required Artifacts
 
-| Artifact | Expected | Lines | Status | Details |
-|----------|----------|-------|--------|---------|
-| `src/app/api/patient/journal/trends/route.ts` | GET endpoint returning chronological journal entries | 23 | VERIFIED | Auth gate (x-patient-id line 5), `orderBy: { createdAt: "asc" }` line 12, `take: 90` line 13, returns mapped JSON array |
-| `src/components/profile/SymptomTrendChart.tsx` | Recharts LineChart rendering severity over time | 153 (min 40) | VERIFIED | Self-fetching via patientId prop, LineChart + ResponsiveContainer, Y-axis 1-5, custom tooltip, loading skeleton, empty state, AHPRA disclaimer |
-| `src/app/patient/profile/page.tsx` | Profile page with SymptomTrendChart integrated | — | VERIFIED | Import at line 16, render at line 135 with `patientId={profile.id}` |
-| `src/app/api/patient/care-plan/route.ts` | GET endpoint aggregating monitoring status, next check-in, action items | 124 | VERIFIED | Auth gate line 5, `Promise.all` parallel queries lines 11-51, `monitoringStatus` derived lines 54-59, `actionItems` extracted lines 62-76, full JSON response lines 102-123 |
-| `src/components/dashboard/CarePlanDetail.tsx` | Care plan card with monitoring status, next check-in, action items | 292 (min 50) | VERIFIED | Four section cards + AHPRA disclaimer, self-fetching, loading skeleton, empty state for no consultation |
-| `src/app/patient/page.tsx` | Patient dashboard with CarePlanDetail replacing placeholder care plan tab | — | VERIFIED | Import at line 14, render at line 292 with `patientId={patient.id}`; "Coming in Phase 3" placeholder absent (grep returns empty) |
-| `src/app/api/doctor/monitoring/route.ts` | Extended monitoring API with urgencyTrend field per patient | 131 | VERIFIED | `checkIns take: 5` line 15, `urgencyTrend` computed lines 59-73, returned in patient object line 107 |
-| `src/components/doctor/MonitoringQueue.tsx` | MonitoringQueue with trend indicator arrows in each patient card | 182 | VERIFIED | `TREND_INDICATOR` map lines 46-51, `TrendingUp/TrendingDown/Minus` imported line 6, rendered lines 92-117 per card |
+| Artifact                                       | Expected                                                                  | Lines        | Status   | Details                                                                                                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------- | ------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/api/patient/journal/trends/route.ts`  | GET endpoint returning chronological journal entries                      | 23           | VERIFIED | Auth gate (x-patient-id line 5), `orderBy: { createdAt: "asc" }` line 12, `take: 90` line 13, returns mapped JSON array                                                     |
+| `src/components/profile/SymptomTrendChart.tsx` | Recharts LineChart rendering severity over time                           | 153 (min 40) | VERIFIED | Self-fetching via patientId prop, LineChart + ResponsiveContainer, Y-axis 1-5, custom tooltip, loading skeleton, empty state, AHPRA disclaimer                              |
+| `src/app/patient/profile/page.tsx`             | Profile page with SymptomTrendChart integrated                            | —            | VERIFIED | Import at line 16, render at line 135 with `patientId={profile.id}`                                                                                                         |
+| `src/app/api/patient/care-plan/route.ts`       | GET endpoint aggregating monitoring status, next check-in, action items   | 124          | VERIFIED | Auth gate line 5, `Promise.all` parallel queries lines 11-51, `monitoringStatus` derived lines 54-59, `actionItems` extracted lines 62-76, full JSON response lines 102-123 |
+| `src/components/dashboard/CarePlanDetail.tsx`  | Care plan card with monitoring status, next check-in, action items        | 292 (min 50) | VERIFIED | Four section cards + AHPRA disclaimer, self-fetching, loading skeleton, empty state for no consultation                                                                     |
+| `src/app/patient/page.tsx`                     | Patient dashboard with CarePlanDetail replacing placeholder care plan tab | —            | VERIFIED | Import at line 14, render at line 292 with `patientId={patient.id}`; "Coming in Phase 3" placeholder absent (grep returns empty)                                            |
+| `src/app/api/doctor/monitoring/route.ts`       | Extended monitoring API with urgencyTrend field per patient               | 131          | VERIFIED | `checkIns take: 5` line 15, `urgencyTrend` computed lines 59-73, returned in patient object line 107                                                                        |
+| `src/components/doctor/MonitoringQueue.tsx`    | MonitoringQueue with trend indicator arrows in each patient card          | 182          | VERIFIED | `TREND_INDICATOR` map lines 46-51, `TrendingUp/TrendingDown/Minus` imported line 6, rendered lines 92-117 per card                                                          |
 
 ---
 
 ### Key Link Verification
 
-| From | To | Via | Status | Details |
-|------|----|-----|--------|---------|
-| `SymptomTrendChart.tsx` | `/api/patient/journal/trends` | fetch in useEffect | WIRED | Line 82: `fetch("/api/patient/journal/trends", { headers: { "x-patient-id": patientId } })` with `setTrendData(data)` on response |
-| `src/app/patient/profile/page.tsx` | `SymptomTrendChart.tsx` | import and render | WIRED | Import line 16, render line 135 passing `patientId={profile.id}` |
-| `CarePlanDetail.tsx` | `/api/patient/care-plan` | fetch in useEffect | WIRED | Line 84: `fetch("/api/patient/care-plan", { headers: { "x-patient-id": patientId } })` with `setCarePlan(data)` on response |
-| `src/app/patient/page.tsx` | `CarePlanDetail.tsx` | import and render in care-plan tab | WIRED | Import line 14, rendered in `activeTab === "care-plan"` branch line 292 |
-| `MonitoringQueue.tsx` | `/api/doctor/monitoring` | fetch on mount | WIRED | Line 58: `fetch("/api/doctor/monitoring")` with `.then(data => setPatients(data))` |
-| `monitoring/route.ts` | `prisma.checkIn` | expanded check-in query for trend computation | WIRED | `checkIns: { take: 5 }` nested in patient select line 15; `respondedCheckIns` filtered at line 58, used in trend average computation |
+| From                               | To                            | Via                                           | Status | Details                                                                                                                              |
+| ---------------------------------- | ----------------------------- | --------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `SymptomTrendChart.tsx`            | `/api/patient/journal/trends` | fetch in useEffect                            | WIRED  | Line 82: `fetch("/api/patient/journal/trends", { headers: { "x-patient-id": patientId } })` with `setTrendData(data)` on response    |
+| `src/app/patient/profile/page.tsx` | `SymptomTrendChart.tsx`       | import and render                             | WIRED  | Import line 16, render line 135 passing `patientId={profile.id}`                                                                     |
+| `CarePlanDetail.tsx`               | `/api/patient/care-plan`      | fetch in useEffect                            | WIRED  | Line 84: `fetch("/api/patient/care-plan", { headers: { "x-patient-id": patientId } })` with `setCarePlan(data)` on response          |
+| `src/app/patient/page.tsx`         | `CarePlanDetail.tsx`          | import and render in care-plan tab            | WIRED  | Import line 14, rendered in `activeTab === "care-plan"` branch line 292                                                              |
+| `MonitoringQueue.tsx`              | `/api/doctor/monitoring`      | fetch on mount                                | WIRED  | Line 58: `fetch("/api/doctor/monitoring")` with `.then(data => setPatients(data))`                                                   |
+| `monitoring/route.ts`              | `prisma.checkIn`              | expanded check-in query for trend computation | WIRED  | `checkIns: { take: 5 }` nested in patient select line 15; `respondedCheckIns` filtered at line 58, used in trend average computation |
 
 ---
 
 ### Requirements Coverage
 
-| Requirement | Source Plan(s) | Description | Status | Evidence |
-|-------------|---------------|-------------|--------|----------|
-| PROF-03 | 04-01-PLAN.md, 04-03-PLAN.md | Symptom journal: patient can log daily symptoms (1-5 severity + free text) between consultations | SATISFIED (deepened) | Phase 2 delivered basic journal; Phase 4 adds SymptomTrendChart visualising that data over time. Chart exists, fetches real journal data, AHPRA compliant. |
-| DASH-02 | 04-02-PLAN.md, 04-03-PLAN.md | Dashboard displays active care plan — current monitoring status, next check-in scheduled, open action items | SATISFIED (deepened) | Phase 2 delivered placeholder; Phase 4 delivers CarePlanDetail with all three stated fields: `monitoringStatus`, `nextCheckIn.scheduledFor`, `actionItems` from consultation recommendation. |
+| Requirement | Source Plan(s)               | Description                                                                                                 | Status               | Evidence                                                                                                                                                                                     |
+| ----------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PROF-03     | 04-01-PLAN.md, 04-03-PLAN.md | Symptom journal: patient can log daily symptoms (1-5 severity + free text) between consultations            | SATISFIED (deepened) | Phase 2 delivered basic journal; Phase 4 adds SymptomTrendChart visualising that data over time. Chart exists, fetches real journal data, AHPRA compliant.                                   |
+| DASH-02     | 04-02-PLAN.md, 04-03-PLAN.md | Dashboard displays active care plan — current monitoring status, next check-in scheduled, open action items | SATISFIED (deepened) | Phase 2 delivered placeholder; Phase 4 delivers CarePlanDetail with all three stated fields: `monitoringStatus`, `nextCheckIn.scheduledFor`, `actionItems` from consultation recommendation. |
 
 **Notes on requirement assignment:** Per REQUIREMENTS.md line 141-145, DASH-02 and PROF-03 are traceability-assigned to Phase 2 for their initial implementations. Phase 4 deepens them. No orphaned requirements — the traceability table documents this explicitly and both are claimed in Plan 01, 02, and 03 frontmatter.
 
@@ -86,11 +86,12 @@ human_verification:
 
 ### Anti-Patterns Found
 
-| File | Pattern | Severity | Impact |
-|------|---------|----------|--------|
-| None found in Phase 4 files | — | — | — |
+| File                        | Pattern | Severity | Impact |
+| --------------------------- | ------- | -------- | ------ |
+| None found in Phase 4 files | —       | —        | —      |
 
 Notes:
+
 - `return null` at `SymptomTrendChart.tsx:51` is inside `CustomTooltip` conditional render guard — correct React pattern, not a stub.
 - `console.error("Failed to load care plan")` at `CarePlanDetail.tsx:91` is legitimate error logging in a catch block, not a stub implementation.
 - All `placeholder=` strings found in project-wide scan are HTML input placeholder attributes or pre-Phase-4 TODOs (Supabase Auth replacement notes in route.ts files) — none in Phase 4 artifact files.

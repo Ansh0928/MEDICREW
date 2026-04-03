@@ -108,6 +108,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Most files already existed from prior wave-2 commit**
+
 - **Found during:** Task 1 pre-check
 - **Issue:** Prior commit `ad5abad feat(03-wave2)` had already created CheckInResponseCard, NotificationInbox, updated patient/page.tsx and checkin/respond/route.ts — only sendCheckInEmail and the Inngest email step were missing
 - **Fix:** Added only the genuinely missing pieces: sendCheckInEmail to resend.ts and send-check-in-email step to functions.ts
@@ -158,5 +159,6 @@ Without these, email sends are silently skipped (console.warn logged, no crash) 
 - Resend email helper available for any future email sends in Phase 4
 
 ---
-*Phase: 03-proactive-care-loop*
-*Completed: 2026-03-26*
+
+_Phase: 03-proactive-care-loop_
+_Completed: 2026-03-26_

@@ -14,7 +14,7 @@ interface AuthContextType {
   login: (
     email: string,
     _password: string,
-    role: "patient" | "doctor"
+    role: "patient" | "doctor",
   ) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (
       email: string,
       _password: string,
-      role: "patient" | "doctor"
+      role: "patient" | "doctor",
     ): Promise<boolean> => {
       if (role === "patient" && email === DEMO_USERS.patient.email) {
         setUser(DEMO_USERS.patient);
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return false;
     },
-    []
+    [],
   );
 
   const logout = useCallback(() => {

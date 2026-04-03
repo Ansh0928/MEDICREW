@@ -44,7 +44,10 @@ describe("ESCL-01/02: Escalation rules engine", () => {
   });
 
   test("'same' with emergency free text triggers emergency escalation regardless of status", () => {
-    const result = evaluateCheckInResponse("same", "I feel terrible and can't breathe");
+    const result = evaluateCheckInResponse(
+      "same",
+      "I feel terrible and can't breathe",
+    );
     expect(result.escalate).toBe(true);
     expect(result.newUrgencyTier).toBe("emergency");
     expect(result.notifySpecialist).toBe(true);

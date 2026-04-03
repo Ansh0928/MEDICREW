@@ -38,8 +38,15 @@ export default function ProfilePage() {
 
       if (!profileRes.ok) {
         if (profileRes.status === 401 || profileRes.status === 404) {
-          router.push("/login/patient");
-          return;
+          if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+            router.push("/login/patient");
+            return;
+          }
+          // In local dev, 404 might mean we need to create the profile
+          if (profileRes.status === 404) {
+            router.push("/onboarding");
+            return;
+          }
         }
         throw new Error("Failed to load profile");
       }
@@ -69,7 +76,9 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground text-sm">Loading your health profile...</p>
+        <p className="text-muted-foreground text-sm">
+          Loading your health profile...
+        </p>
       </div>
     );
   }
@@ -78,8 +87,14 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-3">
-          <p className="text-sm text-red-600">{error ?? "Profile not found."}</p>
-          <Button variant="outline" size="sm" onClick={() => router.push("/patient")}>
+          <p className="text-sm text-red-600">
+            {error ?? "Profile not found."}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/patient")}
+          >
             Back to Patient Portal
           </Button>
         </div>

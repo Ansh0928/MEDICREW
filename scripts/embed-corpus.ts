@@ -11,16 +11,75 @@ const AU_NOTE =
 // ── Keyword → specialty mapping ──────────────────────────────────────────────
 
 const SPECIALTY_KEYWORDS: Record<string, string[]> = {
-  cardiology: ["cardiac", "heart", "chest pain", "arrhythmia", "hypertension", "ecg", "coronary", "myocardial"],
-  mental_health: ["depression", "anxiety", "psychiatric", "mood", "ptsd", "bipolar", "schizophrenia", "self-harm"],
-  dermatology: ["skin", "rash", "lesion", "eczema", "psoriasis", "melanoma", "dermatitis", "acne"],
-  orthopedic: ["bone", "joint", "fracture", "spine", "musculoskeletal", "knee", "hip", "osteoporosis"],
-  gastro: ["abdominal", "bowel", "liver", "gastric", "colon", "nausea", "diarrhea", "ibs", "crohn"],
-  physiotherapy: ["movement", "rehabilitation", "physiotherapy", "exercise", "mobility", "muscle", "tendon"],
+  cardiology: [
+    "cardiac",
+    "heart",
+    "chest pain",
+    "arrhythmia",
+    "hypertension",
+    "ecg",
+    "coronary",
+    "myocardial",
+  ],
+  mental_health: [
+    "depression",
+    "anxiety",
+    "psychiatric",
+    "mood",
+    "ptsd",
+    "bipolar",
+    "schizophrenia",
+    "self-harm",
+  ],
+  dermatology: [
+    "skin",
+    "rash",
+    "lesion",
+    "eczema",
+    "psoriasis",
+    "melanoma",
+    "dermatitis",
+    "acne",
+  ],
+  orthopedic: [
+    "bone",
+    "joint",
+    "fracture",
+    "spine",
+    "musculoskeletal",
+    "knee",
+    "hip",
+    "osteoporosis",
+  ],
+  gastro: [
+    "abdominal",
+    "bowel",
+    "liver",
+    "gastric",
+    "colon",
+    "nausea",
+    "diarrhea",
+    "ibs",
+    "crohn",
+  ],
+  physiotherapy: [
+    "movement",
+    "rehabilitation",
+    "physiotherapy",
+    "exercise",
+    "mobility",
+    "muscle",
+    "tendon",
+  ],
 };
 
 // Words that should never be in injected content — reclassified as 'general'
-const SAFETY_EXCLUSIONS = ["suicid", "kill myself", "end my life", "self-harm method"];
+const SAFETY_EXCLUSIONS = [
+  "suicid",
+  "kill myself",
+  "end my life",
+  "self-harm method",
+];
 
 function tagSpecialty(text: string): string {
   const lower = text.toLowerCase();
@@ -51,7 +110,12 @@ async function embedBatch(texts: string[]): Promise<number[][]> {
 // ON CONFLICT DO NOTHING makes the script safe to re-run after a mid-run failure.
 
 async function insertBatch(
-  chunks: Array<{ content: string; specialty: string; source: string; embedding: number[] }>
+  chunks: Array<{
+    content: string;
+    specialty: string;
+    source: string;
+    embedding: number[];
+  }>,
 ): Promise<void> {
   for (const chunk of chunks) {
     await sql`
@@ -69,7 +133,9 @@ async function insertBatch(
 
 // ── Dataset: MedQA-USMLE ─────────────────────────────────────────────────────
 
-async function loadMedQA(): Promise<Array<{ content: string; source: string }>> {
+async function loadMedQA(): Promise<
+  Array<{ content: string; source: string }>
+> {
   console.log("Downloading MedQA-USMLE from HuggingFace...");
   const url =
     "https://huggingface.co/datasets/GBaker/MedQA-USMLE-4-options/resolve/main/data/train.jsonl";
@@ -79,14 +145,16 @@ async function loadMedQA(): Promise<Array<{ content: string; source: string }>> 
   const lines = text.trim().split("\n").slice(0, 5000); // cap at 5k for first run
   return lines.map((line) => {
     const item = JSON.parse(line);
-    const content = `Q: ${item.question}\nA: ${item.answer_idx ? item.options?.[item.answer_idx] ?? "" : ""}`;
+    const content = `Q: ${item.question}\nA: ${item.answer_idx ? (item.options?.[item.answer_idx] ?? "") : ""}`;
     return { content, source: "medqa" };
   });
 }
 
 // ── Dataset: PubMedQA ────────────────────────────────────────────────────────
 
-async function loadPubMedQA(): Promise<Array<{ content: string; source: string }>> {
+async function loadPubMedQA(): Promise<
+  Array<{ content: string; source: string }>
+> {
   console.log("Downloading PubMedQA from HuggingFace...");
   const url =
     "https://huggingface.co/datasets/qiaojin/PubMedQA/resolve/main/data/pqa_labeled/train.jsonl";
@@ -108,10 +176,7 @@ async function main() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL not set");
   if (!NOMIC_API_KEY) throw new Error("NOMIC_API_KEY not set");
 
-  const datasets = [
-    ...(await loadMedQA()),
-    ...(await loadPubMedQA()),
-  ];
+  const datasets = [...(await loadMedQA()), ...(await loadPubMedQA())];
 
   console.log(`Total chunks to embed: ${datasets.length}`);
 
@@ -135,7 +200,7 @@ async function main() {
 
   console.log("All chunks inserted. Now create the index:");
   console.log(
-    "  bunx prisma db execute --stdin <<< \"CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);\""
+    '  bunx prisma db execute --stdin <<< "CREATE INDEX ON medical_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);"',
   );
 }
 

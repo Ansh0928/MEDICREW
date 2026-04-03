@@ -17,10 +17,14 @@ describe("INFRA-03: PostgresSaver checkpointer", () => {
       // Inline the guard logic to test the exact error message string
       const connString = process.env.DIRECT_URL;
       if (!connString) {
-        throw new Error("DIRECT_URL environment variable is required for PostgresSaver");
+        throw new Error(
+          "DIRECT_URL environment variable is required for PostgresSaver",
+        );
       }
     } catch (err) {
-      expect((err as Error).message).toContain("DIRECT_URL environment variable is required");
+      expect((err as Error).message).toContain(
+        "DIRECT_URL environment variable is required",
+      );
     } finally {
       // Restore the env var
       if (originalUrl !== undefined) {
@@ -34,7 +38,7 @@ describe("INFRA-03: PostgresSaver checkpointer", () => {
     const path = await import("path");
     const source = fs.readFileSync(
       path.resolve(process.cwd(), "src/lib/checkpointer.ts"),
-      "utf-8"
+      "utf-8",
     );
     expect(source).toContain('schema: "langgraph"');
     expect(source).toContain("DIRECT_URL");

@@ -12,7 +12,12 @@
       "id": "emergency_stroke_symptoms",
       "symptoms": "Sudden severe headache, face drooping on one side, difficulty speaking, arm feels weak",
       "expectedUrgency": "emergency",
-      "expectedRedFlags": ["sudden severe headache", "face drooping", "difficulty speaking", "arm weakness"],
+      "expectedRedFlags": [
+        "sudden severe headache",
+        "face drooping",
+        "difficulty speaking",
+        "arm weakness"
+      ],
       "expectedSpecialties": []
     },
     {

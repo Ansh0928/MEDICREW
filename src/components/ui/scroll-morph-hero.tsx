@@ -10,7 +10,13 @@ interface FlipCardProps {
   index: number;
   total: number;
   phase: AnimationPhase;
-  target: { x: number; y: number; rotation: number; scale: number; opacity: number };
+  target: {
+    x: number;
+    y: number;
+    rotation: number;
+    scale: number;
+    opacity: number;
+  };
 }
 
 const IMG_WIDTH = 60;
@@ -39,15 +45,27 @@ function FlipCard({ src, index, target }: FlipCardProps) {
       <motion.div
         className="relative h-full w-full"
         style={{ transformStyle: "preserve-3d" }}
-        transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        transition={{
+          duration: 0.6,
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
+        }}
         whileHover={{ rotateY: 180 }}
       >
         {/* Front */}
         <div
           className="absolute inset-0 h-full w-full overflow-hidden rounded-xl shadow-lg"
-          style={{ backfaceVisibility: "hidden", background: "rgba(124,58,237,0.2)" }}
+          style={{
+            backfaceVisibility: "hidden",
+            background: "rgba(124,58,237,0.2)",
+          }}
         >
-          <img src={src} alt={`card-${index}`} className="h-full w-full object-cover" />
+          <img
+            src={src}
+            alt={`card-${index}`}
+            className="h-full w-full object-cover"
+          />
           <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-transparent" />
         </div>
 
@@ -57,11 +75,14 @@ function FlipCard({ src, index, target }: FlipCardProps) {
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
-            background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.3))",
+            background:
+              "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.3))",
             border: "1px solid rgba(167,139,250,0.3)",
           }}
         >
-          <p className="text-[8px] font-bold text-violet-300 uppercase tracking-widest mb-1">AI</p>
+          <p className="text-[8px] font-bold text-violet-300 uppercase tracking-widest mb-1">
+            AI
+          </p>
           <p className="text-xs font-medium text-white">Health</p>
         </div>
       </motion.div>
@@ -95,7 +116,8 @@ const IMAGES = [
   "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&q=80",
 ];
 
-const lerp = (start: number, end: number, t: number) => start * (1 - t) + end * t;
+const lerp = (start: number, end: number, t: number) =>
+  start * (1 - t) + end * t;
 
 export default function ScrollMorphHero() {
   const [introPhase, setIntroPhase] = useState<AnimationPhase>("scatter");
@@ -106,11 +128,17 @@ export default function ScrollMorphHero() {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+        setContainerSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
       }
     });
     observer.observe(containerRef.current);
-    setContainerSize({ width: containerRef.current.offsetWidth, height: containerRef.current.offsetHeight });
+    setContainerSize({
+      width: containerRef.current.offsetWidth,
+      height: containerRef.current.offsetHeight,
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -123,24 +151,36 @@ export default function ScrollMorphHero() {
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const newScroll = Math.min(Math.max(scrollRef.current + e.deltaY, 0), MAX_SCROLL);
+      const newScroll = Math.min(
+        Math.max(scrollRef.current + e.deltaY, 0),
+        MAX_SCROLL,
+      );
       scrollRef.current = newScroll;
       virtualScroll.set(newScroll);
     };
 
     let touchStartY = 0;
-    const handleTouchStart = (e: TouchEvent) => { touchStartY = e.touches[0].clientY; };
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
     const handleTouchMove = (e: TouchEvent) => {
       const deltaY = touchStartY - e.touches[0].clientY;
       touchStartY = e.touches[0].clientY;
-      const newScroll = Math.min(Math.max(scrollRef.current + deltaY, 0), MAX_SCROLL);
+      const newScroll = Math.min(
+        Math.max(scrollRef.current + deltaY, 0),
+        MAX_SCROLL,
+      );
       scrollRef.current = newScroll;
       virtualScroll.set(newScroll);
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
-    container.addEventListener("touchstart", handleTouchStart, { passive: false });
-    container.addEventListener("touchmove", handleTouchMove, { passive: false });
+    container.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    container.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
     return () => {
       container.removeEventListener("wheel", handleWheel);
       container.removeEventListener("touchstart", handleTouchStart);
@@ -151,7 +191,10 @@ export default function ScrollMorphHero() {
   const morphProgress = useTransform(virtualScroll, [0, 600], [0, 1]);
   const smoothMorph = useSpring(morphProgress, { stiffness: 40, damping: 20 });
   const scrollRotate = useTransform(virtualScroll, [600, 3000], [0, 360]);
-  const smoothScrollRotate = useSpring(scrollRotate, { stiffness: 40, damping: 20 });
+  const smoothScrollRotate = useSpring(scrollRotate, {
+    stiffness: 40,
+    damping: 20,
+  });
 
   const mouseX = useMotionValue(0);
   const smoothMouseX = useSpring(mouseX, { stiffness: 30, damping: 20 });
@@ -171,16 +214,23 @@ export default function ScrollMorphHero() {
   useEffect(() => {
     const t1 = setTimeout(() => setIntroPhase("line"), 500);
     const t2 = setTimeout(() => setIntroPhase("circle"), 2500);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
-  const scatterPositions = useMemo(() => IMAGES.map(() => ({
-    x: (Math.random() - 0.5) * 1500,
-    y: (Math.random() - 0.5) * 1000,
-    rotation: (Math.random() - 0.5) * 180,
-    scale: 0.6,
-    opacity: 0,
-  })), []);
+  const scatterPositions = useMemo(
+    () =>
+      IMAGES.map(() => ({
+        x: (Math.random() - 0.5) * 1500,
+        y: (Math.random() - 0.5) * 1000,
+        rotation: (Math.random() - 0.5) * 180,
+        scale: 0.6,
+        opacity: 0,
+      })),
+    [],
+  );
 
   const [morphValue, setMorphValue] = useState(0);
   const [rotateValue, setRotateValue] = useState(0);
@@ -190,7 +240,11 @@ export default function ScrollMorphHero() {
     const u1 = smoothMorph.on("change", setMorphValue);
     const u2 = smoothScrollRotate.on("change", setRotateValue);
     const u3 = smoothMouseX.on("change", setParallaxValue);
-    return () => { u1(); u2(); u3(); };
+    return () => {
+      u1();
+      u2();
+      u3();
+    };
   }, [smoothMorph, smoothScrollRotate, smoothMouseX]);
 
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
@@ -217,12 +271,15 @@ export default function ScrollMorphHero() {
             style={{ fontFamily: "var(--font-display)" }}
           >
             The future of healthcare{" "}
-            <span className="italic" style={{
-              background: "linear-gradient(135deg, #a78bfa, #f472b6)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}>
+            <span
+              className="italic"
+              style={{
+                background: "linear-gradient(135deg, #a78bfa, #f472b6)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               built with AI.
             </span>
           </motion.h2>
@@ -245,20 +302,26 @@ export default function ScrollMorphHero() {
           style={{ opacity: contentOpacity, y: contentY }}
           className="absolute top-[8%] z-10 flex flex-col items-center justify-center text-center pointer-events-none px-4"
         >
-          <h3 className="text-2xl md:text-4xl font-semibold text-white tracking-tight mb-3"
-            style={{ fontFamily: "var(--font-display)" }}>
+          <h3
+            className="text-2xl md:text-4xl font-semibold text-white tracking-tight mb-3"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
             Thousands of Australians,{" "}
-            <span className="italic" style={{
-              background: "linear-gradient(135deg, #a78bfa, #67e8f9)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}>
+            <span
+              className="italic"
+              style={{
+                background: "linear-gradient(135deg, #a78bfa, #67e8f9)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               one AI team.
             </span>
           </h3>
           <p className="text-sm text-white/40 max-w-md leading-relaxed font-[family-name:var(--font-mono)]">
-            Real people getting real health guidance — instantly, privately, for free.
+            Real people getting real health guidance — instantly, privately, for
+            free.
           </p>
         </motion.div>
 
@@ -272,10 +335,19 @@ export default function ScrollMorphHero() {
             } else if (introPhase === "line") {
               const lineSpacing = 70;
               const lineTotalWidth = TOTAL_IMAGES * lineSpacing;
-              target = { x: i * lineSpacing - lineTotalWidth / 2, y: 0, rotation: 0, scale: 1, opacity: 1 };
+              target = {
+                x: i * lineSpacing - lineTotalWidth / 2,
+                y: 0,
+                rotation: 0,
+                scale: 1,
+                opacity: 1,
+              };
             } else {
               const isMobile = containerSize.width < 768;
-              const minDimension = Math.min(containerSize.width, containerSize.height);
+              const minDimension = Math.min(
+                containerSize.width,
+                containerSize.height,
+              );
               const circleRadius = Math.min(minDimension * 0.35, 350);
               const circleAngle = (i / TOTAL_IMAGES) * 360;
               const circleRad = (circleAngle * Math.PI) / 180;
@@ -285,14 +357,20 @@ export default function ScrollMorphHero() {
                 rotation: circleAngle + 90,
               };
 
-              const baseRadius = Math.min(containerSize.width, containerSize.height * 1.5);
+              const baseRadius = Math.min(
+                containerSize.width,
+                containerSize.height * 1.5,
+              );
               const arcRadius = baseRadius * (isMobile ? 1.4 : 1.1);
               const arcApexY = containerSize.height * (isMobile ? 0.35 : 0.25);
               const arcCenterY = arcApexY + arcRadius;
               const spreadAngle = isMobile ? 100 : 130;
               const startAngle = -90 - spreadAngle / 2;
               const step = spreadAngle / (TOTAL_IMAGES - 1);
-              const scrollProgress = Math.min(Math.max(rotateValue / 360, 0), 1);
+              const scrollProgress = Math.min(
+                Math.max(rotateValue / 360, 0),
+                1,
+              );
               const boundedRotation = -scrollProgress * spreadAngle * 0.8;
               const currentArcAngle = startAngle + i * step + boundedRotation;
               const arcRad = (currentArcAngle * Math.PI) / 180;

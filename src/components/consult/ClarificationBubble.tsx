@@ -49,11 +49,7 @@ export function ClarificationBubble({
             className="flex-1"
             autoFocus
           />
-          <Button
-            size="sm"
-            disabled={!answer.trim()}
-            onClick={handleSend}
-          >
+          <Button size="sm" disabled={!answer.trim()} onClick={handleSend}>
             Send
           </Button>
         </div>

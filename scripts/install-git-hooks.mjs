@@ -1,9 +1,16 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 
 const MARKER_START = "# medicrew-validate-push-hook:start";
 const MARKER_END = "# medicrew-validate-push-hook:end";
-const DEBUG_LOG_PATH = "/Users/tasmanstar/Desktop/projects/medicrew/.cursor/debug-d65f45.log";
+const DEBUG_LOG_PATH =
+  "/Users/tasmanstar/Desktop/projects/medicrew/.cursor/debug-d65f45.log";
 const DEBUG_SESSION_ID = "d65f45";
 const hookBlock = `${MARKER_START}
 log_ts() { date +%s%3N; }
@@ -40,14 +47,18 @@ mkdirSync(hooksDir, { recursive: true });
 const hasPrePush = existsSync(prePushPath);
 const existing = hasPrePush ? readFileSync(prePushPath, "utf8") : "";
 
-const hasShebang = existing.startsWith("#!/bin/sh") || existing.startsWith("#!/usr/bin/env sh");
-const base = hasPrePush
-  ? existing.trimEnd()
-  : "#!/bin/sh\n";
-const markerRegex = new RegExp(`${MARKER_START}[\\s\\S]*?${MARKER_END}\\n?`, "g");
+const hasShebang =
+  existing.startsWith("#!/bin/sh") || existing.startsWith("#!/usr/bin/env sh");
+const base = hasPrePush ? existing.trimEnd() : "#!/bin/sh\n";
+const markerRegex = new RegExp(
+  `${MARKER_START}[\\s\\S]*?${MARKER_END}\\n?`,
+  "g",
+);
 const baseWithoutManagedBlock = base.replace(markerRegex, "").trimEnd();
 
-const preparedBase = hasShebang ? baseWithoutManagedBlock : `#!/bin/sh\n\n${baseWithoutManagedBlock}`;
+const preparedBase = hasShebang
+  ? baseWithoutManagedBlock
+  : `#!/bin/sh\n\n${baseWithoutManagedBlock}`;
 const nextContent = `${preparedBase}\n\n${hookBlock}`;
 writeFileSync(prePushPath, nextContent, "utf8");
 chmodSync(prePushPath, 0o755);

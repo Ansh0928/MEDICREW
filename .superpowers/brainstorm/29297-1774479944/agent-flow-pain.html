@@ -1,49 +1,73 @@
 <h2>What's broken with the current agent flow?</h2>
-<p class="subtitle">Pick the biggest pain point — we'll fix these in priority order</p>
+<p class="subtitle">
+  Pick the biggest pain point — we'll fix these in priority order
+</p>
 
 <div class="options" data-multiselect>
   <div class="option" data-choice="a" onclick="toggleSelect(this)">
     <div class="letter">A</div>
     <div class="content">
       <h3>No real-time streaming per agent</h3>
-      <p>Agents appear all-at-once after a long wait. Should stream token-by-token so it feels alive — like watching a doctor actually thinking.</p>
+      <p>
+        Agents appear all-at-once after a long wait. Should stream
+        token-by-token so it feels alive — like watching a doctor actually
+        thinking.
+      </p>
     </div>
   </div>
   <div class="option" data-choice="b" onclick="toggleSelect(this)">
     <div class="letter">B</div>
     <div class="content">
       <h3>Too many steps before you can chat</h3>
-      <p>3 steps (pick doctor → enter info → chat) kills momentum. Should start chatting immediately with minimal friction.</p>
+      <p>
+        3 steps (pick doctor → enter info → chat) kills momentum. Should start
+        chatting immediately with minimal friction.
+      </p>
     </div>
   </div>
   <div class="option" data-choice="c" onclick="toggleSelect(this)">
     <div class="letter">C</div>
     <div class="content">
       <h3>Agent responses are walls of text</h3>
-      <p>Each agent dumps a long paragraph. Should be structured: bullet points, urgency badges, clear sections — easy to scan.</p>
+      <p>
+        Each agent dumps a long paragraph. Should be structured: bullet points,
+        urgency badges, clear sections — easy to scan.
+      </p>
     </div>
   </div>
   <div class="option" data-choice="d" onclick="toggleSelect(this)">
     <div class="letter">D</div>
     <div class="content">
       <h3>No voice / transcription like Heidi</h3>
-      <p>Heidi's core is real-time voice recording → auto-transcription → structured clinical note. MediCrew needs this for both patients and doctors.</p>
+      <p>
+        Heidi's core is real-time voice recording → auto-transcription →
+        structured clinical note. MediCrew needs this for both patients and
+        doctors.
+      </p>
     </div>
   </div>
   <div class="option" data-choice="e" onclick="toggleSelect(this)">
     <div class="letter">E</div>
     <div class="content">
       <h3>No document output</h3>
-      <p>After the consultation you get nothing exportable. Should generate: SOAP notes, referral letters, patient summaries — downloadable as PDF.</p>
+      <p>
+        After the consultation you get nothing exportable. Should generate: SOAP
+        notes, referral letters, patient summaries — downloadable as PDF.
+      </p>
     </div>
   </div>
   <div class="option" data-choice="f" onclick="toggleSelect(this)">
     <div class="letter">F</div>
     <div class="content">
       <h3>Agents run sequentially, not in parallel</h3>
-      <p>Triage → GP → Specialist → Recommend runs one at a time. Should show all agents thinking simultaneously with live updates.</p>
+      <p>
+        Triage → GP → Specialist → Recommend runs one at a time. Should show all
+        agents thinking simultaneously with live updates.
+      </p>
     </div>
   </div>
 </div>
 
-<p class="subtitle" style="margin-top: 1.5rem; font-size: 0.85rem;">Select all that apply — then reply in terminal</p>
+<p class="subtitle" style="margin-top: 1.5rem; font-size: 0.85rem">
+  Select all that apply — then reply in terminal
+</p>

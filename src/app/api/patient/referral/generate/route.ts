@@ -59,7 +59,11 @@ function buildLetterPrompt(data: {
   );
 
   if (data.redFlags.length > 0) {
-    lines.push(``, `RED FLAGS IDENTIFIED:`, ...data.redFlags.map((f) => `- ${f}`));
+    lines.push(
+      ``,
+      `RED FLAGS IDENTIFIED:`,
+      ...data.redFlags.map((f) => `- ${f}`),
+    );
   }
 
   if (data.assessment) {
@@ -67,7 +71,11 @@ function buildLetterPrompt(data: {
   }
 
   if (data.nextSteps.length > 0) {
-    lines.push(``, `RECOMMENDED NEXT STEPS:`, ...data.nextSteps.map((s) => `- ${s}`));
+    lines.push(
+      ``,
+      `RECOMMENDED NEXT STEPS:`,
+      ...data.nextSteps.map((s) => `- ${s}`),
+    );
   }
 
   if (data.knownConditions) {
@@ -140,7 +148,10 @@ export async function POST(request: NextRequest) {
   try {
     body = (await request.json()) as { consultationId?: string };
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const { consultationId } = body;
@@ -166,7 +177,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (!consultation) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   // Return cached letter if already generated
@@ -224,7 +238,12 @@ export async function POST(request: NextRequest) {
 
   const consultationDate = new Date(consultation.createdAt).toLocaleDateString(
     "en-AU",
-    { day: "numeric", month: "long", year: "numeric", timeZone: "Australia/Sydney" },
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Australia/Sydney",
+    },
   );
 
   const prompt = buildLetterPrompt({
@@ -250,9 +269,10 @@ export async function POST(request: NextRequest) {
       new SystemMessage(REFERRAL_LETTER_SYSTEM_PROMPT),
       new HumanMessage(prompt),
     ]);
-    letterText = typeof response.content === "string"
-      ? response.content
-      : JSON.stringify(response.content);
+    letterText =
+      typeof response.content === "string"
+        ? response.content
+        : JSON.stringify(response.content);
   } catch (err) {
     console.error("[referral/generate] LLM error:", err);
     return NextResponse.json(

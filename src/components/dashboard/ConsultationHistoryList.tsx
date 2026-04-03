@@ -27,19 +27,29 @@ interface ConsultationHistoryListProps {
   consultations: ConsultationEntry[];
 }
 
-const urgencyConfig: Record<string, { label: string; variant: "destructive" | "default" | "secondary" | "outline" }> = {
+const urgencyConfig: Record<
+  string,
+  {
+    label: string;
+    variant: "destructive" | "default" | "secondary" | "outline";
+  }
+> = {
   emergency: { label: "Emergency", variant: "destructive" },
   urgent: { label: "Urgent", variant: "default" },
   routine: { label: "Routine", variant: "secondary" },
   self_care: { label: "Self-Care", variant: "outline" },
 };
 
-function extractRecommendation(rec: ConsultationEntry["recommendation"]): CareRecommendation | null {
+function extractRecommendation(
+  rec: ConsultationEntry["recommendation"],
+): CareRecommendation | null {
   if (!rec || typeof rec !== "object") return null;
   return rec as CareRecommendation;
 }
 
-export function ConsultationHistoryList({ consultations }: ConsultationHistoryListProps) {
+export function ConsultationHistoryList({
+  consultations,
+}: ConsultationHistoryListProps) {
   if (consultations.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -83,13 +93,16 @@ export function ConsultationHistoryList({ consultations }: ConsultationHistoryLi
 
                   <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    {new Date(consultation.createdAt).toLocaleDateString("en-AU", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {new Date(consultation.createdAt).toLocaleDateString(
+                      "en-AU",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
                   </div>
                 </div>
 

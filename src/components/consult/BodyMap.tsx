@@ -24,16 +24,64 @@ interface Region {
 }
 
 const REGIONS: Region[] = [
-  { id: "Head",       label: "Head",       x: 38, y: 4,   w: 24, h: 20, view: "front" },
-  { id: "Neck",       label: "Neck",       x: 45, y: 24,  w: 10, h: 10, view: "front" },
-  { id: "Chest",      label: "Chest",      x: 28, y: 34,  w: 44, h: 28, view: "front" },
-  { id: "Left arm",   label: "L. Arm",     x: 8,  y: 34,  w: 18, h: 40, view: "front" },
-  { id: "Right arm",  label: "R. Arm",     x: 74, y: 34,  w: 18, h: 40, view: "front" },
-  { id: "Abdomen",    label: "Abdomen",    x: 28, y: 62,  w: 44, h: 28, view: "front" },
-  { id: "Left leg",   label: "L. Leg",     x: 28, y: 90,  w: 20, h: 48, view: "front" },
-  { id: "Right leg",  label: "R. Leg",     x: 52, y: 90,  w: 20, h: 48, view: "front" },
-  { id: "Lower back", label: "Lower back", x: 28, y: 62,  w: 44, h: 28, view: "back" },
-  { id: "Full back",  label: "Full back",  x: 28, y: 34,  w: 44, h: 28, view: "back" },
+  { id: "Head", label: "Head", x: 38, y: 4, w: 24, h: 20, view: "front" },
+  { id: "Neck", label: "Neck", x: 45, y: 24, w: 10, h: 10, view: "front" },
+  { id: "Chest", label: "Chest", x: 28, y: 34, w: 44, h: 28, view: "front" },
+  { id: "Left arm", label: "L. Arm", x: 8, y: 34, w: 18, h: 40, view: "front" },
+  {
+    id: "Right arm",
+    label: "R. Arm",
+    x: 74,
+    y: 34,
+    w: 18,
+    h: 40,
+    view: "front",
+  },
+  {
+    id: "Abdomen",
+    label: "Abdomen",
+    x: 28,
+    y: 62,
+    w: 44,
+    h: 28,
+    view: "front",
+  },
+  {
+    id: "Left leg",
+    label: "L. Leg",
+    x: 28,
+    y: 90,
+    w: 20,
+    h: 48,
+    view: "front",
+  },
+  {
+    id: "Right leg",
+    label: "R. Leg",
+    x: 52,
+    y: 90,
+    w: 20,
+    h: 48,
+    view: "front",
+  },
+  {
+    id: "Lower back",
+    label: "Lower back",
+    x: 28,
+    y: 62,
+    w: 44,
+    h: 28,
+    view: "back",
+  },
+  {
+    id: "Full back",
+    label: "Full back",
+    x: 28,
+    y: 34,
+    w: 44,
+    h: 28,
+    view: "back",
+  },
 ];
 
 interface BodyMapProps {
@@ -54,7 +102,9 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
             key={v}
             onClick={() => setView(v)}
             className={`px-4 py-1 capitalize transition-colors ${
-              view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+              view === v
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             {v}
@@ -80,7 +130,9 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
                 rx={4}
                 className="cursor-pointer transition-all"
                 fill={isSelected ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                stroke={isSelected ? "hsl(var(--primary))" : "hsl(var(--border))"}
+                stroke={
+                  isSelected ? "hsl(var(--primary))" : "hsl(var(--border))"
+                }
                 strokeWidth={1}
                 onClick={() => onSelect(r.id)}
                 aria-label={r.label}
@@ -99,7 +151,11 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize={5}
-                fill={isSelected ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))"}
+                fill={
+                  isSelected
+                    ? "hsl(var(--primary-foreground))"
+                    : "hsl(var(--muted-foreground))"
+                }
                 className="pointer-events-none select-none"
               >
                 {r.label}
@@ -111,7 +167,8 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
 
       {selected && visibleRegions.some((r) => r.id === selected) && (
         <p className="text-xs text-muted-foreground">
-          Selected: <span className="text-foreground font-medium">{selected}</span>
+          Selected:{" "}
+          <span className="text-foreground font-medium">{selected}</span>
         </p>
       )}
     </div>

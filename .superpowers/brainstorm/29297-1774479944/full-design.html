@@ -1,110 +1,401 @@
 <h2>MediCrew — Full System Design</h2>
-<p class="subtitle">Swarm architecture · B+C patient UX · 5 layers · Both patient & doctor modes</p>
+<p class="subtitle">
+  Swarm architecture · B+C patient UX · 5 layers · Both patient & doctor modes
+</p>
 
 <div class="section">
-<h3>🏗️ Layer Architecture</h3>
-<div style="font-family:monospace;font-size:0.78rem;background:#0f172a;color:#e2e8f0;padding:1.25rem;border-radius:10px;line-height:2;">
-  <div><span style="color:#94a3b8;">L1</span> <span style="color:#f87171;font-weight:bold;">TRIAGE AGENT</span> <span style="color:#94a3b8;">— fast model, instant urgency + routes to relevant doctors</span></div>
-  <div><span style="color:#94a3b8;">L2</span> <span style="color:#60a5fa;font-weight:bold;">7 SENIOR DOCTORS</span> <span style="color:#94a3b8;">— all fire in parallel, each owns their specialty</span></div>
-  <div><span style="color:#94a3b8;">L3</span> <span style="color:#a78bfa;font-weight:bold;">SUB-AGENT SWARM</span> <span style="color:#94a3b8;">— each doctor spawns N hypothesis sub-agents (Promise.all)</span></div>
-  <div><span style="color:#94a3b8;">L4</span> <span style="color:#34d399;font-weight:bold;">DEBATE ROUND</span> <span style="color:#94a3b8;">— doctors read each other's swarm results, challenge or agree</span></div>
-  <div><span style="color:#94a3b8;">L5</span> <span style="color:#fbbf24;font-weight:bold;">SYNTHESIS</span> <span style="color:#94a3b8;">— orchestrator merges all confidence scores → final ranked output</span></div>
-</div>
-</div>
-
-<div class="section">
-<h3>👤 Patient View (what they see)</h3>
-<div style="background:#0f172a;border-radius:10px;padding:1.25rem;font-family:system-ui;font-size:0.8rem;color:#e2e8f0;">
-  <!-- Chat bubble -->
-  <div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;">
-    <div style="background:#2563eb;color:white;border-radius:16px 16px 4px 16px;padding:0.6rem 0.9rem;max-width:75%;font-size:0.78rem;">
-      chest pain and left arm tingling for 2 hours
+  <h3>🏗️ Layer Architecture</h3>
+  <div
+    style="
+      font-family: monospace;
+      font-size: 0.78rem;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1.25rem;
+      border-radius: 10px;
+      line-height: 2;
+    "
+  >
+    <div>
+      <span style="color: #94a3b8">L1</span>
+      <span style="color: #f87171; font-weight: bold">TRIAGE AGENT</span>
+      <span style="color: #94a3b8"
+        >— fast model, instant urgency + routes to relevant doctors</span
+      >
     </div>
-  </div>
-  <!-- B+C indicator -->
-  <div style="background:#1e293b;border-radius:12px;padding:0.9rem;margin-bottom:0.75rem;">
-    <div style="color:#94a3b8;font-size:0.68rem;margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.05em;">Your care team</div>
-    <!-- Orbs row (C) -->
-    <div style="display:flex;gap:10px;margin-bottom:0.75rem;">
-      <div style="text-align:center;">
-        <div style="width:38px;height:38px;border-radius:50%;background:#7f1d1d;border:2px solid #f87171;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🚨</div>
-        <div style="font-size:0.6rem;color:#f87171;margin-top:2px;">Done</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="width:38px;height:38px;border-radius:50%;background:#1e3a5f;border:2px solid #60a5fa;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 0 8px #3b82f680;">❤️</div>
-        <div style="font-size:0.6rem;color:#60a5fa;margin-top:2px;">Active</div>
-      </div>
-      <div style="text-align:center;opacity:0.5;">
-        <div style="width:38px;height:38px;border-radius:50%;background:#374151;border:2px solid #4b5563;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🧠</div>
-        <div style="font-size:0.6rem;color:#6b7280;margin-top:2px;">Next</div>
-      </div>
-      <div style="text-align:center;opacity:0.5;">
-        <div style="width:38px;height:38px;border-radius:50%;background:#374151;border:2px solid #4b5563;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">👨‍⚕️</div>
-        <div style="font-size:0.6rem;color:#6b7280;margin-top:2px;">Next</div>
-      </div>
-      <div style="text-align:center;opacity:0.3;">
-        <div style="width:38px;height:38px;border-radius:50%;background:#374151;border:2px solid #374151;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🦴</div>
-        <div style="font-size:0.6rem;color:#4b5563;margin-top:2px;">Waiting</div>
-      </div>
+    <div>
+      <span style="color: #94a3b8">L2</span>
+      <span style="color: #60a5fa; font-weight: bold">7 SENIOR DOCTORS</span>
+      <span style="color: #94a3b8"
+        >— all fire in parallel, each owns their specialty</span
+      >
     </div>
-    <!-- Live text feed (B) -->
-    <div style="background:#0f172a;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.72rem;color:#93c5fd;">
-      ❤️ Cardiologist is reviewing your symptoms...
+    <div>
+      <span style="color: #94a3b8">L3</span>
+      <span style="color: #a78bfa; font-weight: bold">SUB-AGENT SWARM</span>
+      <span style="color: #94a3b8"
+        >— each doctor spawns N hypothesis sub-agents (Promise.all)</span
+      >
     </div>
-  </div>
-  <!-- Agent question -->
-  <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:0.75rem;">
-    <div style="width:28px;height:28px;border-radius:50%;background:#1e3a5f;border:1.5px solid #60a5fa;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">❤️</div>
-    <div style="background:#1e293b;border-radius:4px 16px 16px 16px;padding:0.6rem 0.9rem;font-size:0.78rem;color:#e2e8f0;max-width:78%;">
-      Do you have any history of heart disease or high blood pressure?
+    <div>
+      <span style="color: #94a3b8">L4</span>
+      <span style="color: #34d399; font-weight: bold">DEBATE ROUND</span>
+      <span style="color: #94a3b8"
+        >— doctors read each other's swarm results, challenge or agree</span
+      >
+    </div>
+    <div>
+      <span style="color: #94a3b8">L5</span>
+      <span style="color: #fbbf24; font-weight: bold">SYNTHESIS</span>
+      <span style="color: #94a3b8"
+        >— orchestrator merges all confidence scores → final ranked output</span
+      >
     </div>
   </div>
 </div>
-<div style="color:#94a3b8;font-size:0.72rem;margin-top:0.5rem;">Patient never sees "hypothesis", "confidence 72%", or "sub-agent". Just their team + one question at a time.</div>
+
+<div class="section">
+  <h3>👤 Patient View (what they see)</h3>
+  <div
+    style="
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-family: system-ui;
+      font-size: 0.8rem;
+      color: #e2e8f0;
+    "
+  >
+    <!-- Chat bubble -->
+    <div
+      style="display: flex; justify-content: flex-end; margin-bottom: 0.75rem"
+    >
+      <div
+        style="
+          background: #2563eb;
+          color: white;
+          border-radius: 16px 16px 4px 16px;
+          padding: 0.6rem 0.9rem;
+          max-width: 75%;
+          font-size: 0.78rem;
+        "
+      >
+        chest pain and left arm tingling for 2 hours
+      </div>
+    </div>
+    <!-- B+C indicator -->
+    <div
+      style="
+        background: #1e293b;
+        border-radius: 12px;
+        padding: 0.9rem;
+        margin-bottom: 0.75rem;
+      "
+    >
+      <div
+        style="
+          color: #94a3b8;
+          font-size: 0.68rem;
+          margin-bottom: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        "
+      >
+        Your care team
+      </div>
+      <!-- Orbs row (C) -->
+      <div style="display: flex; gap: 10px; margin-bottom: 0.75rem">
+        <div style="text-align: center">
+          <div
+            style="
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              background: #7f1d1d;
+              border: 2px solid #f87171;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.1rem;
+            "
+          >
+            🚨
+          </div>
+          <div style="font-size: 0.6rem; color: #f87171; margin-top: 2px">
+            Done
+          </div>
+        </div>
+        <div style="text-align: center">
+          <div
+            style="
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              background: #1e3a5f;
+              border: 2px solid #60a5fa;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.1rem;
+              box-shadow: 0 0 8px #3b82f680;
+            "
+          >
+            ❤️
+          </div>
+          <div style="font-size: 0.6rem; color: #60a5fa; margin-top: 2px">
+            Active
+          </div>
+        </div>
+        <div style="text-align: center; opacity: 0.5">
+          <div
+            style="
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              background: #374151;
+              border: 2px solid #4b5563;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.1rem;
+            "
+          >
+            🧠
+          </div>
+          <div style="font-size: 0.6rem; color: #6b7280; margin-top: 2px">
+            Next
+          </div>
+        </div>
+        <div style="text-align: center; opacity: 0.5">
+          <div
+            style="
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              background: #374151;
+              border: 2px solid #4b5563;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.1rem;
+            "
+          >
+            👨‍⚕️
+          </div>
+          <div style="font-size: 0.6rem; color: #6b7280; margin-top: 2px">
+            Next
+          </div>
+        </div>
+        <div style="text-align: center; opacity: 0.3">
+          <div
+            style="
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              background: #374151;
+              border: 2px solid #374151;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.1rem;
+            "
+          >
+            🦴
+          </div>
+          <div style="font-size: 0.6rem; color: #4b5563; margin-top: 2px">
+            Waiting
+          </div>
+        </div>
+      </div>
+      <!-- Live text feed (B) -->
+      <div
+        style="
+          background: #0f172a;
+          border-radius: 8px;
+          padding: 0.5rem 0.75rem;
+          font-size: 0.72rem;
+          color: #93c5fd;
+        "
+      >
+        ❤️ Cardiologist is reviewing your symptoms...
+      </div>
+    </div>
+    <!-- Agent question -->
+    <div
+      style="
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+      "
+    >
+      <div
+        style="
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: #1e3a5f;
+          border: 1.5px solid #60a5fa;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          flex-shrink: 0;
+        "
+      >
+        ❤️
+      </div>
+      <div
+        style="
+          background: #1e293b;
+          border-radius: 4px 16px 16px 16px;
+          padding: 0.6rem 0.9rem;
+          font-size: 0.78rem;
+          color: #e2e8f0;
+          max-width: 78%;
+        "
+      >
+        Do you have any history of heart disease or high blood pressure?
+      </div>
+    </div>
+  </div>
+  <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 0.5rem">
+    Patient never sees "hypothesis", "confidence 72%", or "sub-agent". Just
+    their team + one question at a time.
+  </div>
 </div>
 
 <div class="section">
-<h3>🩺 Doctor View (full swarm visibility)</h3>
-<div style="background:#0f172a;border-radius:10px;padding:1.25rem;font-family:monospace;font-size:0.72rem;color:#e2e8f0;line-height:1.7;">
-  <div style="color:#f87171;">🚨 TRIAGE: URGENT · Launch cardiology + mental health swarm</div>
-  <div style="color:#f472b6;margin-top:0.4rem;">❤️ CARDIOLOGY SWARM:</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">├ ACS/STEMI ················· 82% ████████░░</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">├ Unstable angina ··········· 41% ████░░░░░░</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">└ Aortic dissection ········· 11% █░░░░░░░░░</div>
-  <div style="color:#34d399;margin-top:0.4rem;">🧠 MENTAL HEALTH SWARM:</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">├ Panic attack ·············· 28% ██░░░░░░░░</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">└ Somatic anxiety ··········· 14% █░░░░░░░░░</div>
-  <div style="color:#60a5fa;margin-top:0.4rem;">💬 DEBATE:</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">Cardiology: "ACS probability too high to wait — ECG now"</div>
-  <div style="color:#cbd5e1;margin-left:1rem;">GP: "Agree. Panic secondary — rule out cardiac first."</div>
-  <div style="color:#fbbf24;margin-top:0.4rem;">⚡ SYNTHESIS: ACS (82%) · Call 000 · ECG within 10min</div>
-</div>
+  <h3>🩺 Doctor View (full swarm visibility)</h3>
+  <div
+    style="
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-family: monospace;
+      font-size: 0.72rem;
+      color: #e2e8f0;
+      line-height: 1.7;
+    "
+  >
+    <div style="color: #f87171">
+      🚨 TRIAGE: URGENT · Launch cardiology + mental health swarm
+    </div>
+    <div style="color: #f472b6; margin-top: 0.4rem">❤️ CARDIOLOGY SWARM:</div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ ACS/STEMI ················· 82% ████████░░
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ Unstable angina ··········· 41% ████░░░░░░
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      └ Aortic dissection ········· 11% █░░░░░░░░░
+    </div>
+    <div style="color: #34d399; margin-top: 0.4rem">
+      🧠 MENTAL HEALTH SWARM:
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      ├ Panic attack ·············· 28% ██░░░░░░░░
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      └ Somatic anxiety ··········· 14% █░░░░░░░░░
+    </div>
+    <div style="color: #60a5fa; margin-top: 0.4rem">💬 DEBATE:</div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      Cardiology: "ACS probability too high to wait — ECG now"
+    </div>
+    <div style="color: #cbd5e1; margin-left: 1rem">
+      GP: "Agree. Panic secondary — rule out cardiac first."
+    </div>
+    <div style="color: #fbbf24; margin-top: 0.4rem">
+      ⚡ SYNTHESIS: ACS (82%) · Call 000 · ECG within 10min
+    </div>
+  </div>
 </div>
 
 <div class="section">
-<h3>🔧 Technical Changes (what gets built)</h3>
-<div class="options" data-multiselect>
-  <div class="option selected" data-choice="1" onclick="toggleSelect(this)" style="pointer-events:none;">
-    <div class="letter">1</div>
-    <div class="content"><h3>New swarm orchestrator</h3><p>Replace linear LangGraph pipeline with parallel swarm: L1 triage → L2+L3 parallel doctor+sub-agent fan-out → L4 debate → L5 synthesis</p></div>
+  <h3>🔧 Technical Changes (what gets built)</h3>
+  <div class="options" data-multiselect>
+    <div
+      class="option selected"
+      data-choice="1"
+      onclick="toggleSelect(this)"
+      style="pointer-events: none"
+    >
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>New swarm orchestrator</h3>
+        <p>
+          Replace linear LangGraph pipeline with parallel swarm: L1 triage →
+          L2+L3 parallel doctor+sub-agent fan-out → L4 debate → L5 synthesis
+        </p>
+      </div>
+    </div>
+    <div
+      class="option selected"
+      data-choice="2"
+      onclick="toggleSelect(this)"
+      style="pointer-events: none"
+    >
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>Token-level streaming SSE</h3>
+        <p>
+          Each sub-agent streams tokens as it thinks. Patient sees words
+          appearing in the live feed. No more waiting for full node completion.
+        </p>
+      </div>
+    </div>
+    <div
+      class="option selected"
+      data-choice="3"
+      onclick="toggleSelect(this)"
+      style="pointer-events: none"
+    >
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>Question-pause mechanism</h3>
+        <p>
+          Sub-agents can emit a "need_clarification" event mid-run. Orchestrator
+          pauses that swarm branch, surfaces question to patient, resumes on
+          answer.
+        </p>
+      </div>
+    </div>
+    <div
+      class="option selected"
+      data-choice="4"
+      onclick="toggleSelect(this)"
+      style="pointer-events: none"
+    >
+      <div class="letter">4</div>
+      <div class="content">
+        <h3>B+C patient UI + doctor debug view</h3>
+        <p>
+          Patient sees orbs + live feed. Doctors see the full swarm confidence
+          panel.
+        </p>
+      </div>
+    </div>
+    <div
+      class="option selected"
+      data-choice="5"
+      onclick="toggleSelect(this)"
+      style="pointer-events: none"
+    >
+      <div class="letter">5</div>
+      <div class="content">
+        <h3>Fix all 14 agent-review issues</h3>
+        <p>
+          Parallel specialists, fail-safe triage, rate limiting, guardrails,
+          observability — all fixed as part of the rebuild.
+        </p>
+      </div>
+    </div>
   </div>
-  <div class="option selected" data-choice="2" onclick="toggleSelect(this)" style="pointer-events:none;">
-    <div class="letter">2</div>
-    <div class="content"><h3>Token-level streaming SSE</h3><p>Each sub-agent streams tokens as it thinks. Patient sees words appearing in the live feed. No more waiting for full node completion.</p></div>
-  </div>
-  <div class="option selected" data-choice="3" onclick="toggleSelect(this)" style="pointer-events:none;">
-    <div class="letter">3</div>
-    <div class="content"><h3>Question-pause mechanism</h3><p>Sub-agents can emit a "need_clarification" event mid-run. Orchestrator pauses that swarm branch, surfaces question to patient, resumes on answer.</p></div>
-  </div>
-  <div class="option selected" data-choice="4" onclick="toggleSelect(this)" style="pointer-events:none;">
-    <div class="letter">4</div>
-    <div class="content"><h3>B+C patient UI + doctor debug view</h3><p>Patient sees orbs + live feed. Doctors see the full swarm confidence panel.</p></div>
-  </div>
-  <div class="option selected" data-choice="5" onclick="toggleSelect(this)" style="pointer-events:none;">
-    <div class="letter">5</div>
-    <div class="content"><h3>Fix all 14 agent-review issues</h3><p>Parallel specialists, fail-safe triage, rate limiting, guardrails, observability — all fixed as part of the rebuild.</p></div>
-  </div>
-</div>
 </div>
 
-<p class="subtitle" style="font-size:0.85rem;">Does this design look right? Reply in terminal to approve and I'll write the spec.</p>
+<p class="subtitle" style="font-size: 0.85rem">
+  Does this design look right? Reply in terminal to approve and I'll write the
+  spec.
+</p>

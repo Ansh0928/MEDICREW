@@ -4,7 +4,14 @@ import { useState } from "react";
 import { SwarmSynthesis } from "@/agents/swarm-types";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/client";
-import { ClipboardCopy, CheckCheck, Share2, AlertTriangle, ListChecks, ArrowRight } from "lucide-react";
+import {
+  ClipboardCopy,
+  CheckCheck,
+  Share2,
+  AlertTriangle,
+  ListChecks,
+  ArrowRight,
+} from "lucide-react";
 
 const urgencyColors: Record<string, string> = {
   emergency: "bg-red-100 text-red-700 border-red-200",
@@ -20,7 +27,12 @@ interface SynthesisCardProps {
   onStartNew?: () => void;
 }
 
-export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew }: SynthesisCardProps) {
+export function SynthesisCard({
+  synthesis,
+  redFlags,
+  consultationId,
+  onStartNew,
+}: SynthesisCardProps) {
   const [copied, setCopied] = useState(false);
 
   const summaryText = [
@@ -43,22 +55,36 @@ export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew 
       await navigator.clipboard.writeText(summaryText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      trackEvent(ANALYTICS_EVENTS.summaryShared, { channel: "copy", urgency: synthesis.urgency });
-    } catch { /* ignore */ }
+      trackEvent(ANALYTICS_EVENTS.summaryShared, {
+        channel: "copy",
+        urgency: synthesis.urgency,
+      });
+    } catch {
+      /* ignore */
+    }
   };
 
   const handleShare = async () => {
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ title: "MediCrew consultation summary", text: summaryText });
+        await navigator.share({
+          title: "MediCrew consultation summary",
+          text: summaryText,
+        });
       } else {
         await navigator.clipboard.writeText(summaryText);
       }
-      trackEvent(ANALYTICS_EVENTS.summaryShared, { channel: "native_or_clipboard", urgency: synthesis.urgency });
-    } catch { /* ignore */ }
+      trackEvent(ANALYTICS_EVENTS.summaryShared, {
+        channel: "native_or_clipboard",
+        urgency: synthesis.urgency,
+      });
+    } catch {
+      /* ignore */
+    }
   };
 
-  const isUrgent = synthesis.urgency === "emergency" || synthesis.urgency === "urgent";
+  const isUrgent =
+    synthesis.urgency === "emergency" || synthesis.urgency === "urgent";
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
@@ -67,12 +93,15 @@ export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew 
         <div className="flex items-center gap-2">
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border capitalize ${
-              urgencyColors[synthesis.urgency] ?? "bg-gray-100 text-gray-700 border-gray-200"
+              urgencyColors[synthesis.urgency] ??
+              "bg-gray-100 text-gray-700 border-gray-200"
             }`}
           >
             {synthesis.urgency.replace("_", " ")}
           </span>
-          <span className="text-sm font-semibold text-gray-900">Team Recommendation</span>
+          <span className="text-sm font-semibold text-gray-900">
+            Team Recommendation
+          </span>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -81,9 +110,13 @@ export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew 
             title="Copy summary"
           >
             {copied ? (
-              <><CheckCheck className="w-3.5 h-3.5 text-green-500" /> Copied</>
+              <>
+                <CheckCheck className="w-3.5 h-3.5 text-green-500" /> Copied
+              </>
             ) : (
-              <><ClipboardCopy className="w-3.5 h-3.5" /> Copy</>
+              <>
+                <ClipboardCopy className="w-3.5 h-3.5" /> Copy
+              </>
             )}
           </button>
           <button
@@ -99,16 +132,25 @@ export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew 
       <div className="p-4 space-y-3">
         {/* Red flags — only show if present */}
         {redFlags && redFlags.length > 0 && (
-          <div className={`rounded-md p-3 ${isUrgent ? "bg-red-50 border border-red-100" : "bg-orange-50 border border-orange-100"}`}>
+          <div
+            className={`rounded-md p-3 ${isUrgent ? "bg-red-50 border border-red-100" : "bg-orange-50 border border-orange-100"}`}
+          >
             <div className="flex items-center gap-1.5 mb-1.5">
-              <AlertTriangle className={`w-3.5 h-3.5 flex-shrink-0 ${isUrgent ? "text-red-500" : "text-orange-500"}`} />
-              <span className={`text-xs font-semibold uppercase tracking-wide ${isUrgent ? "text-red-700" : "text-orange-700"}`}>
+              <AlertTriangle
+                className={`w-3.5 h-3.5 flex-shrink-0 ${isUrgent ? "text-red-500" : "text-orange-500"}`}
+              />
+              <span
+                className={`text-xs font-semibold uppercase tracking-wide ${isUrgent ? "text-red-700" : "text-orange-700"}`}
+              >
                 Red flags identified
               </span>
             </div>
             <ul className="space-y-0.5">
               {redFlags.map((flag, i) => (
-                <li key={i} className={`text-xs flex items-start gap-1.5 ${isUrgent ? "text-red-800" : "text-orange-800"}`}>
+                <li
+                  key={i}
+                  className={`text-xs flex items-start gap-1.5 ${isUrgent ? "text-red-800" : "text-orange-800"}`}
+                >
                   <span className="mt-1.5 w-1 h-1 rounded-full bg-current flex-shrink-0" />
                   {flag}
                 </li>
@@ -118,18 +160,25 @@ export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew 
         )}
 
         {/* Primary recommendation */}
-        <p className="text-sm text-gray-700">{synthesis.primaryRecommendation}</p>
+        <p className="text-sm text-gray-700">
+          {synthesis.primaryRecommendation}
+        </p>
 
         {/* Next steps */}
         {synthesis.nextSteps.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <ListChecks className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Next steps</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                Next steps
+              </span>
             </div>
             <ol className="space-y-1">
               {synthesis.nextSteps.map((step, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-xs text-gray-700"
+                >
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center mt-0.5">
                     {i + 1}
                   </span>
@@ -141,10 +190,14 @@ export function SynthesisCard({ synthesis, redFlags, consultationId, onStartNew 
         )}
 
         {synthesis.bookingNeeded && (
-          <p className="text-xs text-blue-600 font-medium">Booking with a healthcare provider is recommended.</p>
+          <p className="text-xs text-blue-600 font-medium">
+            Booking with a healthcare provider is recommended.
+          </p>
         )}
 
-        <p className="text-[10px] text-gray-400 leading-relaxed">{synthesis.disclaimer}</p>
+        <p className="text-[10px] text-gray-400 leading-relaxed">
+          {synthesis.disclaimer}
+        </p>
 
         {/* Action buttons */}
         <div className="flex flex-wrap items-center gap-2 pt-1">

@@ -2,15 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getDoctorAuth } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { doctor, error } = await getDoctorAuth();
   if (error) return error;
 
   if (!doctor!.clinicId) {
-    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Doctor not assigned to a clinic" },
+      { status: 403 },
+    );
   }
 
   const { id } = await params;
@@ -30,14 +35,20 @@ export async function GET(
   });
 
   if (!consultation) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   const patientClinicId = consultation.patient.clinicId;
 
   // Reject if patient belongs to a different clinic
   if (patientClinicId && patientClinicId !== doctor!.clinicId) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   // Auto-assign unassigned patient to this doctor's clinic on first consultation view

@@ -33,7 +33,8 @@ const clusters = [
 
 export const metadata: Metadata = {
   title: "Care Resources | MediCrew",
-  description: "Symptom-navigation resources designed for Australia-first care pathways.",
+  description:
+    "Symptom-navigation resources designed for Australia-first care pathways.",
 };
 
 export default function ResourcesPage() {
@@ -41,10 +42,15 @@ export default function ResourcesPage() {
     <>
       <Header />
       <main className="mx-auto min-h-screen max-w-5xl px-6 pt-28 pb-16">
-        <p className="font-mono text-xs tracking-widest uppercase text-slate-500 mb-4">Resources</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Care Resources</h1>
+        <p className="font-mono text-xs tracking-widest uppercase text-slate-500 mb-4">
+          Resources
+        </p>
+        <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+          Care Resources
+        </h1>
         <p className="mt-4 max-w-2xl text-slate-600">
-          Organised by symptom-intent clusters so you can quickly understand urgency, next steps, and how to prepare for GP follow-up.
+          Organised by symptom-intent clusters so you can quickly understand
+          urgency, next steps, and how to prepare for GP follow-up.
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
@@ -77,8 +83,13 @@ export default function ResourcesPage() {
 
         <div className="mt-12 rounded-xl bg-sky-50 border border-sky-100 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
-            <p className="font-semibold text-slate-900">Not sure which category fits?</p>
-            <p className="text-sm text-slate-600 mt-1">Start a free AI consultation and our care team will triage your symptoms directly.</p>
+            <p className="font-semibold text-slate-900">
+              Not sure which category fits?
+            </p>
+            <p className="text-sm text-slate-600 mt-1">
+              Start a free AI consultation and our care team will triage your
+              symptoms directly.
+            </p>
           </div>
           <Link
             href="/consult"

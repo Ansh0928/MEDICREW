@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ClipboardCopy, RefreshCw, FileText, Loader2, CheckCheck, AlertTriangle } from "lucide-react";
+import {
+  ClipboardCopy,
+  RefreshCw,
+  FileText,
+  Loader2,
+  CheckCheck,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SOAPNote {
@@ -37,10 +44,12 @@ export function NotesPanel({ consultationId }: NotesPanelProps) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
+        throw new Error(
+          (data as { error?: string }).error ?? `HTTP ${res.status}`,
+        );
       }
 
-      const data = await res.json() as { note: SOAPNote };
+      const data = (await res.json()) as { note: SOAPNote };
       setNote(data.note);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate note");
@@ -75,7 +84,9 @@ export function NotesPanel({ consultationId }: NotesPanelProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400 p-8">
         <FileText className="w-8 h-8 opacity-40" />
-        <p className="text-sm text-center">No active consultation. Start a consultation to generate a SOAP note.</p>
+        <p className="text-sm text-center">
+          No active consultation. Start a consultation to generate a SOAP note.
+        </p>
       </div>
     );
   }
@@ -150,7 +161,8 @@ export function NotesPanel({ consultationId }: NotesPanelProps) {
           <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400 py-16">
             <FileText className="w-8 h-8 opacity-30" />
             <p className="text-sm text-center text-gray-500">
-              Click <strong>Generate Note</strong> to create a structured SOAP note from this consultation.
+              Click <strong>Generate Note</strong> to create a structured SOAP
+              note from this consultation.
             </p>
           </div>
         )}
@@ -167,20 +179,51 @@ export function NotesPanel({ consultationId }: NotesPanelProps) {
             {/* Disclaimer */}
             <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-100">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <p className="text-[10px] text-amber-700 leading-relaxed">{note.disclaimer}</p>
+              <p className="text-[10px] text-amber-700 leading-relaxed">
+                {note.disclaimer}
+              </p>
             </div>
 
             {/* SOAP sections */}
             {(
               [
-                { key: "subjective", label: "S — Subjective", bg: "bg-blue-50", border: "border-blue-100", heading: "text-blue-700" },
-                { key: "objective", label: "O — Objective", bg: "bg-purple-50", border: "border-purple-100", heading: "text-purple-700" },
-                { key: "assessment", label: "A — Assessment", bg: "bg-orange-50", border: "border-orange-100", heading: "text-orange-700" },
-                { key: "plan", label: "P — Plan", bg: "bg-green-50", border: "border-green-100", heading: "text-green-700" },
+                {
+                  key: "subjective",
+                  label: "S — Subjective",
+                  bg: "bg-blue-50",
+                  border: "border-blue-100",
+                  heading: "text-blue-700",
+                },
+                {
+                  key: "objective",
+                  label: "O — Objective",
+                  bg: "bg-purple-50",
+                  border: "border-purple-100",
+                  heading: "text-purple-700",
+                },
+                {
+                  key: "assessment",
+                  label: "A — Assessment",
+                  bg: "bg-orange-50",
+                  border: "border-orange-100",
+                  heading: "text-orange-700",
+                },
+                {
+                  key: "plan",
+                  label: "P — Plan",
+                  bg: "bg-green-50",
+                  border: "border-green-100",
+                  heading: "text-green-700",
+                },
               ] as const
             ).map(({ key, label, bg, border, heading }) => (
-              <div key={key} className={`rounded-lg border p-3 ${bg} ${border}`}>
-                <h4 className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${heading}`}>
+              <div
+                key={key}
+                className={`rounded-lg border p-3 ${bg} ${border}`}
+              >
+                <h4
+                  className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${heading}`}
+                >
                   {label}
                 </h4>
                 <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">

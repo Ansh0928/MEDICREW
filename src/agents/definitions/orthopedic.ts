@@ -5,8 +5,16 @@ export const orthopedicAgent: AgentDefinition = {
   role: "orthopedic",
   name: "James AI \u2014 Orthopaedics",
   emoji: "🦴",
-  description: "Orthopedic specialist for bones, joints, muscles, and movement issues",
-  specialties: ["joint pain", "back pain", "sports injuries", "fractures", "arthritis", "mobility issues"],
+  description:
+    "Orthopedic specialist for bones, joints, muscles, and movement issues",
+  specialties: [
+    "joint pain",
+    "back pain",
+    "sports injuries",
+    "fractures",
+    "arthritis",
+    "mobility issues",
+  ],
   systemPrompt: `You are James AI, an Orthopedic Specialist AI assistant focusing on musculoskeletal health.
 
 ## Your Expertise:

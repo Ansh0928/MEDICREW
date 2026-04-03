@@ -43,7 +43,7 @@
 - **`@ai-sdk/langchain`** v2.0.144 — Provides `toUIMessageStream()` to convert LangGraph `graph.stream()` events directly into the AI SDK UI message format. This is the bridge that turns the existing `streamConsultation()` async generator into a `useChat`-compatible stream. Key APIs:
   - `toBaseMessages()` — converts UI messages to LangChain `HumanMessage`/`SystemMessage` format
   - `toUIMessageStream()` — transforms LangGraph event streams into AI SDK ReadableStream
-  (Confidence: HIGH — ai-sdk.dev/providers/adapters/langchain)
+    (Confidence: HIGH — ai-sdk.dev/providers/adapters/langchain)
 
 - **`useChat` hook from `ai/react`** — Client-side hook for the consultation streaming UI. Handles token buffering, message history, loading states. Requires a `/api/chat` route handler that returns a `StreamingTextResponse`. The hook exposes `messages`, `input`, `handleSubmit` — maps directly to a streaming consultation component with named agent attribution. (Confidence: HIGH — official AI SDK docs)
 
@@ -59,7 +59,7 @@
   - `inngest.createScheduledFunction` handles cron-based proactive outreach
   - Native Vercel integration (available in Vercel Marketplace)
   - Handles over 100 million daily executions (production-proven at scale)
-  (Confidence: HIGH — inngest.com docs + Vercel Marketplace listing)
+    (Confidence: HIGH — inngest.com docs + Vercel Marketplace listing)
 
 **Why not QStash (Upstash):** QStash is an HTTP-based message queue — it POSTs to your API routes, which is simpler but provides no step-level durability. A multi-step check-in workflow (fetch patient history → run LLM → save message → send email) would restart from scratch on failure. Inngest's step functions give per-step retry granularity, which matters for LLM-heavy workflows.
 
@@ -91,23 +91,24 @@
 
 ## What NOT to Use
 
-| Library / Approach | Why Not |
-|--------------------|---------|
-| **WebSockets (direct, Next.js)** | Vercel serverless functions terminate on response — no persistent connection. Would require Ably/Pusher/dedicated WS server. SSE is sufficient for all one-way streams in this app. |
-| **Neon** | No built-in real-time layer; 5.5-hour outage in May 2025 on us-east-1; would require separate service for agent status updates, adding cost and failure surface. |
-| **PlanetScale** | MySQL-based (Vitess), not PostgreSQL. Prisma schema incompatible without rewrite. No real-time subscriptions. |
-| **BullMQ** | Requires persistent Redis. Incompatible with Vercel serverless. Adds infrastructure management burden. |
-| **QStash** | HTTP-based only — no step-level durability for multi-step LLM workflows. Full restart on failure means partial check-ins silently lost. |
-| **`@supabase/auth-helpers-nextjs`** | Deprecated as of 2024. Replaced by `@supabase/ssr`. Do not install. |
-| **`next-auth` / `Auth.js`** | Would conflict with Supabase Auth and Supabase Realtime's user-scoped channel authorization. Unnecessary complexity given Supabase Auth handles the full flow. |
+| Library / Approach                  | Why Not                                                                                                                                                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **WebSockets (direct, Next.js)**    | Vercel serverless functions terminate on response — no persistent connection. Would require Ably/Pusher/dedicated WS server. SSE is sufficient for all one-way streams in this app.                     |
+| **Neon**                            | No built-in real-time layer; 5.5-hour outage in May 2025 on us-east-1; would require separate service for agent status updates, adding cost and failure surface.                                        |
+| **PlanetScale**                     | MySQL-based (Vitess), not PostgreSQL. Prisma schema incompatible without rewrite. No real-time subscriptions.                                                                                           |
+| **BullMQ**                          | Requires persistent Redis. Incompatible with Vercel serverless. Adds infrastructure management burden.                                                                                                  |
+| **QStash**                          | HTTP-based only — no step-level durability for multi-step LLM workflows. Full restart on failure means partial check-ins silently lost.                                                                 |
+| **`@supabase/auth-helpers-nextjs`** | Deprecated as of 2024. Replaced by `@supabase/ssr`. Do not install.                                                                                                                                     |
+| **`next-auth` / `Auth.js`**         | Would conflict with Supabase Auth and Supabase Realtime's user-scoped channel authorization. Unnecessary complexity given Supabase Auth handles the full flow.                                          |
 | **`langchain` v0.x memory classes** | Deprecated. LangGraph's checkpointer API replaced the older `BufferMemory` / `ConversationSummaryMemory` pattern. Do not use `ConversationChain` or `ChatHistory` from base LangChain for agent memory. |
-| **Raw `pg` / `postgres.js` client** | Prisma already handles type-safe DB access. Adding a raw client creates inconsistent query patterns and bypasses migration management. |
+| **Raw `pg` / `postgres.js` client** | Prisma already handles type-safe DB access. Adding a raw client creates inconsistent query patterns and bypasses migration management.                                                                  |
 
 ---
 
 ## Migration Path: SQLite to Supabase PostgreSQL
 
 ### Step 1 — Environment Separation
+
 Keep SQLite for local development. Add environment-conditional provider:
 
 ```
@@ -132,6 +133,7 @@ datasource db {
 Note: `directUrl` is required because PgBouncer (Supabase's pooler) does not support Prisma's migration DDL statements. Migrations must run against the direct connection; queries run against the pooler URL.
 
 ### Step 3 — Migration
+
 ```bash
 bunx prisma migrate deploy  # applies existing migrations to Supabase PostgreSQL
 ```
@@ -139,6 +141,7 @@ bunx prisma migrate deploy  # applies existing migrations to Supabase PostgreSQL
 If the existing SQLite migrations have SQLite-specific types (e.g., `DateTime` stored as TEXT), generate a fresh baseline migration for PostgreSQL rather than porting SQLite migrations.
 
 ### Step 4 — Add Supabase Client
+
 ```bash
 bun add @supabase/supabase-js @supabase/ssr
 ```
@@ -146,13 +149,16 @@ bun add @supabase/supabase-js @supabase/ssr
 Create `src/lib/supabase/client.ts` (browser) and `src/lib/supabase/server.ts` (Next.js Server Components / Route Handlers) following the `@supabase/ssr` pattern.
 
 ### Step 5 — Enable Realtime
+
 In the Supabase dashboard: Table Editor → `notifications` table → Enable Realtime. Add a publication:
+
 ```sql
 alter publication supabase_realtime add table notifications;
 alter publication supabase_realtime add table consultations;
 ```
 
 ### Step 6 — Validate Prisma Connection Pooling
+
 On Vercel, each serverless function invocation opens a new DB connection. With PgBouncer URL, Prisma uses transaction-mode pooling. Confirm `?pgbouncer=true&connection_limit=1` is in the pooler URL to prevent connection exhaustion.
 
 ---
@@ -166,12 +172,14 @@ bun add @supabase/supabase-js @supabase/ssr inngest resend @react-email/componen
 ```
 
 Packages already present (confirm versions are sufficient):
+
 - `ai` ^6.0.57 — already installed, sufficient
 - `@langchain/langgraph` ^1.1.2 — already installed, sufficient
 - `prisma` ^6.19.2 — already installed, sufficient
 - `zod` ^4.3.6 — already installed, sufficient
 
 Packages to **remove** after migration:
+
 - `better-sqlite3` — remove after production migration confirmed
 - `@prisma/adapter-better-sqlite3` — remove after migration
 

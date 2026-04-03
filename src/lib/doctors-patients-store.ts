@@ -18,7 +18,7 @@ let doctorNotes: DoctorNote[] = [];
 // Symptom checks
 export function getAllSymptomChecks(): SymptomCheck[] {
   return [...symptomChecks].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 }
 
@@ -31,12 +31,12 @@ export function getSymptomChecksByPatient(patientId: string): SymptomCheck[] {
     .filter((sc) => sc.patientId === patientId)
     .sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 }
 
 export function addSymptomCheck(
-  check: Omit<SymptomCheck, "id" | "createdAt">
+  check: Omit<SymptomCheck, "id" | "createdAt">,
 ): SymptomCheck {
   const newCheck: SymptomCheck = {
     ...check,
@@ -56,7 +56,7 @@ export function addSymptomCheck(
 export function updateSymptomCheckStatus(
   id: string,
   status: SymptomCheck["status"],
-  assignedDoctor?: string
+  assignedDoctor?: string,
 ): SymptomCheck | undefined {
   const check = symptomChecks.find((sc) => sc.id === id);
   if (check) {
@@ -76,7 +76,7 @@ const urgencyOrder: Record<SymptomUrgencyLevel, number> = {
 
 export function getQueue(): QueueItem[] {
   return [...queue].sort(
-    (a, b) => urgencyOrder[a.urgencyLevel] - urgencyOrder[b.urgencyLevel]
+    (a, b) => urgencyOrder[a.urgencyLevel] - urgencyOrder[b.urgencyLevel],
   );
 }
 
@@ -110,7 +110,7 @@ export function addToQueue(item: {
 
 export function updateQueueStatus(
   id: string,
-  status: QueueItem["status"]
+  status: QueueItem["status"],
 ): QueueItem | undefined {
   const item = queue.find((q) => q.id === id);
   if (item) item.status = status;
@@ -119,18 +119,18 @@ export function updateQueueStatus(
 
 // Doctor notes
 export function getDoctorNotesBySymptomCheck(
-  symptomCheckId: string
+  symptomCheckId: string,
 ): DoctorNote[] {
   return doctorNotes
     .filter((dn) => dn.symptomCheckId === symptomCheckId)
     .sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 }
 
 export function addDoctorNote(
-  note: Omit<DoctorNote, "id" | "createdAt">
+  note: Omit<DoctorNote, "id" | "createdAt">,
 ): DoctorNote {
   const newNote: DoctorNote = {
     ...note,
@@ -146,7 +146,7 @@ export function addDoctorNote(
 export function getStatistics(): PortalStatistics {
   const today = new Date().toDateString();
   const todayChecks = symptomChecks.filter(
-    (sc) => new Date(sc.createdAt).toDateString() === today
+    (sc) => new Date(sc.createdAt).toDateString() === today,
   );
   return {
     totalChecksToday: todayChecks.length,
@@ -157,10 +157,10 @@ export function getStatistics(): PortalStatistics {
       .length,
     averageWaitTime: Math.round(
       queue.reduce((acc, q) => acc + q.estimatedWaitTime, 0) /
-        (queue.length || 1)
+        (queue.length || 1),
     ),
     criticalCases: symptomChecks.filter(
-      (sc) => sc.aiAssessment.urgencyLevel === "critical"
+      (sc) => sc.aiAssessment.urgencyLevel === "critical",
     ).length,
   };
 }

@@ -46,7 +46,10 @@ const stepTitles: Record<string, string> = {
   recommend: "Care Recommendation",
 };
 
-export function AgentThinking({ currentStep, activeAgents }: AgentThinkingProps) {
+export function AgentThinking({
+  currentStep,
+  activeAgents,
+}: AgentThinkingProps) {
   const [currentThinkingIndex, setCurrentThinkingIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
@@ -99,7 +102,8 @@ export function AgentThinking({ currentStep, activeAgents }: AgentThinkingProps)
               {title}
             </h4>
             <p className="text-xs text-blue-600 dark:text-blue-300">
-              {activeAgents?.map(r => agentRegistry[r]?.name).join(", ") || "AI Team"}
+              {activeAgents?.map((r) => agentRegistry[r]?.name).join(", ") ||
+                "AI Team"}
             </p>
           </div>
         </div>
@@ -108,12 +112,12 @@ export function AgentThinking({ currentStep, activeAgents }: AgentThinkingProps)
         <motion.div
           animate={{
             rotate: [0, 10, -10, 0],
-            scale: [1, 1.1, 1]
+            scale: [1, 1.1, 1],
           }}
           transition={{
             duration: 2,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
           className="text-2xl"
         >
@@ -138,12 +142,13 @@ export function AgentThinking({ currentStep, activeAgents }: AgentThinkingProps)
                   x: 0,
                 }}
                 transition={{ delay: index * 0.1 }}
-                className={`flex items-center gap-3 text-sm ${isCompleted
+                className={`flex items-center gap-3 text-sm ${
+                  isCompleted
                     ? "text-green-600 dark:text-green-400"
                     : isCurrent
                       ? "text-blue-700 dark:text-blue-300 font-medium"
                       : "text-gray-400 dark:text-gray-500"
-                  }`}
+                }`}
               >
                 {/* Status indicator */}
                 <div className="w-5 h-5 flex items-center justify-center">
@@ -198,7 +203,7 @@ export function AgentThinking({ currentStep, activeAgents }: AgentThinkingProps)
           className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
           initial={{ width: "0%" }}
           animate={{
-            width: `${((currentThinkingIndex + 1) / steps.length) * 100}%`
+            width: `${((currentThinkingIndex + 1) / steps.length) * 100}%`,
           }}
           transition={{ duration: 0.5 }}
         />

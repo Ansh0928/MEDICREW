@@ -26,7 +26,9 @@ describe("embedText", () => {
       statusText: "Unauthorized",
     } as Response);
 
-    await expect(embedText("chest pain")).rejects.toThrow("Nomic embed failed: 401");
+    await expect(embedText("chest pain")).rejects.toThrow(
+      "Nomic embed failed: 401",
+    );
   });
 
   test("calls Nomic API with correct model and auth header", async () => {
@@ -46,7 +48,7 @@ describe("embedText", () => {
           Authorization: "Bearer test-key",
         }),
         body: expect.stringContaining("nomic-embed-text-v1.5"),
-      })
+      }),
     );
   });
 });

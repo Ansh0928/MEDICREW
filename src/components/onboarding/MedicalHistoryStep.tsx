@@ -98,10 +98,16 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
         throw new Error(data.error || "Failed to save profile");
       }
 
-      trackEvent(ANALYTICS_EVENTS.onboardingStepCompleted, { step: "medical_history" });
+      trackEvent(ANALYTICS_EVENTS.onboardingStepCompleted, {
+        step: "medical_history",
+      });
       onComplete();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -159,7 +165,9 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
               value={medInput}
               onChange={(e) => setMedInput(e.target.value)}
               placeholder="e.g., Metformin 500mg"
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMedication())}
+              onKeyDown={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addMedication())
+              }
             />
             <Button type="button" variant="outline" onClick={addMedication}>
               Add
@@ -168,7 +176,10 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
           {medications.length > 0 && (
             <ul className="mt-2 space-y-1">
               {medications.map((med, i) => (
-                <li key={i} className="flex items-center justify-between rounded bg-muted px-3 py-1 text-sm">
+                <li
+                  key={i}
+                  className="flex items-center justify-between rounded bg-muted px-3 py-1 text-sm"
+                >
                   <span>{med}</span>
                   <button
                     type="button"
@@ -190,7 +201,9 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
               value={allergyInput}
               onChange={(e) => setAllergyInput(e.target.value)}
               placeholder="e.g., Penicillin, peanuts..."
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAllergy())}
+              onKeyDown={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addAllergy())
+              }
             />
             <Button type="button" variant="outline" onClick={addAllergy}>
               Add
@@ -199,7 +212,10 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
           {allergies.length > 0 && (
             <ul className="mt-2 space-y-1">
               {allergies.map((allergy, i) => (
-                <li key={i} className="flex items-center justify-between rounded bg-muted px-3 py-1 text-sm">
+                <li
+                  key={i}
+                  className="flex items-center justify-between rounded bg-muted px-3 py-1 text-sm"
+                >
                   <span>{allergy}</span>
                   <button
                     type="button"
@@ -216,40 +232,80 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Emergency Contact (optional)</CardTitle>
+            <CardTitle className="text-base">
+              Emergency Contact (optional)
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
               <Label htmlFor="ec-name">Name</Label>
-              <Input id="ec-name" value={ecName} onChange={(e) => setEcName(e.target.value)} className="mt-1" placeholder="Full name" />
+              <Input
+                id="ec-name"
+                value={ecName}
+                onChange={(e) => setEcName(e.target.value)}
+                className="mt-1"
+                placeholder="Full name"
+              />
             </div>
             <div>
               <Label htmlFor="ec-phone">Phone</Label>
-              <Input id="ec-phone" value={ecPhone} onChange={(e) => setEcPhone(e.target.value)} className="mt-1" placeholder="Mobile or home number" />
+              <Input
+                id="ec-phone"
+                value={ecPhone}
+                onChange={(e) => setEcPhone(e.target.value)}
+                className="mt-1"
+                placeholder="Mobile or home number"
+              />
             </div>
             <div>
               <Label htmlFor="ec-relationship">Relationship</Label>
-              <Input id="ec-relationship" value={ecRelationship} onChange={(e) => setEcRelationship(e.target.value)} className="mt-1" placeholder="e.g., Spouse, parent..." />
+              <Input
+                id="ec-relationship"
+                value={ecRelationship}
+                onChange={(e) => setEcRelationship(e.target.value)}
+                className="mt-1"
+                placeholder="e.g., Spouse, parent..."
+              />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">GP / Regular Doctor (optional)</CardTitle>
+            <CardTitle className="text-base">
+              GP / Regular Doctor (optional)
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
               <Label htmlFor="gp-name">Doctor Name</Label>
-              <Input id="gp-name" value={gpName} onChange={(e) => setGpName(e.target.value)} className="mt-1" placeholder="e.g., Dr. Jane Smith" />
+              <Input
+                id="gp-name"
+                value={gpName}
+                onChange={(e) => setGpName(e.target.value)}
+                className="mt-1"
+                placeholder="e.g., Dr. Jane Smith"
+              />
             </div>
             <div>
               <Label htmlFor="gp-practice">Practice / Clinic</Label>
-              <Input id="gp-practice" value={gpPractice} onChange={(e) => setGpPractice(e.target.value)} className="mt-1" placeholder="Practice or clinic name" />
+              <Input
+                id="gp-practice"
+                value={gpPractice}
+                onChange={(e) => setGpPractice(e.target.value)}
+                className="mt-1"
+                placeholder="Practice or clinic name"
+              />
             </div>
             <div>
               <Label htmlFor="gp-phone">Phone</Label>
-              <Input id="gp-phone" value={gpPhone} onChange={(e) => setGpPhone(e.target.value)} className="mt-1" placeholder="Clinic phone number" />
+              <Input
+                id="gp-phone"
+                value={gpPhone}
+                onChange={(e) => setGpPhone(e.target.value)}
+                className="mt-1"
+                placeholder="Clinic phone number"
+              />
             </div>
           </CardContent>
         </Card>
@@ -257,7 +313,11 @@ export function MedicalHistoryStep({ onComplete }: MedicalHistoryStepProps) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <Button type="submit" disabled={!dateOfBirth || !gender || submitting} className="w-full">
+      <Button
+        type="submit"
+        disabled={!dateOfBirth || !gender || submitting}
+        className="w-full"
+      >
         {submitting ? "Saving..." : "Next: Consent"}
       </Button>
     </form>

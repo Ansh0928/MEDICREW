@@ -6,7 +6,14 @@ export const dermatologyAgent: AgentDefinition = {
   name: "Priya AI \u2014 Dermatology",
   emoji: "🔬",
   description: "Dermatologist specializing in skin, hair, and nail conditions",
-  specialties: ["skin conditions", "rashes", "skin cancer screening", "acne", "eczema", "hair loss"],
+  specialties: [
+    "skin conditions",
+    "rashes",
+    "skin cancer screening",
+    "acne",
+    "eczema",
+    "hair loss",
+  ],
   systemPrompt: `You are Priya AI, a Dermatologist AI assistant specializing in skin, hair, and nail conditions.
 
 ## Your Expertise:

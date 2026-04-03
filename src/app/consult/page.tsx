@@ -22,10 +22,13 @@ export default function ConsultPage() {
         </header>
 
         <section className="mb-6 rounded-lg border bg-background p-4">
-          <h1 className="text-lg font-semibold">Start your AI care team consultation</h1>
+          <h1 className="text-lg font-semibold">
+            Start your AI care team consultation
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            You are signed in so your care summary, recommended next steps, and check-ins can be saved in your patient portal.
-            If symptoms are severe or suddenly worsening, call 000 first.
+            You are signed in so your care summary, recommended next steps, and
+            check-ins can be saved in your patient portal. If symptoms are
+            severe or suddenly worsening, call 000 first.
           </p>
         </section>
 

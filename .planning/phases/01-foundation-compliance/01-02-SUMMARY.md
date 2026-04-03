@@ -2,7 +2,15 @@
 phase: 01-foundation-compliance
 plan: 02
 subsystem: infra
-tags: [langgraph, postgres, checkpointer, inngest, background-jobs, consultation-graph]
+tags:
+  [
+    langgraph,
+    postgres,
+    checkpointer,
+    inngest,
+    background-jobs,
+    consultation-graph,
+  ]
 
 # Dependency graph
 requires:
@@ -106,6 +114,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Rewrote checkpointer test to avoid vi.resetModules()**
+
 - **Found during:** Task 2 (checkpointer test implementation)
 - **Issue:** bun test runner does not expose `vi.resetModules()` — test failed with "vi.resetModules is not a function"
 - **Fix:** Replaced the dynamic re-import approach with source file inspection (fs.readFileSync) to assert `fromConnString`, `DIRECT_URL`, and `schema: "langgraph"` are present; DIRECT_URL guard logic tested inline without module reset
@@ -133,5 +142,6 @@ None — no new external service configuration required beyond what 01-01 alread
 - All 20 existing tests still pass, 0 failures
 
 ---
-*Phase: 01-foundation-compliance*
-*Completed: 2026-03-26*
+
+_Phase: 01-foundation-compliance_
+_Completed: 2026-03-26_

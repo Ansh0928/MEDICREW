@@ -218,13 +218,26 @@ export default function ConsultationSummaryPage() {
       }
       if (!res.ok) {
         const data = (await res.json()) as { error?: string };
-        setReferral({ status: "error", message: data.error ?? "Failed to generate letter." });
+        setReferral({
+          status: "error",
+          message: data.error ?? "Failed to generate letter.",
+        });
         return;
       }
-      const data = (await res.json()) as { letter: string; generatedAt: string };
-      setReferral({ status: "generated", letter: data.letter, generatedAt: data.generatedAt });
+      const data = (await res.json()) as {
+        letter: string;
+        generatedAt: string;
+      };
+      setReferral({
+        status: "generated",
+        letter: data.letter,
+        generatedAt: data.generatedAt,
+      });
     } catch {
-      setReferral({ status: "error", message: "Network error. Please try again." });
+      setReferral({
+        status: "error",
+        message: "Network error. Please try again.",
+      });
     }
   };
 
@@ -297,7 +310,9 @@ export default function ConsultationSummaryPage() {
             });
           }
         })
-        .catch(() => {/* ignore — referral section stays idle */});
+        .catch(() => {
+          /* ignore — referral section stays idle */
+        });
     }
   }, [id]);
 
@@ -514,7 +529,10 @@ export default function ConsultationSummaryPage() {
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="w-4 h-4 text-purple-600" />
                 GP Referral Letter
-                <Badge variant="outline" className="text-purple-600 border-purple-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="text-purple-600 border-purple-300 text-xs"
+                >
                   Pro
                 </Badge>
               </CardTitle>

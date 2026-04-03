@@ -5,9 +5,9 @@ subsystem: consultation-streaming
 tags: [streaming, sse, agent-identity, langchain, langgraph, ui]
 dependency_graph:
   requires:
-    - 02-01  # care-team-config, schema, agent definitions
-    - 01-02  # LangGraph checkpointer setup
-    - 01-03  # Agent definitions and names
+    - 02-01 # care-team-config, schema, agent definitions
+    - 01-02 # LangGraph checkpointer setup
+    - 01-03 # Agent definitions and names
   provides:
     - StreamEvent interface with token_delta/node_output/routing event types
     - AgentOverlay component (name, emoji, specialty during streaming)
@@ -57,11 +57,13 @@ requirements_satisfied:
 ### Task 1: Extended streamConsultation (orchestrator.ts + route.ts)
 
 Added `StreamEvent` interface with new fields:
+
 - `agentName`, `agentRole`, `specialty` — agent identity metadata on every event
 - `eventType` — discriminates `token_delta` | `node_output` | `routing` | `complete`
 - `delta` — per-token text chunk for progressive rendering
 
 Switched `streamConsultation` from `graph.stream()` to `graph.streamEvents({ version: 'v2' })` which emits:
+
 - `on_llm_stream` events → `token_delta` events with `delta` text (CONS-02: progressive streaming)
 - `on_chain_end` events (per node) → `node_output` events with full data + agent identity (CONS-01)
 - After triage `on_chain_end` → `routing` event with `relevantSpecialties` (CONS-03)
@@ -71,6 +73,7 @@ Added `patientContext` 4th param — fetched from `prisma.patient` in the route 
 ### Task 2: AgentOverlay + consult/page.tsx
 
 **AgentOverlay.tsx:** Client component showing current speaker during streaming:
+
 - Looks up emoji from CARE_TEAM by agentRole (not agentRegistry — client-safe)
 - Shows name, specialty Badge, animated "Speaking..." indicator
 - Returns null when not streaming
@@ -78,6 +81,7 @@ Added `patientContext` 4th param — fetched from `prisma.patient` in the route 
 **RoutingNotice (inline):** Post-triage specialist list with animated green dots.
 
 **consult/page.tsx:** Replaced SwarmChat with direct /api/consult SSE streaming UI:
+
 - Parses `token_delta` → appends to `streamingText` state (progressive rendering)
 - Parses `node_output` → finalises message, clears streaming buffer
 - Parses `routing` → maps AgentRole to CARE_TEAM names for RoutingNotice

@@ -14,7 +14,7 @@ interface AgentCardProps {
 
 export function AgentCard({ message, isLatest }: AgentCardProps) {
   const agent = agentRegistry[message.role];
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -32,7 +32,7 @@ export function AgentCard({ message, isLatest }: AgentCardProps) {
           message.role === "dermatology" && "border-l-pink-500",
           message.role === "orthopedic" && "border-l-amber-500",
           message.role === "gastro" && "border-l-green-500",
-          message.role === "orchestrator" && "border-l-primary"
+          message.role === "orchestrator" && "border-l-primary",
         )}
       >
         <div className="flex items-start gap-3">

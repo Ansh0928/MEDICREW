@@ -100,8 +100,9 @@ None - no external service configuration required.
 - Ready for Phase 4 plan 04 (if applicable) or Phase 4 completion
 
 ---
-*Phase: 04-retention-polish*
-*Completed: 2026-03-26*
+
+_Phase: 04-retention-polish_
+_Completed: 2026-03-26_
 
 ## Self-Check: PASSED
 

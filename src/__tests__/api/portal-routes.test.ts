@@ -5,7 +5,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock the in-memory store so tests are isolated
 vi.mock("@/lib/doctors-patients-store", () => ({
   getQueue: vi.fn().mockReturnValue([
-    { id: "q-1", patientId: "p1", patientName: "Alice", urgencyLevel: "high", estimatedWaitTime: 15, status: "waiting", symptomCheckId: "sc-1", checkInTime: new Date().toISOString() },
+    {
+      id: "q-1",
+      patientId: "p1",
+      patientName: "Alice",
+      urgencyLevel: "high",
+      estimatedWaitTime: 15,
+      status: "waiting",
+      symptomCheckId: "sc-1",
+      checkInTime: new Date().toISOString(),
+    },
   ]),
   getStatistics: vi.fn().mockReturnValue({
     totalChecksToday: 3,
@@ -16,17 +25,70 @@ vi.mock("@/lib/doctors-patients-store", () => ({
     criticalCases: 1,
   }),
   getAllSymptomChecks: vi.fn().mockReturnValue([
-    { id: "sc-1", patientId: "p1", patientName: "Alice", symptoms: ["headache"], duration: "2 days", additionalInfo: "", aiAssessment: { urgencyLevel: "medium", possibleConditions: [], recommendedAction: "", questionsToAsk: [], confidence: 0.8, reasoning: "" }, status: "pending", createdAt: new Date().toISOString() },
+    {
+      id: "sc-1",
+      patientId: "p1",
+      patientName: "Alice",
+      symptoms: ["headache"],
+      duration: "2 days",
+      additionalInfo: "",
+      aiAssessment: {
+        urgencyLevel: "medium",
+        possibleConditions: [],
+        recommendedAction: "",
+        questionsToAsk: [],
+        confidence: 0.8,
+        reasoning: "",
+      },
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    },
   ]),
   getSymptomChecksByPatient: vi.fn().mockImplementation((id: string) =>
     id === "p1"
-      ? [{ id: "sc-1", patientId: "p1", patientName: "Alice", symptoms: ["headache"], duration: "2 days", additionalInfo: "", aiAssessment: { urgencyLevel: "medium", possibleConditions: [], recommendedAction: "", questionsToAsk: [], confidence: 0.8, reasoning: "" }, status: "pending", createdAt: new Date().toISOString() }]
-      : []
+      ? [
+          {
+            id: "sc-1",
+            patientId: "p1",
+            patientName: "Alice",
+            symptoms: ["headache"],
+            duration: "2 days",
+            additionalInfo: "",
+            aiAssessment: {
+              urgencyLevel: "medium",
+              possibleConditions: [],
+              recommendedAction: "",
+              questionsToAsk: [],
+              confidence: 0.8,
+              reasoning: "",
+            },
+            status: "pending",
+            createdAt: new Date().toISOString(),
+          },
+        ]
+      : [],
   ),
   getSymptomCheckById: vi.fn().mockImplementation((id: string) =>
     id === "sc-1"
-      ? { id: "sc-1", patientId: "p1", patientName: "Alice", symptoms: ["headache"], duration: "2 days", additionalInfo: "", aiAssessment: { urgencyLevel: "medium", possibleConditions: [], recommendedAction: "", questionsToAsk: [], confidence: 0.8, reasoning: "" }, status: "pending", createdAt: new Date().toISOString() }
-      : undefined
+      ? {
+          id: "sc-1",
+          patientId: "p1",
+          patientName: "Alice",
+          symptoms: ["headache"],
+          duration: "2 days",
+          additionalInfo: "",
+          aiAssessment: {
+            urgencyLevel: "medium",
+            possibleConditions: [],
+            recommendedAction: "",
+            questionsToAsk: [],
+            confidence: 0.8,
+            reasoning: "",
+          },
+          status: "pending",
+          createdAt: new Date().toISOString(),
+        }
+      : undefined,
   ),
 }));
 
@@ -71,16 +133,22 @@ describe("GET /api/portal/symptom-checks", () => {
 
   it("returns filtered checks for a specific patientId", async () => {
     const { GET } = await import("@/app/api/portal/symptom-checks/route");
-    const req = new Request("http://localhost/api/portal/symptom-checks?patientId=p1");
+    const req = new Request(
+      "http://localhost/api/portal/symptom-checks?patientId=p1",
+    );
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.every((c: { patientId: string }) => c.patientId === "p1")).toBe(true);
+    expect(body.every((c: { patientId: string }) => c.patientId === "p1")).toBe(
+      true,
+    );
   });
 
   it("returns empty array for unknown patientId", async () => {
     const { GET } = await import("@/app/api/portal/symptom-checks/route");
-    const req = new Request("http://localhost/api/portal/symptom-checks?patientId=unknown");
+    const req = new Request(
+      "http://localhost/api/portal/symptom-checks?patientId=unknown",
+    );
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -94,7 +162,9 @@ describe("GET /api/portal/symptom-checks/[id]", () => {
   it("returns 200 with check when found", async () => {
     const { GET } = await import("@/app/api/portal/symptom-checks/[id]/route");
     const req = new Request("http://localhost/api/portal/symptom-checks/sc-1");
-    const res = await GET(req as any, { params: Promise.resolve({ id: "sc-1" }) });
+    const res = await GET(req as any, {
+      params: Promise.resolve({ id: "sc-1" }),
+    });
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.id).toBe("sc-1");
@@ -102,8 +172,12 @@ describe("GET /api/portal/symptom-checks/[id]", () => {
 
   it("returns 404 when check not found", async () => {
     const { GET } = await import("@/app/api/portal/symptom-checks/[id]/route");
-    const req = new Request("http://localhost/api/portal/symptom-checks/nonexistent");
-    const res = await GET(req as any, { params: Promise.resolve({ id: "nonexistent" }) });
+    const req = new Request(
+      "http://localhost/api/portal/symptom-checks/nonexistent",
+    );
+    const res = await GET(req as any, {
+      params: Promise.resolve({ id: "nonexistent" }),
+    });
     expect(res.status).toBe(404);
     const body = await res.json();
     expect(body.error).toMatch(/not found/i);
@@ -130,7 +204,11 @@ describe("POST /api/portal/symptom-check validation", () => {
     const { POST } = await import("@/app/api/portal/symptom-check/route");
     const req = new Request("http://localhost/api/portal/symptom-check", {
       method: "POST",
-      body: JSON.stringify({ patientName: "Alice", symptoms: ["headache"], duration: "2 days" }),
+      body: JSON.stringify({
+        patientName: "Alice",
+        symptoms: ["headache"],
+        duration: "2 days",
+      }),
       headers: { "Content-Type": "application/json" },
     });
     const res = await POST(req as any);
@@ -141,7 +219,12 @@ describe("POST /api/portal/symptom-check validation", () => {
     const { POST } = await import("@/app/api/portal/symptom-check/route");
     const req = new Request("http://localhost/api/portal/symptom-check", {
       method: "POST",
-      body: JSON.stringify({ patientId: "p1", patientName: "Alice", symptoms: [], duration: "2 days" }),
+      body: JSON.stringify({
+        patientId: "p1",
+        patientName: "Alice",
+        symptoms: [],
+        duration: "2 days",
+      }),
       headers: { "Content-Type": "application/json" },
     });
     const res = await POST(req as any);

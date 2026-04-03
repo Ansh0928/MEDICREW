@@ -59,21 +59,40 @@ export function CheckInResponseCard({
       setSubmitted(true);
       onResponded();
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Something went wrong");
+      setSubmitError(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const responseStyles: Record<ResponseOption, { border: string; bg: string; label: string }> = {
-    better: { border: "border-green-500", bg: "bg-green-50 dark:bg-green-950/30", label: "Better" },
-    same: { border: "border-yellow-500", bg: "bg-yellow-50 dark:bg-yellow-950/30", label: "Same" },
-    worse: { border: "border-red-500", bg: "bg-red-50 dark:bg-red-950/30", label: "Worse" },
+  const responseStyles: Record<
+    ResponseOption,
+    { border: string; bg: string; label: string }
+  > = {
+    better: {
+      border: "border-green-500",
+      bg: "bg-green-50 dark:bg-green-950/30",
+      label: "Better",
+    },
+    same: {
+      border: "border-yellow-500",
+      bg: "bg-yellow-50 dark:bg-yellow-950/30",
+      label: "Same",
+    },
+    worse: {
+      border: "border-red-500",
+      bg: "bg-red-50 dark:bg-red-950/30",
+      label: "Worse",
+    },
   };
 
   if (submitted && result) {
     return (
-      <Card className={`p-4 border-l-4 ${result.emergency ? "border-l-red-600 bg-red-50 dark:bg-red-950/20" : result.escalated ? "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20" : "border-l-green-500 bg-green-50 dark:bg-green-950/20"}`}>
+      <Card
+        className={`p-4 border-l-4 ${result.emergency ? "border-l-red-600 bg-red-50 dark:bg-red-950/20" : result.escalated ? "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20" : "border-l-green-500 bg-green-50 dark:bg-green-950/20"}`}
+      >
         <div className="flex items-start gap-3">
           {result.emergency ? (
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
@@ -85,21 +104,27 @@ export function CheckInResponseCard({
               <>
                 <p className="font-semibold text-red-700">Emergency Alert</p>
                 <p className="text-sm text-red-600">
-                  This sounds like a medical emergency. Please call 000 immediately or go to your nearest emergency department.
+                  This sounds like a medical emergency. Please call 000
+                  immediately or go to your nearest emergency department.
                 </p>
               </>
             ) : result.escalated ? (
               <>
-                <p className="font-semibold text-orange-700">Your care team has been notified</p>
+                <p className="font-semibold text-orange-700">
+                  Your care team has been notified
+                </p>
                 <p className="text-sm text-orange-600">
                   A specialist will review your case and follow up with you.
                 </p>
               </>
             ) : (
               <>
-                <p className="font-semibold text-green-700">Response recorded</p>
+                <p className="font-semibold text-green-700">
+                  Response recorded
+                </p>
                 <p className="text-sm text-green-600">
-                  Thank you for checking in. Your care team will continue to monitor your progress.
+                  Thank you for checking in. Your care team will continue to
+                  monitor your progress.
                 </p>
               </>
             )}
@@ -115,7 +140,9 @@ export function CheckInResponseCard({
         <CardTitle className="text-base flex items-center gap-2">
           <Clock className="w-4 h-4 text-blue-600" />
           Check-in from your care team
-          <Badge variant="default" className="text-xs ml-auto">Action required</Badge>
+          <Badge variant="default" className="text-xs ml-auto">
+            Action required
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 space-y-4">
@@ -139,7 +166,9 @@ export function CheckInResponseCard({
                   key={option}
                   variant={isSelected ? "default" : "outline"}
                   size="sm"
-                  className={isSelected ? `${styles.bg} ${styles.border} border-2` : ""}
+                  className={
+                    isSelected ? `${styles.bg} ${styles.border} border-2` : ""
+                  }
                   onClick={() => setResponse(option)}
                 >
                   {styles.label}
@@ -150,7 +179,9 @@ export function CheckInResponseCard({
         </div>
 
         <div>
-          <p className="text-sm font-medium mb-1">Anything else to share? (optional)</p>
+          <p className="text-sm font-medium mb-1">
+            Anything else to share? (optional)
+          </p>
           <textarea
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none h-20"
             placeholder="Describe how you're feeling in more detail..."

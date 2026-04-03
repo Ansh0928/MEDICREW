@@ -29,7 +29,9 @@ const DEMO_USERS = [
 async function main() {
   for (const demo of DEMO_USERS) {
     // Try to find by email first (covers stale clerkUserId case)
-    const existing = await prisma.patient.findUnique({ where: { email: demo.email } });
+    const existing = await prisma.patient.findUnique({
+      where: { email: demo.email },
+    });
 
     let patient;
     if (existing) {
@@ -44,7 +46,9 @@ async function main() {
           onboardingComplete: true,
         },
       });
-      console.log(`✓ Patient updated: ${patient.email} (${patient.id}) clerkUserId → ${demo.clerkUserId}`);
+      console.log(
+        `✓ Patient updated: ${patient.email} (${patient.id}) clerkUserId → ${demo.clerkUserId}`,
+      );
     } else {
       patient = await prisma.patient.create({
         data: {

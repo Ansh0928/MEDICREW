@@ -89,55 +89,56 @@
 
 ## Out of Scope
 
-| Feature | Reason |
-|---------|--------|
-| Real prescription writing | AHPRA scope boundary — requires registered GP, legally excluded |
-| Video/audio consultations | Separate telehealth product (Coviu integration), complex regulatory path |
-| Bare "Dr." titles without AI disclosure | AHPRA advertising breach — all personas must be clearly identified as AI |
-| LLM-only emergency detection | Patient safety failure mode — must use deterministic rules layer |
-| SQLite in production | Not scalable, no real-time, no RLS — Supabase only in prod |
+| Feature                                   | Reason                                                                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| Real prescription writing                 | AHPRA scope boundary — requires registered GP, legally excluded               |
+| Video/audio consultations                 | Separate telehealth product (Coviu integration), complex regulatory path      |
+| Bare "Dr." titles without AI disclosure   | AHPRA advertising breach — all personas must be clearly identified as AI      |
+| LLM-only emergency detection              | Patient safety failure mode — must use deterministic rules layer              |
+| SQLite in production                      | Not scalable, no real-time, no RLS — Supabase only in prod                    |
 | OpenAI/Groq for sensitive PII without DPA | Privacy Act APP 8 — requires documented DPA before use with real patient data |
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| COMP-01 | Phase 1 | Complete |
-| COMP-02 | Phase 1 | Complete |
-| COMP-03 | Phase 1 | Complete |
-| COMP-04 | Phase 1 | Complete |
-| COMP-05 | Phase 1 | Complete |
-| COMP-06 | Phase 1 | Complete |
-| INFRA-01 | Phase 1 | Complete |
-| INFRA-02 | Phase 1 | Complete |
-| INFRA-03 | Phase 1 | Complete |
-| INFRA-04 | Phase 1 | Complete |
-| ONBD-01 | Phase 2 | Pending |
-| ONBD-02 | Phase 2 | Pending |
-| ONBD-03 | Phase 2 | Pending |
-| DASH-01 | Phase 2 | Pending |
-| DASH-02 | Phase 2 | Complete |
-| DASH-03 | Phase 2 | Pending |
-| DASH-04 | Phase 2 | Pending |
-| CONS-01 | Phase 2 | Complete — 02-03 |
-| CONS-02 | Phase 2 | Complete — 02-03 |
-| CONS-03 | Phase 2 | Complete — 02-03 |
-| CONS-04 | Phase 2 | Complete |
-| PROF-01 | Phase 2 | Complete |
-| PROF-02 | Phase 2 | Complete — 02-03 |
-| PROF-03 | Phase 2 | Complete |
-| CHKN-01 | Phase 3 | Complete |
-| CHKN-02 | Phase 3 | Complete |
-| CHKN-03 | Phase 3 | Complete |
-| CHKN-04 | Phase 3 | Complete |
-| ESCL-01 | Phase 3 | Complete |
-| ESCL-02 | Phase 3 | Complete |
-| ESCL-03 | Phase 3 | Complete |
-| NOTF-01 | Phase 3 | Complete |
-| NOTF-02 | Phase 3 | Complete |
-| NOTF-03 | Phase 3 | Complete |
+| Requirement | Phase   | Status           |
+| ----------- | ------- | ---------------- |
+| COMP-01     | Phase 1 | Complete         |
+| COMP-02     | Phase 1 | Complete         |
+| COMP-03     | Phase 1 | Complete         |
+| COMP-04     | Phase 1 | Complete         |
+| COMP-05     | Phase 1 | Complete         |
+| COMP-06     | Phase 1 | Complete         |
+| INFRA-01    | Phase 1 | Complete         |
+| INFRA-02    | Phase 1 | Complete         |
+| INFRA-03    | Phase 1 | Complete         |
+| INFRA-04    | Phase 1 | Complete         |
+| ONBD-01     | Phase 2 | Pending          |
+| ONBD-02     | Phase 2 | Pending          |
+| ONBD-03     | Phase 2 | Pending          |
+| DASH-01     | Phase 2 | Pending          |
+| DASH-02     | Phase 2 | Complete         |
+| DASH-03     | Phase 2 | Pending          |
+| DASH-04     | Phase 2 | Pending          |
+| CONS-01     | Phase 2 | Complete — 02-03 |
+| CONS-02     | Phase 2 | Complete — 02-03 |
+| CONS-03     | Phase 2 | Complete — 02-03 |
+| CONS-04     | Phase 2 | Complete         |
+| PROF-01     | Phase 2 | Complete         |
+| PROF-02     | Phase 2 | Complete — 02-03 |
+| PROF-03     | Phase 2 | Complete         |
+| CHKN-01     | Phase 3 | Complete         |
+| CHKN-02     | Phase 3 | Complete         |
+| CHKN-03     | Phase 3 | Complete         |
+| CHKN-04     | Phase 3 | Complete         |
+| ESCL-01     | Phase 3 | Complete         |
+| ESCL-02     | Phase 3 | Complete         |
+| ESCL-03     | Phase 3 | Complete         |
+| NOTF-01     | Phase 3 | Complete         |
+| NOTF-02     | Phase 3 | Complete         |
+| NOTF-03     | Phase 3 | Complete         |
 
 **Coverage:**
+
 - v1 requirements: 34 total (32 functional + DASH-02 and PROF-03 also deepened in Phase 4)
 - Mapped to phases: 34
 - Unmapped: 0 ✓
@@ -145,5 +146,6 @@
 **Phase 4 note:** DASH-02 and PROF-03 have initial implementations in Phase 2 (basic form). Phase 4 deepens them with trend visualization and care plan UI detail. They are assigned to Phase 2 in the traceability table above; Phase 4 plans are tracked in ROADMAP.md.
 
 ---
-*Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 — traceability table expanded to individual requirement rows*
+
+_Requirements defined: 2026-03-26_
+_Last updated: 2026-03-26 — traceability table expanded to individual requirement rows_

@@ -32,10 +32,16 @@ export function FAQSection() {
     <section id="faq" className="py-24 px-6" style={{ background: "#ffffff" }}>
       <div className="max-w-4xl mx-auto">
         <div className="mb-10">
-          <p className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-4" style={{ color: "#637288" }}>
+          <p
+            className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-4"
+            style={{ color: "#637288" }}
+          >
             Frequently Asked Questions
           </p>
-          <h2 className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight" style={{ color: "#12181B", letterSpacing: "-1px" }}>
+          <h2
+            className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight"
+            style={{ color: "#12181B", letterSpacing: "-1px" }}
+          >
             Answers before you start.
           </h2>
         </div>
@@ -47,13 +53,19 @@ export function FAQSection() {
               className="group rounded-2xl border p-5"
               style={{ borderColor: "#E5E7EB", background: "#FAFAFA" }}
             >
-              <summary className="cursor-pointer list-none font-medium" style={{ color: "#12181B" }}>
+              <summary
+                className="cursor-pointer list-none font-medium"
+                style={{ color: "#12181B" }}
+              >
                 <span className="inline-flex items-start justify-between w-full gap-3">
                   <span>{item.q}</span>
                   <span style={{ color: "#64748B" }}>+</span>
                 </span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed" style={{ color: "#637288" }}>
+              <p
+                className="mt-3 text-sm leading-relaxed"
+                style={{ color: "#637288" }}
+              >
                 {item.a}
               </p>
             </details>

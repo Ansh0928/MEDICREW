@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   const { patient, needsOnboarding, error } = await getAuthenticatedPatient();
   if (error) return error;
-  if (needsOnboarding) return NextResponse.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding)
+    return NextResponse.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = patient!.id;
 
   const body = await request.json();
@@ -14,7 +20,7 @@ export async function POST(request: NextRequest) {
   if (!consentVersion || !dataCategories) {
     return NextResponse.json(
       { error: "consentVersion and dataCategories are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -28,6 +34,6 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(
     { id: consent.id, consentedAt: consent.consentedAt },
-    { status: 201 }
+    { status: 201 },
   );
 }

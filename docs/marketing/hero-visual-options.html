@@ -1,155 +1,220 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MediCrew Hero Options</title>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --text: #0f172a;
-      --muted: #475569;
-      --card: #ffffff;
-      --border: #cbd5e1;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 28px;
-    }
-    h1 { margin: 0 0 6px; font-size: 28px; }
-    p.subtitle { margin: 0 0 22px; color: var(--muted); }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-    .option {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 8px 28px rgba(2, 8, 23, 0.06);
-    }
-    .option h2 {
-      margin: 0;
-      padding: 12px 14px;
-      font-size: 16px;
-      border-bottom: 1px solid var(--border);
-      background: #f8fafc;
-    }
-    .hero {
-      padding: 18px;
-      min-height: 330px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .eyebrow {
-      font-size: 11px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #64748b;
-      font-weight: 600;
-    }
-    .headline {
-      font-size: 31px;
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-      font-weight: 700;
-    }
-    .desc { color: #334155; line-height: 1.5; }
-    .buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; }
-    .btn {
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 13px;
-      border: 1px solid transparent;
-      font-weight: 600;
-    }
-    .chips {
-      margin-top: 8px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      font-size: 11px;
-      color: #334155;
-    }
-    .chip {
-      border: 1px solid #cbd5e1;
-      border-radius: 999px;
-      padding: 4px 8px;
-      background: #fff;
-    }
-    .a { background: linear-gradient(180deg, #f8fbff, #edf5ff); }
-    .a .btn.primary { background: #0ea5e9; color: #fff; }
-    .a .btn.secondary { background: #fff; color: #0f172a; border-color: #cbd5e1; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCrew Hero Options</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --text: #0f172a;
+        --muted: #475569;
+        --card: #ffffff;
+        --border: #cbd5e1;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+      }
+      p.subtitle {
+        margin: 0 0 22px;
+        color: var(--muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .option {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(2, 8, 23, 0.06);
+      }
+      .option h2 {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 16px;
+        border-bottom: 1px solid var(--border);
+        background: #f8fafc;
+      }
+      .hero {
+        padding: 18px;
+        min-height: 330px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+      }
+      .headline {
+        font-size: 31px;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+      }
+      .desc {
+        color: #334155;
+        line-height: 1.5;
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: auto;
+      }
+      .btn {
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-size: 13px;
+        border: 1px solid transparent;
+        font-weight: 600;
+      }
+      .chips {
+        margin-top: 8px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: #334155;
+      }
+      .chip {
+        border: 1px solid #cbd5e1;
+        border-radius: 999px;
+        padding: 4px 8px;
+        background: #fff;
+      }
+      .a {
+        background: linear-gradient(180deg, #f8fbff, #edf5ff);
+      }
+      .a .btn.primary {
+        background: #0ea5e9;
+        color: #fff;
+      }
+      .a .btn.secondary {
+        background: #fff;
+        color: #0f172a;
+        border-color: #cbd5e1;
+      }
 
-    .b { background: #fff; }
-    .b .btn.primary { background: #2563eb; color: #fff; }
-    .b ul { margin: 0; padding-left: 18px; color: #1e293b; line-height: 1.5; }
+      .b {
+        background: #fff;
+      }
+      .b .btn.primary {
+        background: #2563eb;
+        color: #fff;
+      }
+      .b ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #1e293b;
+        line-height: 1.5;
+      }
 
-    .c { background: linear-gradient(180deg, #fff7ed, #fffbeb); }
-    .c .eyebrow, .c .headline, .c .desc { color: #7c2d12; }
-    .c .btn.primary { background: #f97316; color: #fff; }
-    .c .btn.secondary { background: #fff; color: #7c2d12; border-color: #fdba74; }
-  </style>
-</head>
-<body>
-  <h1>MediCrew Hero Concepts</h1>
-  <p class="subtitle">Pick your preferred direction and I’ll implement it exactly in the landing page.</p>
+      .c {
+        background: linear-gradient(180deg, #fff7ed, #fffbeb);
+      }
+      .c .eyebrow,
+      .c .headline,
+      .c .desc {
+        color: #7c2d12;
+      }
+      .c .btn.primary {
+        background: #f97316;
+        color: #fff;
+      }
+      .c .btn.secondary {
+        background: #fff;
+        color: #7c2d12;
+        border-color: #fdba74;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MediCrew Hero Concepts</h1>
+    <p class="subtitle">
+      Pick your preferred direction and I’ll implement it exactly in the landing
+      page.
+    </p>
 
-  <div class="grid">
-    <section class="option">
-      <h2>A) Clinical Calm (Recommended)</h2>
-      <div class="hero a">
-        <div class="eyebrow">Australia-first health navigation</div>
-        <div class="headline">Know your next health step in minutes.</div>
-        <div class="desc">Structured AI care-team guidance with emergency-first escalation and clear follow-up actions.</div>
-        <div class="buttons">
-          <div class="btn primary">Start Free Consultation</div>
-          <div class="btn secondary">See How It Works</div>
+    <div class="grid">
+      <section class="option">
+        <h2>A) Clinical Calm (Recommended)</h2>
+        <div class="hero a">
+          <div class="eyebrow">Australia-first health navigation</div>
+          <div class="headline">Know your next health step in minutes.</div>
+          <div class="desc">
+            Structured AI care-team guidance with emergency-first escalation and
+            clear follow-up actions.
+          </div>
+          <div class="buttons">
+            <div class="btn primary">Start Free Consultation</div>
+            <div class="btn secondary">See How It Works</div>
+          </div>
+          <div class="chips">
+            <div class="chip">Not a diagnosis</div>
+            <div class="chip">Call 000 for emergencies</div>
+            <div class="chip">Data hosted in Australia</div>
+          </div>
         </div>
-        <div class="chips">
-          <div class="chip">Not a diagnosis</div>
-          <div class="chip">Call 000 for emergencies</div>
-          <div class="chip">Data hosted in Australia</div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="option">
-      <h2>B) Outcome First</h2>
-      <div class="hero b">
-        <div class="eyebrow">What you get in one session</div>
-        <div class="headline">From symptoms to a clear action plan.</div>
-        <div class="desc">Fast triage + practical next steps + a summary you can share.</div>
-        <ul>
-          <li>Emergency escalation first</li>
-          <li>Multi-specialist AI perspectives</li>
-          <li>Saved follow-up in your portal</li>
-        </ul>
-        <div class="buttons">
-          <div class="btn primary">Start Consultation</div>
+      <section class="option">
+        <h2>B) Outcome First</h2>
+        <div class="hero b">
+          <div class="eyebrow">What you get in one session</div>
+          <div class="headline">From symptoms to a clear action plan.</div>
+          <div class="desc">
+            Fast triage + practical next steps + a summary you can share.
+          </div>
+          <ul>
+            <li>Emergency escalation first</li>
+            <li>Multi-specialist AI perspectives</li>
+            <li>Saved follow-up in your portal</li>
+          </ul>
+          <div class="buttons">
+            <div class="btn primary">Start Consultation</div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="option">
-      <h2>C) Human Reassurance</h2>
-      <div class="hero c">
-        <div class="eyebrow">Calm guidance before your GP visit</div>
-        <div class="headline">Feel more certain about what to do next.</div>
-        <div class="desc">Supportive, structured care-team guidance for patients and families.</div>
-        <div class="buttons">
-          <div class="btn primary">Start with Confidence</div>
-          <div class="btn secondary">Meet the Team</div>
+      <section class="option">
+        <h2>C) Human Reassurance</h2>
+        <div class="hero c">
+          <div class="eyebrow">Calm guidance before your GP visit</div>
+          <div class="headline">Feel more certain about what to do next.</div>
+          <div class="desc">
+            Supportive, structured care-team guidance for patients and families.
+          </div>
+          <div class="buttons">
+            <div class="btn primary">Start with Confidence</div>
+            <div class="btn secondary">Meet the Team</div>
+          </div>
         </div>
-      </div>
-    </section>
-  </div>
-</body>
+      </section>
+    </div>
+  </body>
 </html>

@@ -1,575 +1,847 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediCrew — Live Agents</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f0f4f8;
-  min-height: 100vh;
-  padding: 24px;
-}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCrew — Live Agents</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f0f4f8;
+        min-height: 100vh;
+        padding: 24px;
+      }
 
-h1 { text-align:center; font-size:20px; font-weight:800; color:#0f172a; margin-bottom:4px; }
-.subtitle { text-align:center; font-size:12px; color:#64748b; margin-bottom:28px; }
+      h1 {
+        text-align: center;
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      .subtitle {
+        text-align: center;
+        font-size: 12px;
+        color: #64748b;
+        margin-bottom: 28px;
+      }
 
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 20px;
-  max-width: 1040px;
-  margin: 0 auto;
-}
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 20px;
+        max-width: 1040px;
+        margin: 0 auto;
+      }
 
-/* ── Main area ── */
-.main-area {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+      /* ── Main area ── */
+      .main-area {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
 
-.patient-msg {
-  background: #f1f5f9;
-  border-radius: 14px 14px 14px 2px;
-  padding: 14px 18px;
-  font-size: 14px;
-  color: #334155;
-  line-height: 1.6;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
+      .patient-msg {
+        background: #f1f5f9;
+        border-radius: 14px 14px 14px 2px;
+        padding: 14px 18px;
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.6;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
 
-.team-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 0;
-  flex-wrap: wrap;
-}
+      .team-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 0;
+        flex-wrap: wrap;
+      }
 
-.mini-doc {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
+      .mini-doc {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
 
-.mini-avatar {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid #e2e8f0;
-  position: relative;
-  background: #f8fafc;
-}
+      .mini-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #e2e8f0;
+        position: relative;
+        background: #f8fafc;
+      }
 
-.mini-avatar img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-}
+      .mini-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
 
-.mini-avatar.lead { border-color: #10b981; box-shadow: 0 0 0 3px #d1fae5; }
-.mini-avatar.thinking { border-color: #f59e0b; }
-.mini-avatar.speaking { border-color: #6366f1; }
-.mini-avatar.done { border-color: #a7f3d0; }
-.mini-avatar.standby { border-color: #e2e8f0; opacity: 0.55; }
+      .mini-avatar.lead {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px #d1fae5;
+      }
+      .mini-avatar.thinking {
+        border-color: #f59e0b;
+      }
+      .mini-avatar.speaking {
+        border-color: #6366f1;
+      }
+      .mini-avatar.done {
+        border-color: #a7f3d0;
+      }
+      .mini-avatar.standby {
+        border-color: #e2e8f0;
+        opacity: 0.55;
+      }
 
-.mini-name { font-size: 9px; font-weight: 700; color: #64748b; }
-.mini-status { font-size: 8px; color: #94a3b8; }
+      .mini-name {
+        font-size: 9px;
+        font-weight: 700;
+        color: #64748b;
+      }
+      .mini-status {
+        font-size: 8px;
+        color: #94a3b8;
+      }
 
-.sep { font-size: 16px; color: #e2e8f0; padding: 0 2px; margin-bottom: 16px; }
+      .sep {
+        font-size: 16px;
+        color: #e2e8f0;
+        padding: 0 2px;
+        margin-bottom: 16px;
+      }
 
-.processing-label {
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.8px; text-transform: uppercase;
-  color: #94a3b8; text-align: center;
-}
+      .processing-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #94a3b8;
+        text-align: center;
+      }
 
-.result-placeholder {
-  flex: 1;
-  background: linear-gradient(135deg, #f0fdf4, #f8fafc);
-  border: 1.5px dashed #a7f3d0;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  font-size: 13px;
-  color: #86efac;
-  font-style: italic;
-  text-align: center;
-  min-height: 140px;
-}
+      .result-placeholder {
+        flex: 1;
+        background: linear-gradient(135deg, #f0fdf4, #f8fafc);
+        border: 1.5px dashed #a7f3d0;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        font-size: 13px;
+        color: #86efac;
+        font-style: italic;
+        text-align: center;
+        min-height: 140px;
+      }
 
-/* ── Side panel ── */
-.side-panel {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+      /* ── Side panel ── */
+      .side-panel {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
 
-.panel-header {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.panel-title { font-size: 13px; font-weight: 700; color: white; }
-.panel-subtitle { font-size: 11px; color: #64748b; }
-.live-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #10b981;
-  animation: pulse 1.2s infinite;
-  flex-shrink: 0;
-}
-@keyframes pulse {
-  0%,100% { opacity:1; transform:scale(1); }
-  50% { opacity:0.4; transform:scale(1.5); }
-}
+      .panel-header {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .panel-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+      }
+      .panel-subtitle {
+        font-size: 11px;
+        color: #64748b;
+      }
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 1.2s infinite;
+        flex-shrink: 0;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.4;
+          transform: scale(1.5);
+        }
+      }
 
-.panel-scroll {
-  overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 680px;
-}
+      .panel-scroll {
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 680px;
+      }
 
-/* ── Agent cards ── */
-.agent-card {
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  overflow: visible;
-  background: white;
-}
-.agent-card.lead { border-color: #6ee7b7; box-shadow: 0 2px 12px rgba(16,185,129,0.12); }
-.agent-card.thinking { border-color: #fde68a; }
-.agent-card.speaking { border-color: #c7d2fe; box-shadow: 0 2px 10px rgba(99,102,241,0.1); }
-.agent-card.done { border-color: #e0e7ff; background: #fafafa; }
-.agent-card.standby { border-color: #f1f5f9; opacity: 0.6; }
+      /* ── Agent cards ── */
+      .agent-card {
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        overflow: visible;
+        background: white;
+      }
+      .agent-card.lead {
+        border-color: #6ee7b7;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.12);
+      }
+      .agent-card.thinking {
+        border-color: #fde68a;
+      }
+      .agent-card.speaking {
+        border-color: #c7d2fe;
+        box-shadow: 0 2px 10px rgba(99, 102, 241, 0.1);
+      }
+      .agent-card.done {
+        border-color: #e0e7ff;
+        background: #fafafa;
+      }
+      .agent-card.standby {
+        border-color: #f1f5f9;
+        opacity: 0.6;
+      }
 
-.agent-header {
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fafafa;
-  border-radius: 14px 14px 0 0;
-}
-.agent-card.lead .agent-header { background: #f0fdf4; }
-.agent-card.thinking .agent-header { background: #fffbeb; }
-.agent-card.speaking .agent-header { background: #f5f3ff; }
+      .agent-header {
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fafafa;
+        border-radius: 14px 14px 0 0;
+      }
+      .agent-card.lead .agent-header {
+        background: #f0fdf4;
+      }
+      .agent-card.thinking .agent-header {
+        background: #fffbeb;
+      }
+      .agent-card.speaking .agent-header {
+        background: #f5f3ff;
+      }
 
-/* ── Bitmoji avatar ── */
-.bitmoji-wrap {
-  position: relative;
-  width: 52px; height: 52px;
-  flex-shrink: 0;
-}
+      /* ── Bitmoji avatar ── */
+      .bitmoji-wrap {
+        position: relative;
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+      }
 
-.bitmoji-img {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2.5px solid #e2e8f0;
-  background: #f8fafc;
-}
-.bitmoji-img img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.lead .bitmoji-img { border-color: #6ee7b7; }
-.thinking .bitmoji-img { border-color: #fde68a; }
-.speaking .bitmoji-img { border-color: #a5b4fc; }
-.done .bitmoji-img { border-color: #a7f3d0; }
+      .bitmoji-img {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2.5px solid #e2e8f0;
+        background: #f8fafc;
+      }
+      .bitmoji-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .lead .bitmoji-img {
+        border-color: #6ee7b7;
+      }
+      .thinking .bitmoji-img {
+        border-color: #fde68a;
+      }
+      .speaking .bitmoji-img {
+        border-color: #a5b4fc;
+      }
+      .done .bitmoji-img {
+        border-color: #a7f3d0;
+      }
 
-/* Status overlays */
-.status-overlay {
-  position: absolute;
-  bottom: -2px; right: -4px;
-}
+      /* Status overlays */
+      .status-overlay {
+        position: absolute;
+        bottom: -2px;
+        right: -4px;
+      }
 
-/* Thinking bubble */
-.think-anim {
-  font-size: 16px;
-  animation: floatBob 1.6s ease-in-out infinite;
-  display: block;
-}
-@keyframes floatBob {
-  0%,100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-4px) scale(1.1); }
-}
+      /* Thinking bubble */
+      .think-anim {
+        font-size: 16px;
+        animation: floatBob 1.6s ease-in-out infinite;
+        display: block;
+      }
+      @keyframes floatBob {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-4px) scale(1.1);
+        }
+      }
 
-/* Speaking dots */
-.speak-dots {
-  background: white;
-  border: 1px solid #c7d2fe;
-  border-radius: 10px;
-  padding: 4px 7px;
-  display: flex;
-  gap: 3px;
-  align-items: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-.speak-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: #6366f1;
-  animation: speakBounce 0.7s ease-in-out infinite;
-}
-.speak-dot:nth-child(2) { animation-delay: 0.12s; background: #818cf8; }
-.speak-dot:nth-child(3) { animation-delay: 0.24s; background: #a5b4fc; }
-@keyframes speakBounce {
-  0%,100% { transform:translateY(0); }
-  50% { transform:translateY(-4px); }
-}
+      /* Speaking dots */
+      .speak-dots {
+        background: white;
+        border: 1px solid #c7d2fe;
+        border-radius: 10px;
+        padding: 4px 7px;
+        display: flex;
+        gap: 3px;
+        align-items: center;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .speak-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #6366f1;
+        animation: speakBounce 0.7s ease-in-out infinite;
+      }
+      .speak-dot:nth-child(2) {
+        animation-delay: 0.12s;
+        background: #818cf8;
+      }
+      .speak-dot:nth-child(3) {
+        animation-delay: 0.24s;
+        background: #a5b4fc;
+      }
+      @keyframes speakBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-4px);
+        }
+      }
 
-/* Done badge */
-.done-badge {
-  background: #10b981;
-  color: white;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 900;
-  border: 2px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-}
+      /* Done badge */
+      .done-badge {
+        background: #10b981;
+        color: white;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 900;
+        border: 2px solid white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      }
 
-/* Lead crown */
-.lead-crown {
-  font-size: 13px;
-  position: absolute;
-  top: -10px; left: 50%;
-  transform: translateX(-50%);
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
-}
+      /* Lead crown */
+      .lead-crown {
+        font-size: 13px;
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+      }
 
-.agent-info { flex: 1; min-width: 0; }
-.agent-name { font-size: 12px; font-weight: 700; color: #0f172a; }
-.agent-role { font-size: 10px; color: #94a3b8; margin-top: 1px; }
-.agent-status {
-  font-size: 10px; font-weight: 600;
-  margin-top: 3px;
-  display: flex; align-items: center; gap: 4px;
-}
-.lead .agent-status { color: #059669; }
-.thinking .agent-status { color: #d97706; }
-.speaking .agent-status { color: #6366f1; }
-.done .agent-status { color: #10b981; }
-.standby .agent-status { color: #94a3b8; }
+      .agent-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .agent-name {
+        font-size: 12px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .agent-role {
+        font-size: 10px;
+        color: #94a3b8;
+        margin-top: 1px;
+      }
+      .agent-status {
+        font-size: 10px;
+        font-weight: 600;
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .lead .agent-status {
+        color: #059669;
+      }
+      .thinking .agent-status {
+        color: #d97706;
+      }
+      .speaking .agent-status {
+        color: #6366f1;
+      }
+      .done .agent-status {
+        color: #10b981;
+      }
+      .standby .agent-status {
+        color: #94a3b8;
+      }
 
-.agent-body {
-  padding: 10px 12px;
-  font-size: 11.5px;
-  color: #475569;
-  line-height: 1.5;
-  border-top: 1px solid #f1f5f9;
-}
+      .agent-body {
+        padding: 10px 12px;
+        font-size: 11.5px;
+        color: #475569;
+        line-height: 1.5;
+        border-top: 1px solid #f1f5f9;
+      }
 
-/* Confidence bar */
-.conf-row {
-  display: flex; align-items: center; gap: 8px; margin-top: 8px;
-}
-.conf-bg { flex:1; height:4px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
-.conf-fill { height:100%; border-radius:4px; }
-.conf-pct { font-size:10px; font-weight:700; white-space:nowrap; }
+      /* Confidence bar */
+      .conf-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .conf-bg {
+        flex: 1;
+        height: 4px;
+        background: #f1f5f9;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .conf-fill {
+        height: 100%;
+        border-radius: 4px;
+      }
+      .conf-pct {
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
 
-/* Debate chips */
-.debate { margin-top:7px; padding:7px 10px; border-radius:8px; font-size:11px; line-height:1.4; }
-.d-challenge { background:#fff1f2; border-left:3px solid #fda4af; color:#881337; }
-.d-agree { background:#f0fdf4; border-left:3px solid #86efac; color:#14532d; }
-.d-add { background:#f5f3ff; border-left:3px solid #c4b5fd; color:#4c1d95; }
+      /* Debate chips */
+      .debate {
+        margin-top: 7px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+      .d-challenge {
+        background: #fff1f2;
+        border-left: 3px solid #fda4af;
+        color: #881337;
+      }
+      .d-agree {
+        background: #f0fdf4;
+        border-left: 3px solid #86efac;
+        color: #14532d;
+      }
+      .d-add {
+        background: #f5f3ff;
+        border-left: 3px solid #c4b5fd;
+        color: #4c1d95;
+      }
 
-/* Divider */
-.phase-div {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 9px; font-weight: 800;
-  letter-spacing: 1px; text-transform: uppercase; color: #cbd5e1;
-}
-.phase-div::before, .phase-div::after {
-  content:''; flex:1; height:1px; background:#f1f5f9;
-}
-</style>
-</head>
-<body>
+      /* Divider */
+      .phase-div {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #cbd5e1;
+      }
+      .phase-div::before,
+      .phase-div::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #f1f5f9;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MediCrew — Live Consultation Panel</h1>
+    <p class="subtitle">
+      Bitmoji-style cartoon avatars · What the patient sees while agents work
+    </p>
 
-<h1>MediCrew — Live Consultation Panel</h1>
-<p class="subtitle">Bitmoji-style cartoon avatars · What the patient sees while agents work</p>
-
-<div class="layout">
-
-  <!-- Main area -->
-  <div class="main-area">
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#94a3b8;">Your symptoms</div>
-    <div class="patient-msg">
-      <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=patient&backgroundColor=b6e3f4&hair=long01&skinColor=f2d3b1" style="width:40px;height:40px;border-radius:50%;flex-shrink:0;" />
-      <div>"I'm <strong>23 years old</strong> with lower back pain from cycling — 3 days ago, no medication yet, just been resting."</div>
-    </div>
-
-    <div class="processing-label">⚡ Your medical team is consulting…</div>
-
-    <div class="team-row">
-      <div class="mini-doc">
-        <div class="mini-avatar lead">
-          <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=EmmaPhysio&backgroundColor=d1fae5&hair=long16&skinColor=fcd9b6&eyes=happy&mouth=smile01" />
+    <div class="layout">
+      <!-- Main area -->
+      <div class="main-area">
+        <div
+          style="
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #94a3b8;
+          "
+        >
+          Your symptoms
         </div>
-        <div class="mini-name">Emma</div>
-        <div class="mini-status">Lead 👑</div>
-      </div>
-      <div class="sep">+</div>
-      <div class="mini-doc">
-        <div class="mini-avatar thinking">
-          <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentKai&backgroundColor=fef9c3&hair=short01&skinColor=fde68a" />
-        </div>
-        <div class="mini-name">Kai</div>
-        <div class="mini-status">💭 Thinking</div>
-      </div>
-      <div class="mini-doc">
-        <div class="mini-avatar speaking">
-          <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentPriya&backgroundColor=ede9fe&hair=long06&skinColor=fed7aa" />
-        </div>
-        <div class="mini-name">Priya</div>
-        <div class="mini-status">💬 Speaking</div>
-      </div>
-      <div class="mini-doc">
-        <div class="mini-avatar done">
-          <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentZoe&backgroundColor=fef3c7&hair=long19&skinColor=fde68a&accessories=glasses" />
-        </div>
-        <div class="mini-name">Zoe</div>
-        <div class="mini-status">✅ Done</div>
-      </div>
-      <div class="mini-doc">
-        <div class="mini-avatar done">
-          <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentSam&backgroundColor=fee2e2&hair=short05&skinColor=fcd9b6" />
-        </div>
-        <div class="mini-name">Sam</div>
-        <div class="mini-status">✅ Done</div>
-      </div>
-      <div class="sep">+</div>
-      <div class="mini-doc">
-        <div class="mini-avatar standby">
-          <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=AlexGP&backgroundColor=ede9fe&hair=short04&skinColor=fed7aa" />
-        </div>
-        <div class="mini-name">Alex</div>
-        <div class="mini-status">⏳ Standby</div>
-      </div>
-    </div>
-
-    <div class="result-placeholder">
-      Your personalised recommendation will appear here once the team finishes consulting…
-    </div>
-  </div>
-
-  <!-- Side panel -->
-  <div class="side-panel">
-    <div class="panel-header">
-      <div class="live-dot"></div>
-      <div>
-        <div class="panel-title">Your Medical Team</div>
-        <div class="panel-subtitle">7 agents · consulting now</div>
-      </div>
-    </div>
-
-    <div class="panel-scroll">
-
-      <!-- Triage done -->
-      <div class="phase-div">Triage</div>
-      <div class="agent-card done">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=TriageAI&backgroundColor=ede9fe&hair=short02&skinColor=b6ccb9" />
-            </div>
-            <div class="status-overlay"><div class="done-badge">✓</div></div>
+        <div class="patient-msg">
+          <img
+            src="https://api.dicebear.com/8.x/adventurer/svg?seed=patient&backgroundColor=b6e3f4&hair=long01&skinColor=f2d3b1"
+            style="
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              flex-shrink: 0;
+            "
+          />
+          <div>
+            "I'm <strong>23 years old</strong> with lower back pain from cycling
+            — 3 days ago, no medication yet, just been resting."
           </div>
-          <div class="agent-info">
-            <div class="agent-name">Triage AI</div>
-            <div class="agent-role">Emergency Assessment</div>
-            <div class="agent-status">✓ Complete — Routine case</div>
+        </div>
+
+        <div class="processing-label">⚡ Your medical team is consulting…</div>
+
+        <div class="team-row">
+          <div class="mini-doc">
+            <div class="mini-avatar lead">
+              <img
+                src="https://api.dicebear.com/8.x/adventurer/svg?seed=EmmaPhysio&backgroundColor=d1fae5&hair=long16&skinColor=fcd9b6&eyes=happy&mouth=smile01"
+              />
+            </div>
+            <div class="mini-name">Emma</div>
+            <div class="mini-status">Lead 👑</div>
+          </div>
+          <div class="sep">+</div>
+          <div class="mini-doc">
+            <div class="mini-avatar thinking">
+              <img
+                src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentKai&backgroundColor=fef9c3&hair=short01&skinColor=fde68a"
+              />
+            </div>
+            <div class="mini-name">Kai</div>
+            <div class="mini-status">💭 Thinking</div>
+          </div>
+          <div class="mini-doc">
+            <div class="mini-avatar speaking">
+              <img
+                src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentPriya&backgroundColor=ede9fe&hair=long06&skinColor=fed7aa"
+              />
+            </div>
+            <div class="mini-name">Priya</div>
+            <div class="mini-status">💬 Speaking</div>
+          </div>
+          <div class="mini-doc">
+            <div class="mini-avatar done">
+              <img
+                src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentZoe&backgroundColor=fef3c7&hair=long19&skinColor=fde68a&accessories=glasses"
+              />
+            </div>
+            <div class="mini-name">Zoe</div>
+            <div class="mini-status">✅ Done</div>
+          </div>
+          <div class="mini-doc">
+            <div class="mini-avatar done">
+              <img
+                src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentSam&backgroundColor=fee2e2&hair=short05&skinColor=fcd9b6"
+              />
+            </div>
+            <div class="mini-name">Sam</div>
+            <div class="mini-status">✅ Done</div>
+          </div>
+          <div class="sep">+</div>
+          <div class="mini-doc">
+            <div class="mini-avatar standby">
+              <img
+                src="https://api.dicebear.com/8.x/adventurer/svg?seed=AlexGP&backgroundColor=ede9fe&hair=short04&skinColor=fed7aa"
+              />
+            </div>
+            <div class="mini-name">Alex</div>
+            <div class="mini-status">⏳ Standby</div>
           </div>
         </div>
-        <div class="agent-body">
-          Routing to <strong>Emma AI — Physiotherapy</strong>. Alex AI on standby. No red flags.
+
+        <div class="result-placeholder">
+          Your personalised recommendation will appear here once the team
+          finishes consulting…
         </div>
       </div>
 
-      <!-- Emma — Lead active -->
-      <div class="phase-div">Lead Specialist</div>
-      <div class="agent-card lead">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="lead-crown">👑</div>
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=EmmaPhysio&backgroundColor=d1fae5&hair=long16&skinColor=fcd9b6&eyes=happy&mouth=smile01" />
+      <!-- Side panel -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <div class="live-dot"></div>
+          <div>
+            <div class="panel-title">Your Medical Team</div>
+            <div class="panel-subtitle">7 agents · consulting now</div>
+          </div>
+        </div>
+
+        <div class="panel-scroll">
+          <!-- Triage done -->
+          <div class="phase-div">Triage</div>
+          <div class="agent-card done">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=TriageAI&backgroundColor=ede9fe&hair=short02&skinColor=b6ccb9"
+                  />
+                </div>
+                <div class="status-overlay">
+                  <div class="done-badge">✓</div>
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Triage AI</div>
+                <div class="agent-role">Emergency Assessment</div>
+                <div class="agent-status">✓ Complete — Routine case</div>
+              </div>
             </div>
-            <div class="status-overlay">
-              <div class="speak-dots">
-                <div class="speak-dot" style="background:#10b981;"></div>
-                <div class="speak-dot" style="background:#34d399;"></div>
-                <div class="speak-dot" style="background:#6ee7b7;"></div>
+            <div class="agent-body">
+              Routing to <strong>Emma AI — Physiotherapy</strong>. Alex AI on
+              standby. No red flags.
+            </div>
+          </div>
+
+          <!-- Emma — Lead active -->
+          <div class="phase-div">Lead Specialist</div>
+          <div class="agent-card lead">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="lead-crown">👑</div>
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=EmmaPhysio&backgroundColor=d1fae5&hair=long16&skinColor=fcd9b6&eyes=happy&mouth=smile01"
+                  />
+                </div>
+                <div class="status-overlay">
+                  <div class="speak-dots">
+                    <div class="speak-dot" style="background: #10b981"></div>
+                    <div class="speak-dot" style="background: #34d399"></div>
+                    <div class="speak-dot" style="background: #6ee7b7"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Emma AI</div>
+                <div class="agent-role">Physiotherapy · Lead Specialist</div>
+                <div class="agent-status">⚡ Activating resident team…</div>
+              </div>
+            </div>
+            <div class="agent-body" style="font-style: italic; color: #059669">
+              Overseeing consultation, will review team findings and provide
+              final position…
+            </div>
+          </div>
+
+          <!-- Residents -->
+          <div class="phase-div">Residents — Parallel</div>
+
+          <!-- Kai thinking -->
+          <div class="agent-card thinking">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentKai&backgroundColor=fef9c3&hair=short01&skinColor=fde68a"
+                  />
+                </div>
+                <div class="status-overlay">
+                  <span class="think-anim">💭</span>
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Resident Kai</div>
+                <div class="agent-role">Conservative Approach</div>
+                <div class="agent-status">🤔 Thinking…</div>
+              </div>
+            </div>
+            <div class="agent-body">
+              Analysing non-pharmacological options for acute cycling back pain…
+              <div class="conf-row">
+                <div class="conf-bg">
+                  <div
+                    class="conf-fill"
+                    style="width: 78%; background: #f59e0b"
+                  ></div>
+                </div>
+                <div class="conf-pct" style="color: #d97706">78%</div>
               </div>
             </div>
           </div>
-          <div class="agent-info">
-            <div class="agent-name">Emma AI</div>
-            <div class="agent-role">Physiotherapy · Lead Specialist</div>
-            <div class="agent-status">⚡ Activating resident team…</div>
-          </div>
-        </div>
-        <div class="agent-body" style="font-style:italic;color:#059669;">
-          Overseeing consultation, will review team findings and provide final position…
-        </div>
-      </div>
 
-      <!-- Residents -->
-      <div class="phase-div">Residents — Parallel</div>
-
-      <!-- Kai thinking -->
-      <div class="agent-card thinking">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentKai&backgroundColor=fef9c3&hair=short01&skinColor=fde68a" />
+          <!-- Priya speaking -->
+          <div class="agent-card speaking">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentPriya&backgroundColor=ede9fe&hair=long06&skinColor=fed7aa"
+                  />
+                </div>
+                <div class="status-overlay">
+                  <div class="speak-dots">
+                    <div class="speak-dot"></div>
+                    <div class="speak-dot"></div>
+                    <div class="speak-dot"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Resident Priya</div>
+                <div class="agent-role">Pharmacological</div>
+                <div class="agent-status">💬 Speaking up…</div>
+              </div>
             </div>
-            <div class="status-overlay">
-              <span class="think-anim">💭</span>
-            </div>
-          </div>
-          <div class="agent-info">
-            <div class="agent-name">Resident Kai</div>
-            <div class="agent-role">Conservative Approach</div>
-            <div class="agent-status">🤔 Thinking…</div>
-          </div>
-        </div>
-        <div class="agent-body">
-          Analysing non-pharmacological options for acute cycling back pain…
-          <div class="conf-row">
-            <div class="conf-bg"><div class="conf-fill" style="width:78%;background:#f59e0b;"></div></div>
-            <div class="conf-pct" style="color:#d97706;">78%</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Priya speaking -->
-      <div class="agent-card speaking">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentPriya&backgroundColor=ede9fe&hair=long06&skinColor=fed7aa" />
-            </div>
-            <div class="status-overlay">
-              <div class="speak-dots">
-                <div class="speak-dot"></div>
-                <div class="speak-dot"></div>
-                <div class="speak-dot"></div>
+            <div class="agent-body">
+              "Ibuprofen 400mg with food if pain ≥4/10. Anti-inflammatory,
+              safe."
+              <div class="debate d-challenge">
+                ⚡ Challenges Kai — "Rest alone risks deconditioning. Early
+                active recovery is better evidence."
+              </div>
+              <div class="conf-row">
+                <div class="conf-bg">
+                  <div
+                    class="conf-fill"
+                    style="width: 65%; background: #6366f1"
+                  ></div>
+                </div>
+                <div class="conf-pct" style="color: #4f46e5">65%</div>
               </div>
             </div>
           </div>
-          <div class="agent-info">
-            <div class="agent-name">Resident Priya</div>
-            <div class="agent-role">Pharmacological</div>
-            <div class="agent-status">💬 Speaking up…</div>
-          </div>
-        </div>
-        <div class="agent-body">
-          "Ibuprofen 400mg with food if pain ≥4/10. Anti-inflammatory, safe."
-          <div class="debate d-challenge">⚡ Challenges Kai — "Rest alone risks deconditioning. Early active recovery is better evidence."</div>
-          <div class="conf-row">
-            <div class="conf-bg"><div class="conf-fill" style="width:65%;background:#6366f1;"></div></div>
-            <div class="conf-pct" style="color:#4f46e5;">65%</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Zoe done -->
-      <div class="agent-card done">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentZoe&backgroundColor=fef3c7&hair=long19&skinColor=fde68a" />
+          <!-- Zoe done -->
+          <div class="agent-card done">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentZoe&backgroundColor=fef3c7&hair=long19&skinColor=fde68a"
+                  />
+                </div>
+                <div class="status-overlay">
+                  <div class="done-badge">✓</div>
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Resident Zoe</div>
+                <div class="agent-role">Investigative</div>
+                <div class="agent-status">✓ Finding ready</div>
+              </div>
             </div>
-            <div class="status-overlay"><div class="done-badge">✓</div></div>
-          </div>
-          <div class="agent-info">
-            <div class="agent-name">Resident Zoe</div>
-            <div class="agent-role">Investigative</div>
-            <div class="agent-status">✓ Finding ready</div>
-          </div>
-        </div>
-        <div class="agent-body">
-          "Saddle height + handlebar reach — likely root cause. Bike fit first line."
-          <div class="debate d-agree">✓ Agrees with Kai — "Bike fit + movement before meds."</div>
-          <div class="conf-row">
-            <div class="conf-bg"><div class="conf-fill" style="width:82%;background:#10b981;"></div></div>
-            <div class="conf-pct" style="color:#059669;">82%</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sam done -->
-      <div class="agent-card done">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentSam&backgroundColor=fee2e2&hair=short05&skinColor=fcd9b6" />
-            </div>
-            <div class="status-overlay"><div class="done-badge">✓</div></div>
-          </div>
-          <div class="agent-info">
-            <div class="agent-name">Resident Sam</div>
-            <div class="agent-role">Red-flag Check</div>
-            <div class="agent-status">✓ All clear</div>
-          </div>
-        </div>
-        <div class="agent-body">
-          No radiculopathy, no bowel/bladder flags, no fracture risk. Safe to proceed.
-          <div class="conf-row">
-            <div class="conf-bg"><div class="conf-fill" style="width:96%;background:#10b981;"></div></div>
-            <div class="conf-pct" style="color:#059669;">96% clear</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MDT standby -->
-      <div class="phase-div">MDT Standby</div>
-      <div class="agent-card standby">
-        <div class="agent-header">
-          <div class="bitmoji-wrap">
-            <div class="bitmoji-img">
-              <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=AlexGP&backgroundColor=ede9fe&hair=short04&skinColor=fed7aa" />
+            <div class="agent-body">
+              "Saddle height + handlebar reach — likely root cause. Bike fit
+              first line."
+              <div class="debate d-agree">
+                ✓ Agrees with Kai — "Bike fit + movement before meds."
+              </div>
+              <div class="conf-row">
+                <div class="conf-bg">
+                  <div
+                    class="conf-fill"
+                    style="width: 82%; background: #10b981"
+                  ></div>
+                </div>
+                <div class="conf-pct" style="color: #059669">82%</div>
+              </div>
             </div>
           </div>
-          <div class="agent-info">
-            <div class="agent-name">Alex AI</div>
-            <div class="agent-role">General Practice · Standby</div>
-            <div class="agent-status">⏳ Waiting to contribute…</div>
+
+          <!-- Sam done -->
+          <div class="agent-card done">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=ResidentSam&backgroundColor=fee2e2&hair=short05&skinColor=fcd9b6"
+                  />
+                </div>
+                <div class="status-overlay">
+                  <div class="done-badge">✓</div>
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Resident Sam</div>
+                <div class="agent-role">Red-flag Check</div>
+                <div class="agent-status">✓ All clear</div>
+              </div>
+            </div>
+            <div class="agent-body">
+              No radiculopathy, no bowel/bladder flags, no fracture risk. Safe
+              to proceed.
+              <div class="conf-row">
+                <div class="conf-bg">
+                  <div
+                    class="conf-fill"
+                    style="width: 96%; background: #10b981"
+                  ></div>
+                </div>
+                <div class="conf-pct" style="color: #059669">96% clear</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MDT standby -->
+          <div class="phase-div">MDT Standby</div>
+          <div class="agent-card standby">
+            <div class="agent-header">
+              <div class="bitmoji-wrap">
+                <div class="bitmoji-img">
+                  <img
+                    src="https://api.dicebear.com/8.x/adventurer/svg?seed=AlexGP&backgroundColor=ede9fe&hair=short04&skinColor=fed7aa"
+                  />
+                </div>
+              </div>
+              <div class="agent-info">
+                <div class="agent-name">Alex AI</div>
+                <div class="agent-role">General Practice · Standby</div>
+                <div class="agent-status">⏳ Waiting to contribute…</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
     </div>
-  </div>
-</div>
 
-<div style="max-width:1040px;margin:14px auto 0;text-align:center;font-size:11px;color:#94a3b8;padding-bottom:32px;">
-  Avatars generated via DiceBear (open-source Bitmoji-style API) · States: 💭 Thinking · 💬 Speaking · ✅ Done · ⏳ Standby
-</div>
-
-</body>
+    <div
+      style="
+        max-width: 1040px;
+        margin: 14px auto 0;
+        text-align: center;
+        font-size: 11px;
+        color: #94a3b8;
+        padding-bottom: 32px;
+      "
+    >
+      Avatars generated via DiceBear (open-source Bitmoji-style API) · States:
+      💭 Thinking · 💬 Speaking · ✅ Done · ⏳ Standby
+    </div>
+  </body>
 </html>

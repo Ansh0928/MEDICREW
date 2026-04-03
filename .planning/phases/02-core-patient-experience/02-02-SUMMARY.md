@@ -17,13 +17,15 @@ Care team status writes, PATCH care-status API, dashboard UI with Supabase Realt
 ## Key Files Created/Modified
 
 ### key-files:
+
 created:
-  - src/app/api/patient/care-status/route.ts
-  - src/components/dashboard/CareTeamCard.tsx
-  - src/components/dashboard/ConsultationHistoryList.tsx
-modified:
-  - src/app/api/consult/route.ts (upserts CareTeamStatus after consultation)
-  - src/app/patient/page.tsx (Care Team + Care Plan tabs)
+
+- src/app/api/patient/care-status/route.ts
+- src/components/dashboard/CareTeamCard.tsx
+- src/components/dashboard/ConsultationHistoryList.tsx
+  modified:
+- src/app/api/consult/route.ts (upserts CareTeamStatus after consultation)
+- src/app/patient/page.tsx (Care Team + Care Plan tabs)
 
 ## Decisions Made
 

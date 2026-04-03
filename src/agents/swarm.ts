@@ -24,14 +24,22 @@ import { AGENT_COMPLIANCE_RULE } from "@/lib/compliance";
  * Exported for testing.
  */
 export function selectPrimaryLead(
-  leadSwarms: SwarmState["leadSwarms"]
+  leadSwarms: SwarmState["leadSwarms"],
 ): DoctorRole {
   let best: DoctorRole | null = null;
   let bestAvg = -1;
-  for (const [role, lead] of Object.entries(leadSwarms) as [DoctorRole, SwarmLeadState][]) {
+  for (const [role, lead] of Object.entries(leadSwarms) as [
+    DoctorRole,
+    SwarmLeadState,
+  ][]) {
     if (!lead || lead.hypotheses.length === 0) continue;
-    const avg = lead.hypotheses.reduce((sum, h) => sum + h.confidence, 0) / lead.hypotheses.length;
-    if (avg > bestAvg) { bestAvg = avg; best = role; }
+    const avg =
+      lead.hypotheses.reduce((sum, h) => sum + h.confidence, 0) /
+      lead.hypotheses.length;
+    if (avg > bestAvg) {
+      bestAvg = avg;
+      best = role;
+    }
   }
   return best ?? (Object.keys(leadSwarms)[0] as DoctorRole);
 }
@@ -45,13 +53,14 @@ export function buildResidentPrompt(
   specialtyRole: DoctorRole,
   symptoms: string,
   patientInfo: SwarmState["patientInfo"],
-  ragChunks: string[] = []
+  ragChunks: string[] = [],
 ): string {
   const base = residentDefinitions[residentRole].systemPrompt;
   const context = `\n\n## Specialty Context\nYou are embedded in the ${specialtyRole} specialty team.\nPatient: ${patientInfo.age}y ${patientInfo.gender}${patientInfo.knownConditions ? `, conditions: ${patientInfo.knownConditions}` : ""}${patientInfo.medications?.length ? `, medications: ${patientInfo.medications.join(", ")}` : ""}${patientInfo.allergies?.length ? `, allergies: ${patientInfo.allergies.join(", ")}` : ""}\nSymptoms: ${symptoms}${patientInfo.historySummary ? `\nRelevant history: ${patientInfo.historySummary}` : ""}`;
-  const ragSection = ragChunks.length > 0
-    ? `\n\n## Relevant Medical Reference\n${ragChunks.join("\n\n---\n\n")}`
-    : "";
+  const ragSection =
+    ragChunks.length > 0
+      ? `\n\n## Relevant Medical Reference\n${ragChunks.join("\n\n---\n\n")}`
+      : "";
   return base + context + ragSection;
 }
 
@@ -61,7 +70,7 @@ const SCOPE_BOUNDARY = `\n\n## Scope Boundaries\nYou provide health navigation g
 
 async function runTriage(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const llm = createJsonModel();
   const response = await llm.invoke([
@@ -99,10 +108,12 @@ Symptoms: ${state.symptoms}`),
   if (urgency === "emergency") {
     state.synthesis = {
       urgency: "emergency",
-      primaryRecommendation: "This may be a medical emergency. Call 000 (Australia) or your local emergency number immediately.",
+      primaryRecommendation:
+        "This may be a medical emergency. Call 000 (Australia) or your local emergency number immediately.",
       nextSteps: ["Call emergency services now", "Do not drive yourself"],
       bookingNeeded: false,
-      disclaimer: "This is AI-generated health navigation guidance. Always call emergency services in an emergency.",
+      disclaimer:
+        "This is AI-generated health navigation guidance. Always call emergency services in an emergency.",
     };
     emit({ type: "synthesis_complete", data: state.synthesis });
     emit({ type: "done" });
@@ -117,14 +128,22 @@ export async function runResident(
   specialtyRole: DoctorRole,
   state: SwarmState,
   emit: (e: SwarmEvent) => void,
-  ragChunks: string[] = []
+  ragChunks: string[] = [],
 ): Promise<void> {
   const llm = createFastModel();
-  const systemPrompt = buildResidentPrompt(residentRole, specialtyRole, state.symptoms, state.patientInfo, ragChunks);
+  const systemPrompt = buildResidentPrompt(
+    residentRole,
+    specialtyRole,
+    state.symptoms,
+    state.patientInfo,
+    ragChunks,
+  );
 
   const response = await llm.invoke([
     new SystemMessage(systemPrompt),
-    new HumanMessage(`Assess the patient's symptoms from your ${residentRole} perspective. Return ONLY JSON.`),
+    new HumanMessage(
+      `Assess the patient's symptoms from your ${residentRole} perspective. Return ONLY JSON.`,
+    ),
   ]);
 
   let hypothesis = `${residentRole} assessment`;
@@ -138,7 +157,10 @@ export async function runResident(
     confidence = Math.min(100, Math.max(0, Number(parsed.confidence) || 50));
     reasoning = parsed.reasoning ?? "";
   } catch (e) {
-    console.error(`[swarm-v2] resident ${residentRole}/${specialtyRole} parse failed:`, e);
+    console.error(
+      `[swarm-v2] resident ${residentRole}/${specialtyRole} parse failed:`,
+      e,
+    );
   }
 
   const hypothesisId = crypto.randomUUID();
@@ -165,17 +187,22 @@ export async function runResident(
 async function runResidentDebate(
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const leadState = state.leadSwarms[specialtyRole]!;
   const hypothesesSummary = leadState.hypotheses
-    .map((h) => `[${h.residentRole}] "${h.name}" (confidence: ${h.confidence}) — ${h.reasoning}`)
+    .map(
+      (h) =>
+        `[${h.residentRole}] "${h.name}" (confidence: ${h.confidence}) — ${h.reasoning}`,
+    )
     .join("\n");
 
   const llm = createFastModel();
 
   for (const residentRole of RESIDENT_ROLES) {
-    const myHypothesis = leadState.hypotheses.find((h) => h.residentRole === residentRole);
+    const myHypothesis = leadState.hypotheses.find(
+      (h) => h.residentRole === residentRole,
+    );
     if (!myHypothesis) continue;
 
     const response = await llm.invoke([
@@ -186,7 +213,9 @@ Respond ONLY with valid JSON:
   "content": "<max 2 sentences>",
   "referencingHypothesisId": "<id of hypothesis you are challenging or agreeing with, or omit>"
 }`),
-      new HumanMessage(`All resident hypotheses:\n${hypothesesSummary}\n\nYour hypothesis: "${myHypothesis.name}" (id: ${myHypothesis.id})\nProvide your debate response.`),
+      new HumanMessage(
+        `All resident hypotheses:\n${hypothesesSummary}\n\nYour hypothesis: "${myHypothesis.name}" (id: ${myHypothesis.id})\nProvide your debate response.`,
+      ),
     ]);
 
     let type: "agree" | "challenge" | "add_context" = "add_context";
@@ -194,18 +223,36 @@ Respond ONLY with valid JSON:
     let referencingHypothesisId: string | undefined;
 
     try {
-      const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+      const parsed = JSON.parse(
+        (response.content as string).replace(/```json\n?|\n?```/g, ""),
+      );
       type = parsed.type ?? "add_context";
       content = parsed.content ?? "";
       referencingHypothesisId = parsed.referencingHypothesisId;
     } catch (e) {
-      console.error(`[swarm-v2] debate parse failed ${residentRole}/${specialtyRole}:`, e);
+      console.error(
+        `[swarm-v2] debate parse failed ${residentRole}/${specialtyRole}:`,
+        e,
+      );
       continue;
     }
 
-    const msg = { doctorRole: specialtyRole, residentRole, type, content, referencingHypothesisId };
+    const msg = {
+      doctorRole: specialtyRole,
+      residentRole,
+      type,
+      content,
+      referencingHypothesisId,
+    };
     leadState.residentDebate.push(msg);
-    emit({ type: "debate_message", role: specialtyRole, residentRole, messageType: type, content, referencingHypothesisId });
+    emit({
+      type: "debate_message",
+      role: specialtyRole,
+      residentRole,
+      messageType: type,
+      content,
+      referencingHypothesisId,
+    });
   }
 }
 
@@ -214,12 +261,15 @@ Respond ONLY with valid JSON:
 async function runLeadRectification(
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const leadState = state.leadSwarms[specialtyRole]!;
   const leadDef = agentRegistry[specialtyRole];
   const hypothesesSummary = leadState.hypotheses
-    .map((h) => `${h.residentRole}: "${h.name}" (${h.confidence}%) — ${h.reasoning}`)
+    .map(
+      (h) =>
+        `${h.residentRole}: "${h.name}" (${h.confidence}%) — ${h.reasoning}`,
+    )
     .join("\n");
   const debateSummary = leadState.residentDebate
     .map((d) => `${d.residentRole} [${d.type}]: ${d.content}`)
@@ -232,12 +282,16 @@ Respond ONLY with valid JSON:
 {
   "summary": "<2-3 sentences: your rectified recommendation, noting which residents you agree with and any you overrule>"
 }`),
-    new HumanMessage(`Resident hypotheses:\n${hypothesesSummary}\n\nResident debate:\n${debateSummary}\n\nPatient symptoms: ${state.symptoms}`),
+    new HumanMessage(
+      `Resident hypotheses:\n${hypothesesSummary}\n\nResident debate:\n${debateSummary}\n\nPatient symptoms: ${state.symptoms}`,
+    ),
   ]);
 
   let summary = `${leadDef?.name ?? specialtyRole} reviewed all resident input.`;
   try {
-    const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+    const parsed = JSON.parse(
+      (response.content as string).replace(/```json\n?|\n?```/g, ""),
+    );
     summary = parsed.summary ?? summary;
   } catch (e) {
     console.error(`[swarm-v2] rectification parse failed ${specialtyRole}:`, e);
@@ -255,7 +309,7 @@ async function runLeadSwarm(
   specialtyRole: DoctorRole,
   state: SwarmState,
   emit: (e: SwarmEvent) => void,
-  ragChunks: string[] = []
+  ragChunks: string[] = [],
 ): Promise<void> {
   const leadDef = agentRegistry[specialtyRole];
   state.leadSwarms[specialtyRole] = {
@@ -265,13 +319,17 @@ async function runLeadSwarm(
     rectification: null,
   };
 
-  emit({ type: "doctor_activated", role: specialtyRole, name: leadDef?.name ?? specialtyRole });
+  emit({
+    type: "doctor_activated",
+    role: specialtyRole,
+    name: leadDef?.name ?? specialtyRole,
+  });
 
   // L3: residents run in parallel
   await Promise.all(
     RESIDENT_ROLES.map((residentRole) =>
-      runResident(residentRole, specialtyRole, state, emit, ragChunks)
-    )
+      runResident(residentRole, specialtyRole, state, emit, ragChunks),
+    ),
   );
 
   // L4: debate (sequential within specialty)
@@ -286,7 +344,7 @@ async function runLeadSwarm(
 
 async function runMdt(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const activatedLeads = Object.keys(state.leadSwarms) as DoctorRole[];
   if (activatedLeads.length < 2) return;
@@ -313,14 +371,18 @@ Respond ONLY with valid JSON:
   "content": "<max 2 sentences>"
 }
 Use "escalate" ONLY if you believe urgency should be raised based on another specialist's finding.`),
-      new HumanMessage(`MDT rectified recommendations:\n${rectificationsSummary}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}\nSymptoms: ${state.symptoms}`),
+      new HumanMessage(
+        `MDT rectified recommendations:\n${rectificationsSummary}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}\nSymptoms: ${state.symptoms}`,
+      ),
     ]);
 
     let type: "agree" | "note" | "escalate" = "agree";
     let content = "";
 
     try {
-      const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+      const parsed = JSON.parse(
+        (response.content as string).replace(/```json\n?|\n?```/g, ""),
+      );
       type = parsed.type ?? "agree";
       content = parsed.content ?? "";
     } catch (e) {
@@ -337,7 +399,7 @@ Use "escalate" ONLY if you believe urgency should be raised based on another spe
 
 async function runSynthesis(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   emit({ type: "phase_changed", phase: "synthesis" });
 
@@ -361,22 +423,28 @@ Respond ONLY with valid JSON:
   "bookingNeeded": true | false,
   "disclaimer": "This is AI-generated health navigation guidance. Always consult a qualified healthcare provider."
 }${SCOPE_BOUNDARY}`),
-    new HumanMessage(`Specialist rectified recommendations:\n${rectSummary}\n\nMDT discussion:\n${mdtSummary}\n\nOriginal triage urgency: ${state.triage?.urgency}`),
+    new HumanMessage(
+      `Specialist rectified recommendations:\n${rectSummary}\n\nMDT discussion:\n${mdtSummary}\n\nOriginal triage urgency: ${state.triage?.urgency}`,
+    ),
   ]);
 
   let synthesis = state.synthesis ?? {
-    urgency: state.triage?.urgency ?? "routine" as UrgencyLevel,
+    urgency: state.triage?.urgency ?? ("routine" as UrgencyLevel),
     primaryRecommendation: "Please consult a healthcare provider.",
     nextSteps: [],
     bookingNeeded: true,
-    disclaimer: "This is AI-generated health navigation guidance. Always consult a qualified healthcare provider.",
+    disclaimer:
+      "This is AI-generated health navigation guidance. Always consult a qualified healthcare provider.",
   };
 
   try {
-    const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+    const parsed = JSON.parse(
+      (response.content as string).replace(/```json\n?|\n?```/g, ""),
+    );
     synthesis = {
       urgency: parsed.urgency ?? synthesis.urgency,
-      primaryRecommendation: parsed.primaryRecommendation ?? synthesis.primaryRecommendation,
+      primaryRecommendation:
+        parsed.primaryRecommendation ?? synthesis.primaryRecommendation,
       nextSteps: parsed.nextSteps ?? [],
       bookingNeeded: parsed.bookingNeeded ?? true,
       disclaimer: parsed.disclaimer ?? synthesis.disclaimer,
@@ -392,7 +460,7 @@ Respond ONLY with valid JSON:
 
 async function runGatekeeperReview(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const synthesis = state.synthesis;
   if (!synthesis) return;
@@ -428,44 +496,61 @@ Draft synthesis:
 ${JSON.stringify(synthesis, null, 2)}`),
     ]);
 
-    const parsed = JSON.parse((reviewResponse.content as string).replace(/```json\n?|\n?```/g, ""));
-    const approvedUrgency = (parsed.approvedUrgency ?? synthesis.urgency) as UrgencyLevel;
-    const replacementPrimaryRecommendation = typeof parsed.replacementPrimaryRecommendation === "string"
-      ? parsed.replacementPrimaryRecommendation.trim()
-      : "";
+    const parsed = JSON.parse(
+      (reviewResponse.content as string).replace(/```json\n?|\n?```/g, ""),
+    );
+    const approvedUrgency = (parsed.approvedUrgency ??
+      synthesis.urgency) as UrgencyLevel;
+    const replacementPrimaryRecommendation =
+      typeof parsed.replacementPrimaryRecommendation === "string"
+        ? parsed.replacementPrimaryRecommendation.trim()
+        : "";
     const replacementNextSteps = Array.isArray(parsed.replacementNextSteps)
-      ? parsed.replacementNextSteps.filter((item: unknown): item is string => typeof item === "string" && (item as string).trim().length > 0)
+      ? parsed.replacementNextSteps.filter(
+          (item: unknown): item is string =>
+            typeof item === "string" && (item as string).trim().length > 0,
+        )
       : [];
-    const replacementDisclaimer = typeof parsed.replacementDisclaimer === "string"
-      ? parsed.replacementDisclaimer.trim()
-      : "";
+    const replacementDisclaimer =
+      typeof parsed.replacementDisclaimer === "string"
+        ? parsed.replacementDisclaimer.trim()
+        : "";
 
     const changed = Boolean(
       replacementPrimaryRecommendation ||
       replacementNextSteps.length > 0 ||
       replacementDisclaimer ||
-      approvedUrgency !== synthesis.urgency
+      approvedUrgency !== synthesis.urgency,
     );
 
     state.synthesis = {
       ...synthesis,
       urgency: approvedUrgency,
-      primaryRecommendation: replacementPrimaryRecommendation || synthesis.primaryRecommendation,
-      nextSteps: replacementNextSteps.length > 0 ? replacementNextSteps : synthesis.nextSteps,
+      primaryRecommendation:
+        replacementPrimaryRecommendation || synthesis.primaryRecommendation,
+      nextSteps:
+        replacementNextSteps.length > 0
+          ? replacementNextSteps
+          : synthesis.nextSteps,
       disclaimer: replacementDisclaimer || synthesis.disclaimer,
     };
 
     emit({
       type: "gatekeeper_review",
       decision: parsed.decision === "revise" ? "revise" : "approved",
-      rationale: typeof parsed.rationale === "string" && parsed.rationale.trim().length > 0
-        ? parsed.rationale
-        : "Final review completed by the gatekeeper AI.",
+      rationale:
+        typeof parsed.rationale === "string" &&
+        parsed.rationale.trim().length > 0
+          ? parsed.rationale
+          : "Final review completed by the gatekeeper AI.",
       changed,
       approvedUrgency: state.synthesis.urgency,
     });
   } catch (error) {
-    console.error("[swarm-v2] gatekeeper review failed, using synthesis as-is:", error);
+    console.error(
+      "[swarm-v2] gatekeeper review failed, using synthesis as-is:",
+      error,
+    );
     emit({
       type: "gatekeeper_review",
       decision: "approved",
@@ -523,7 +608,10 @@ function createEventQueue<T>() {
         return Promise.resolve({ value: pending.shift()!, done: false });
       }
       if (finished) {
-        return Promise.resolve({ value: undefined as unknown as T, done: true });
+        return Promise.resolve({
+          value: undefined as unknown as T,
+          done: true,
+        });
       }
       return new Promise<IteratorResult<T>>((resolve) => {
         waiters.push(resolve);
@@ -538,7 +626,7 @@ function createEventQueue<T>() {
 
 export async function* streamSwarm(
   symptoms: string,
-  patientInfo: SwarmState["patientInfo"]
+  patientInfo: SwarmState["patientInfo"],
 ): AsyncGenerator<SwarmEvent> {
   const sessionId = crypto.randomUUID();
   const state = createInitialSwarmState(sessionId, symptoms, patientInfo);
@@ -571,8 +659,8 @@ export async function* streamSwarm(
     const q = createEventQueue<SwarmEvent>();
     const fanOut = Promise.all(
       relevantDoctors.map((role) =>
-        runLeadSwarm(role, state, q.push, ragContext[role] ?? [])
-      )
+        runLeadSwarm(role, state, q.push, ragContext[role] ?? []),
+      ),
     ).then(() => q.done());
 
     for await (const event of q.iterator) {
@@ -604,7 +692,9 @@ export async function* streamSwarm(
   // ── Final Gatekeeper Review (sequential, immediate delivery) ──────────────
   {
     const q = createEventQueue<SwarmEvent>();
-    const gatekeeperPromise = runGatekeeperReview(state, q.push).then(() => q.done());
+    const gatekeeperPromise = runGatekeeperReview(state, q.push).then(() =>
+      q.done(),
+    );
     for await (const event of q.iterator) {
       yield event;
     }

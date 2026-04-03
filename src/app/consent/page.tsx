@@ -49,8 +49,8 @@ export default function ConsentPage() {
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Privacy Consent</h1>
       <p className="text-gray-600 mb-6">
-        Before using Medicrew, please review and consent to the following.
-        This is required under the Australian Privacy Act 1988.
+        Before using Medicrew, please review and consent to the following. This
+        is required under the Australian Privacy Act 1988.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">

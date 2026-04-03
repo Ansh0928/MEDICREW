@@ -7,6 +7,7 @@
 ---
 
 <user_constraints>
+
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
@@ -18,7 +19,7 @@
 - SQLite dev.db remains for local development via `DATABASE_URL=file:./dev.db` in `.env.local` — production uses Supabase.
 - Agent naming format: `"Alex AI — GP"` — all 8 agent names updated. No bare "Dr." prefix.
 - AHPRA disclaimer placement: appended to every Care Summary + static banner on consultation page header. Not per-message.
-- Approved disclaimer text: *"Medicrew provides health information, not medical diagnosis or advice. Always consult a registered healthcare professional for medical concerns. In an emergency, call 000."*
+- Approved disclaimer text: _"Medicrew provides health information, not medical diagnosis or advice. Always consult a registered healthcare professional for medical concerns. In an emergency, call 000."_
 - Agent system prompts: additional rule — never output "you have [condition]", always "this may be consistent with" or "worth discussing with a doctor."
 - Emergency engine location: `/lib/emergency-rules.ts` — pure function `detectEmergency(text: string): EmergencyResult`, called in `/api/consultation` **before** LangGraph.
 - Emergency detection: deterministic keyword/phrase matching only — no LLM.
@@ -43,25 +44,27 @@
 - LLM provider DPA documentation for OpenAI/Groq — pre-launch compliance task.
 - TGA SaMD classification assessment — must be commissioned before public launch.
 - NSW HRIP Act review — post-launch legal review.
-</user_constraints>
+  </user_constraints>
 
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|-----------------|
-| COMP-01 | Every agent response includes AHPRA-compliant scope-of-practice disclaimer | Disclaimer text locked; appended to Care Summary + header banner; agent system prompt rules documented |
-| COMP-02 | AI agents identified as AI — "Alex AI — GP" format, never bare "Dr." | All 8 agent `name` fields identified in `src/agents/definitions/`; naming pattern confirmed AHPRA-safe |
-| COMP-03 | Emergency signals trigger deterministic keyword detection before LLM, with mandatory 000 referral | Pure function pattern at `/lib/emergency-rules.ts`; keywords list in architecture section |
-| COMP-04 | Onboarding includes explicit consent for data collection, AI guidance, overseas LLM processing | PatientConsent table design + three-checkbox consent page; consent gate pattern |
-| COMP-05 | Patient can export data (APP 12) and request account deletion with full cascade | GET /api/patient/export + DELETE /api/patient soft-delete with 30-day grace; APP 12 obligations confirmed |
-| COMP-06 | Supabase locked to ap-southeast-2 (Sydney) for Privacy Act APP 8 compliance | Region selection is project-creation time; non-reversible; confirmed as hard gate |
-| INFRA-01 | SQLite replaced with Supabase PostgreSQL — all Prisma models migrated | Prisma datasource config, DATABASE_URL + DIRECT_URL pattern, migration commands documented |
-| INFRA-02 | Supabase RLS enabled — patients can only read/write their own records | RLS SQL patterns documented; custom-auth workaround via Prisma + service role confirmed |
-| INFRA-03 | @langchain/langgraph-checkpoint-postgres installed as consultation thread checkpointer | Package 1.0.1 confirmed; fromConnString + setup() pattern; thread_id convention documented |
-| INFRA-04 | Inngest configured for durable background job execution | Package 4.1.0 confirmed; Next.js App Router serve handler pattern documented |
+| ID       | Description                                                                                       | Research Support                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| COMP-01  | Every agent response includes AHPRA-compliant scope-of-practice disclaimer                        | Disclaimer text locked; appended to Care Summary + header banner; agent system prompt rules documented    |
+| COMP-02  | AI agents identified as AI — "Alex AI — GP" format, never bare "Dr."                              | All 8 agent `name` fields identified in `src/agents/definitions/`; naming pattern confirmed AHPRA-safe    |
+| COMP-03  | Emergency signals trigger deterministic keyword detection before LLM, with mandatory 000 referral | Pure function pattern at `/lib/emergency-rules.ts`; keywords list in architecture section                 |
+| COMP-04  | Onboarding includes explicit consent for data collection, AI guidance, overseas LLM processing    | PatientConsent table design + three-checkbox consent page; consent gate pattern                           |
+| COMP-05  | Patient can export data (APP 12) and request account deletion with full cascade                   | GET /api/patient/export + DELETE /api/patient soft-delete with 30-day grace; APP 12 obligations confirmed |
+| COMP-06  | Supabase locked to ap-southeast-2 (Sydney) for Privacy Act APP 8 compliance                       | Region selection is project-creation time; non-reversible; confirmed as hard gate                         |
+| INFRA-01 | SQLite replaced with Supabase PostgreSQL — all Prisma models migrated                             | Prisma datasource config, DATABASE_URL + DIRECT_URL pattern, migration commands documented                |
+| INFRA-02 | Supabase RLS enabled — patients can only read/write their own records                             | RLS SQL patterns documented; custom-auth workaround via Prisma + service role confirmed                   |
+| INFRA-03 | @langchain/langgraph-checkpoint-postgres installed as consultation thread checkpointer            | Package 1.0.1 confirmed; fromConnString + setup() pattern; thread_id convention documented                |
+| INFRA-04 | Inngest configured for durable background job execution                                           | Package 4.1.0 confirmed; Next.js App Router serve handler pattern documented                              |
+
 </phase_requirements>
 
 ---
@@ -82,35 +85,37 @@ The AHPRA compliance work (renaming 8 agents, adding system prompt rules, append
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `@supabase/supabase-js` | 2.100.0 | Supabase client (JS) for Realtime + Storage; not needed for Prisma queries | Official client; needed for RLS-aware client-side calls and Realtime in later phases |
-| `prisma` | 7.5.0 | Schema management + migrations + Prisma Client | Already in codebase; PostgreSQL provider swap is a datasource change only |
-| `@prisma/client` | 7.5.0 | Database access | Already used everywhere |
-| `@langchain/langgraph-checkpoint-postgres` | 1.0.1 | PostgreSQL-backed consultation thread checkpointing | Official LangGraph checkpoint adapter; compatible with existing @langchain/langgraph 1.1.2 |
-| `inngest` | 4.1.0 | Durable background job execution | Official SDK; Next.js App Router native; zero-infra |
+| Library                                    | Version | Purpose                                                                    | Why Standard                                                                               |
+| ------------------------------------------ | ------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `@supabase/supabase-js`                    | 2.100.0 | Supabase client (JS) for Realtime + Storage; not needed for Prisma queries | Official client; needed for RLS-aware client-side calls and Realtime in later phases       |
+| `prisma`                                   | 7.5.0   | Schema management + migrations + Prisma Client                             | Already in codebase; PostgreSQL provider swap is a datasource change only                  |
+| `@prisma/client`                           | 7.5.0   | Database access                                                            | Already used everywhere                                                                    |
+| `@langchain/langgraph-checkpoint-postgres` | 1.0.1   | PostgreSQL-backed consultation thread checkpointing                        | Official LangGraph checkpoint adapter; compatible with existing @langchain/langgraph 1.1.2 |
+| `inngest`                                  | 4.1.0   | Durable background job execution                                           | Official SDK; Next.js App Router native; zero-infra                                        |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
+| Library              | Version  | Purpose                                              | When to Use                                                |
+| -------------------- | -------- | ---------------------------------------------------- | ---------------------------------------------------------- |
 | `pg` (node-postgres) | peer dep | Required by @langchain/langgraph-checkpoint-postgres | Install only if not already pulled in as a peer dependency |
-| `@types/pg` | peer dep | TypeScript types for pg | Install alongside pg |
+| `@types/pg`          | peer dep | TypeScript types for pg                              | Install alongside pg                                       |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| Inngest | BullMQ + Redis | Inngest is zero-infra (no Redis), has a Dev Server UI, and Supabase doesn't include Redis |
-| pg_cron (migration SQL) | Inngest scheduled function | pg_cron runs inside Postgres — simpler for a 1-liner DELETE; Inngest adds complexity for a cleanup task |
-| Prisma soft delete via nullable field | `prisma-soft-delete-middleware` | Manual `deletedAt` field is simpler and avoids a dependency for a single model |
+| Instead of                            | Could Use                       | Tradeoff                                                                                                |
+| ------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Inngest                               | BullMQ + Redis                  | Inngest is zero-infra (no Redis), has a Dev Server UI, and Supabase doesn't include Redis               |
+| pg_cron (migration SQL)               | Inngest scheduled function      | pg_cron runs inside Postgres — simpler for a 1-liner DELETE; Inngest adds complexity for a cleanup task |
+| Prisma soft delete via nullable field | `prisma-soft-delete-middleware` | Manual `deletedAt` field is simpler and avoids a dependency for a single model                          |
 
 **Installation:**
+
 ```bash
 bun add @supabase/supabase-js @langchain/langgraph-checkpoint-postgres inngest pg @types/pg
 ```
 
 **Version verification (confirmed 2026-03-26):**
+
 - `@supabase/supabase-js`: 2.100.0 (published 2026-03-23)
 - `prisma`: 7.5.0 (published 2026-03-25)
 - `@langchain/langgraph-checkpoint-postgres`: 1.0.1 (published 2026-02-19)
@@ -187,6 +192,7 @@ DATABASE_URL="file:./dev.db"
 **When to use:** All server-side Prisma operations in Phase 1.
 
 **Phase 1 RLS strategy:**
+
 - Enable RLS on all tables (required by INFRA-02)
 - Create RLS policies using `auth.uid()` patterns (ready for Phase 2 Supabase Auth)
 - All Phase 1 server-side writes go through Prisma with the direct Postgres role → bypasses RLS by design
@@ -209,6 +215,7 @@ create policy "patient_self_read"
 ```
 
 **Notification table (Claude's discretion):** Recommend two policies:
+
 - `patient_read_own`: `using (patient_id = auth.uid()::text)` for SELECT
 - `service_insert`: granted to service_role for INSERT (agent writes)
 
@@ -229,7 +236,7 @@ async function getCheckpointer(): Promise<PostgresSaver> {
   if (!checkpointer) {
     checkpointer = PostgresSaver.fromConnString(
       process.env.DIRECT_URL!, // Use direct URL — not pgBouncer pooled
-      { schema: "langgraph" }   // Use dedicated schema to avoid table name conflicts
+      { schema: "langgraph" }, // Use dedicated schema to avoid table name conflicts
     );
     await checkpointer.setup(); // Idempotent — safe to call multiple times
   }
@@ -247,7 +254,9 @@ export async function createConsultationGraph(consultationId: string) {
 }
 
 // Invoke with thread config
-const config = { configurable: { thread_id: `consultation-${consultationId}` } };
+const config = {
+  configurable: { thread_id: `consultation-${consultationId}` },
+};
 await graph.invoke(initialState, config);
 ```
 
@@ -263,7 +272,14 @@ await graph.invoke(initialState, config);
 // src/lib/emergency-rules.ts
 export interface EmergencyResult {
   isEmergency: boolean;
-  category: "cardiac" | "stroke" | "suicide" | "respiratory" | "bleeding" | "overdose" | null;
+  category:
+    | "cardiac"
+    | "stroke"
+    | "suicide"
+    | "respiratory"
+    | "bleeding"
+    | "overdose"
+    | null;
   response: {
     urgency: "emergency";
     message: string;
@@ -272,11 +288,25 @@ export interface EmergencyResult {
   } | null;
 }
 
-const EMERGENCY_PATTERNS: Array<{ regex: RegExp; category: EmergencyResult["category"]; addLifeline?: boolean }> = [
+const EMERGENCY_PATTERNS: Array<{
+  regex: RegExp;
+  category: EmergencyResult["category"];
+  addLifeline?: boolean;
+}> = [
   { regex: /chest pain|heart attack|myocardial/i, category: "cardiac" },
-  { regex: /stroke|FAST|face drooping|arm weak|speech slurred/i, category: "stroke" },
-  { regex: /suicid|want to (kill|harm) (my|them)self|self.harm/i, category: "suicide", addLifeline: true },
-  { regex: /can't breathe|difficulty breathing|choking/i, category: "respiratory" },
+  {
+    regex: /stroke|FAST|face drooping|arm weak|speech slurred/i,
+    category: "stroke",
+  },
+  {
+    regex: /suicid|want to (kill|harm) (my|them)self|self.harm/i,
+    category: "suicide",
+    addLifeline: true,
+  },
+  {
+    regex: /can't breathe|difficulty breathing|choking/i,
+    category: "respiratory",
+  },
   { regex: /severe bleeding|uncontrolled bleeding/i, category: "bleeding" },
   { regex: /overdose|took too many|poisoning/i, category: "overdose" },
   { regex: /unconscious|not breathing|no pulse/i, category: "cardiac" },
@@ -291,9 +321,12 @@ export function detectEmergency(text: string): EmergencyResult {
         category,
         response: {
           urgency: "emergency",
-          message: "This sounds like a medical emergency. Please call 000 immediately or go to your nearest emergency department.",
+          message:
+            "This sounds like a medical emergency. Please call 000 immediately or go to your nearest emergency department.",
           callToAction: "000",
-          additionalLine: addLifeline ? "Lifeline: 13 11 14 (available 24/7)" : undefined,
+          additionalLine: addLifeline
+            ? "Lifeline: 13 11 14 (available 24/7)"
+            : undefined,
         },
       };
     }
@@ -327,7 +360,7 @@ const hasConsent = await checkConsent(patientId);
 if (!hasConsent) {
   return NextResponse.json(
     { error: "Consent required", redirectTo: "/consent" },
-    { status: 403 }
+    { status: 403 },
   );
 }
 
@@ -410,12 +443,12 @@ select cron.schedule(
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Consultation thread checkpointing | Custom checkpoint table + ORM logic | `@langchain/langgraph-checkpoint-postgres` | Handles concurrent writes, list/get/put semantics, thread cleanup; correct schema setup |
-| Background job durability | `setInterval` or Next.js cron routes | `inngest` | Handles retries, fan-out, scheduling, observability, and works with Vercel's serverless limits |
-| Database scheduling | Application-layer cron job | `pg_cron` (Supabase extension) | Runs in Postgres with zero network latency; survives application restarts |
-| Connection pooling | Manual pool management | Supabase pgBouncer + Prisma `pgbouncer=true` param | Supabase manages pgBouncer; Prisma knows to avoid prepared statements |
+| Problem                           | Don't Build                          | Use Instead                                        | Why                                                                                            |
+| --------------------------------- | ------------------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Consultation thread checkpointing | Custom checkpoint table + ORM logic  | `@langchain/langgraph-checkpoint-postgres`         | Handles concurrent writes, list/get/put semantics, thread cleanup; correct schema setup        |
+| Background job durability         | `setInterval` or Next.js cron routes | `inngest`                                          | Handles retries, fan-out, scheduling, observability, and works with Vercel's serverless limits |
+| Database scheduling               | Application-layer cron job           | `pg_cron` (Supabase extension)                     | Runs in Postgres with zero network latency; survives application restarts                      |
+| Connection pooling                | Manual pool management               | Supabase pgBouncer + Prisma `pgbouncer=true` param | Supabase manages pgBouncer; Prisma knows to avoid prepared statements                          |
 
 **Key insight:** The hardest problems in this phase (durable jobs, checkpoint persistence, connection pooling) are already solved by the chosen stack. Resist any impulse to hand-roll solutions because "it seems simpler."
 
@@ -450,8 +483,11 @@ select cron.schedule(
 **Why it happens:** Module-level singletons are re-initialised on every hot reload.
 
 **How to avoid:** Apply the same `globalThis` singleton pattern already used in `src/lib/prisma.ts`:
+
 ```typescript
-const globalForCheckpointer = globalThis as unknown as { checkpointer?: PostgresSaver };
+const globalForCheckpointer = globalThis as unknown as {
+  checkpointer?: PostgresSaver;
+};
 ```
 
 **Warning signs:** PostgreSQL "too many connections" error during local development.
@@ -527,6 +563,7 @@ export const gpAgent: AgentDefinition = {
 ```
 
 All 8 files to update:
+
 - `triage.ts` — e.g., "Triage AI"
 - `gp.ts` — "Alex AI — GP"
 - `cardiology.ts` — e.g., "Sarah AI — Cardiology"
@@ -535,7 +572,7 @@ All 8 files to update:
 - `orthopedic.ts` — e.g., "Ryan AI — Orthopedics"
 - `gastro.ts` — e.g., "Sam AI — Gastroenterology"
 - `physiotherapy.ts` — e.g., "Taylor AI — Physiotherapy"
-Plus `agentRegistry.orchestrator.name` in `index.ts`.
+  Plus `agentRegistry.orchestrator.name` in `index.ts`.
 
 ### AHPRA System Prompt Addition (per agent)
 
@@ -554,7 +591,8 @@ const AHPRA_SYSTEM_PROMPT_SUFFIX = `
 
 ```typescript
 // In recommendationNode (orchestrator.ts) — append to summary output
-const AHPRA_DISCLAIMER = "Medicrew provides health information, not medical diagnosis or advice. Always consult a registered healthcare professional for medical concerns. In an emergency, call 000.";
+const AHPRA_DISCLAIMER =
+  "Medicrew provides health information, not medical diagnosis or advice. Always consult a registered healthcare professional for medical concerns. In an emergency, call 000.";
 
 // Append to recommendation object:
 recommendation = {
@@ -570,7 +608,8 @@ recommendation = {
 export async function GET(request: NextRequest) {
   // Auth check: extract patientId from session
   const patientId = getPatientIdFromSession(request); // existing auth pattern
-  if (!patientId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!patientId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [patient, consultations, notifications, consents] = await Promise.all([
     prisma.patient.findUnique({ where: { id: patientId } }),
@@ -587,14 +626,15 @@ export async function GET(request: NextRequest) {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Prisma with single `DATABASE_URL` | `DATABASE_URL` (pooled) + `DIRECT_URL` (direct) | Prisma 5.x + Supabase Supavisor | Required for pgBouncer compatibility; DDL fails without it |
-| LangGraph checkpoint stored in memory | PostgresSaver with `thread_id` | `@langchain/langgraph-checkpoint-postgres` 1.0.x | Persistence across requests; exit-mode reduces write volume |
-| Inngest with `inngest.serve()` (old) | `serve()` from `inngest/next` with explicit GET/POST/PUT | Inngest v3+ | App Router requires named exports |
-| Bare "Dr." AI persona names | "Alex AI — GP" format | AHPRA 2024 AI in Healthcare guidance | Required for advertising compliance |
+| Old Approach                          | Current Approach                                         | When Changed                                     | Impact                                                      |
+| ------------------------------------- | -------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
+| Prisma with single `DATABASE_URL`     | `DATABASE_URL` (pooled) + `DIRECT_URL` (direct)          | Prisma 5.x + Supabase Supavisor                  | Required for pgBouncer compatibility; DDL fails without it  |
+| LangGraph checkpoint stored in memory | PostgresSaver with `thread_id`                           | `@langchain/langgraph-checkpoint-postgres` 1.0.x | Persistence across requests; exit-mode reduces write volume |
+| Inngest with `inngest.serve()` (old)  | `serve()` from `inngest/next` with explicit GET/POST/PUT | Inngest v3+                                      | App Router requires named exports                           |
+| Bare "Dr." AI persona names           | "Alex AI — GP" format                                    | AHPRA 2024 AI in Healthcare guidance             | Required for advertising compliance                         |
 
 **Deprecated/outdated:**
+
 - `@prisma/adapter-better-sqlite3` (in package.json): Not needed once provider switches to PostgreSQL. Remove from dependencies.
 - `better-sqlite3` (in package.json): Not needed in production after migration. Keep for local dev SQLite path if retaining SQLite locally; otherwise remove.
 
@@ -623,31 +663,31 @@ export async function GET(request: NextRequest) {
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | None detected — Wave 0 must install |
-| Config file | None — see Wave 0 |
-| Quick run command | `bun test` (after vitest setup) |
-| Full suite command | `bun test --run` |
+| Property           | Value                               |
+| ------------------ | ----------------------------------- |
+| Framework          | None detected — Wave 0 must install |
+| Config file        | None — see Wave 0                   |
+| Quick run command  | `bun test` (after vitest setup)     |
+| Full suite command | `bun test --run`                    |
 
 No test files or test framework configuration were found in the project. Wave 0 must establish the testing foundation.
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| COMP-01 | Care Summary response includes disclaimer text | unit | `bun test src/__tests__/compliance/disclaimer.test.ts` | Wave 0 |
-| COMP-02 | All 8 agent name fields use "AI" format, no bare "Dr." | unit | `bun test src/__tests__/compliance/agent-names.test.ts` | Wave 0 |
-| COMP-03 | detectEmergency() returns emergency result for each keyword category | unit | `bun test src/__tests__/lib/emergency-rules.test.ts` | Wave 0 |
-| COMP-03 | detectEmergency() returns no emergency for normal symptom text | unit | `bun test src/__tests__/lib/emergency-rules.test.ts` | Wave 0 |
-| COMP-04 | POST /api/consult without consent returns 403 | integration | `bun test src/__tests__/api/consult-consent-gate.test.ts` | Wave 0 |
-| COMP-05 | GET /api/patient/export returns all 4 data types | integration | `bun test src/__tests__/api/patient-export.test.ts` | Wave 0 |
-| COMP-05 | DELETE /api/patient anonymises email and sets deletedAt | integration | `bun test src/__tests__/api/patient-delete.test.ts` | Wave 0 |
-| COMP-06 | Manual verification only | manual | N/A — Supabase Dashboard check | N/A |
-| INFRA-01 | Prisma can connect and query Patient table on PostgreSQL | smoke | `bun test src/__tests__/infra/db-connection.test.ts` | Wave 0 |
-| INFRA-02 | RLS policies exist on Patient, Consultation, Notification tables | smoke | `bun test src/__tests__/infra/rls-policies.test.ts` | Wave 0 |
-| INFRA-03 | PostgresSaver setup() runs without error | smoke | `bun test src/__tests__/infra/checkpointer.test.ts` | Wave 0 |
-| INFRA-04 | Inngest serve handler responds to GET with function list | smoke | `bun test src/__tests__/infra/inngest-handler.test.ts` | Wave 0 |
+| Req ID   | Behavior                                                             | Test Type   | Automated Command                                         | File Exists? |
+| -------- | -------------------------------------------------------------------- | ----------- | --------------------------------------------------------- | ------------ |
+| COMP-01  | Care Summary response includes disclaimer text                       | unit        | `bun test src/__tests__/compliance/disclaimer.test.ts`    | Wave 0       |
+| COMP-02  | All 8 agent name fields use "AI" format, no bare "Dr."               | unit        | `bun test src/__tests__/compliance/agent-names.test.ts`   | Wave 0       |
+| COMP-03  | detectEmergency() returns emergency result for each keyword category | unit        | `bun test src/__tests__/lib/emergency-rules.test.ts`      | Wave 0       |
+| COMP-03  | detectEmergency() returns no emergency for normal symptom text       | unit        | `bun test src/__tests__/lib/emergency-rules.test.ts`      | Wave 0       |
+| COMP-04  | POST /api/consult without consent returns 403                        | integration | `bun test src/__tests__/api/consult-consent-gate.test.ts` | Wave 0       |
+| COMP-05  | GET /api/patient/export returns all 4 data types                     | integration | `bun test src/__tests__/api/patient-export.test.ts`       | Wave 0       |
+| COMP-05  | DELETE /api/patient anonymises email and sets deletedAt              | integration | `bun test src/__tests__/api/patient-delete.test.ts`       | Wave 0       |
+| COMP-06  | Manual verification only                                             | manual      | N/A — Supabase Dashboard check                            | N/A          |
+| INFRA-01 | Prisma can connect and query Patient table on PostgreSQL             | smoke       | `bun test src/__tests__/infra/db-connection.test.ts`      | Wave 0       |
+| INFRA-02 | RLS policies exist on Patient, Consultation, Notification tables     | smoke       | `bun test src/__tests__/infra/rls-policies.test.ts`       | Wave 0       |
+| INFRA-03 | PostgresSaver setup() runs without error                             | smoke       | `bun test src/__tests__/infra/checkpointer.test.ts`       | Wave 0       |
+| INFRA-04 | Inngest serve handler responds to GET with function list             | smoke       | `bun test src/__tests__/infra/inngest-handler.test.ts`    | Wave 0       |
 
 ### Sampling Rate
 
@@ -675,6 +715,7 @@ No test files or test framework configuration were found in the project. Wave 0 
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - Supabase official docs: [Prisma + Supabase setup](https://supabase.com/docs/guides/database/prisma) — DATABASE_URL/DIRECT_URL pattern, migration commands
 - LangGraph JS API reference: [PostgresSaver](https://langchain-ai.github.io/langgraphjs/reference/classes/langgraph-checkpoint-postgres.PostgresSaver.html) — fromConnString, setup(), thread_id config
 - Inngest official docs: [Next.js Quick Start](https://www.inngest.com/docs/getting-started/nextjs-quick-start) — App Router serve handler pattern
@@ -683,11 +724,13 @@ No test files or test framework configuration were found in the project. Wave 0 
 - npm registry (2026-03-26): `@supabase/supabase-js@2.100.0`, `prisma@7.5.0`, `@langchain/langgraph-checkpoint-postgres@1.0.1`, `inngest@4.1.0`
 
 ### Secondary (MEDIUM confidence)
+
 - AHPRA official AI guidance: [ahpra.gov.au AI in healthcare](https://www.ahpra.gov.au/Resources/Artificial-Intelligence-in-healthcare.aspx) — professional obligations, disclosure requirements, verified August 2024 publication
 - OAIC: [APP 12 Access to personal information](https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-12-app-12-access-to-personal-information) — data export obligations confirmed; healthcare providers must respond to access requests
 - Prisma docs: [PgBouncer configuration](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/pgbouncer) — `?pgbouncer=true` query param, directUrl for migrations
 
 ### Tertiary (LOW confidence)
+
 - WebSearch: AHPRA "AI" vs "Dr." naming convention specifics — cross-referenced with CONTEXT.md locked decision; confirmed pattern is AHPRA-safe based on guidance interpretation
 - WebSearch: PostgresSaver + Next.js hot reload connection leak — community-reported pattern, not in official docs; LOW confidence but follows same globalThis pattern already in codebase
 
@@ -696,6 +739,7 @@ No test files or test framework configuration were found in the project. Wave 0 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — all versions verified against npm registry 2026-03-26
 - Architecture: HIGH — Prisma/Supabase patterns from official docs; PostgresSaver from official API reference; Inngest from official docs
 - Pitfalls: HIGH for infra pitfalls (pgBouncer, auth.uid()); MEDIUM for PostgresSaver hot reload (community pattern)

@@ -4,7 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, CheckCircle, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+} from "lucide-react";
 
 interface JournalEntry {
   id: string;
@@ -20,32 +26,59 @@ interface TrendPoint {
 
 function SeverityTrendChart({ points }: { points: TrendPoint[] }) {
   if (points.length < 2) return null;
-  const W = 320, H = 80, pad = 8;
-  const minSev = 1, maxSev = 5;
-  const xs = points.map((_, i) => pad + (i / (points.length - 1)) * (W - pad * 2));
-  const ys = points.map((p) => pad + ((maxSev - p.severity) / (maxSev - minSev)) * (H - pad * 2));
-  const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  const W = 320,
+    H = 80,
+    pad = 8;
+  const minSev = 1,
+    maxSev = 5;
+  const xs = points.map(
+    (_, i) => pad + (i / (points.length - 1)) * (W - pad * 2),
+  );
+  const ys = points.map(
+    (p) => pad + ((maxSev - p.severity) / (maxSev - minSev)) * (H - pad * 2),
+  );
+  const pathD = xs
+    .map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`)
+    .join(" ");
   const areaD = `${pathD} L${xs[xs.length - 1].toFixed(1)},${H - pad} L${xs[0].toFixed(1)},${H - pad} Z`;
 
   // Trend direction from first half avg vs second half avg
   const mid = Math.floor(points.length / 2);
-  const firstAvg = points.slice(0, mid).reduce((s, p) => s + p.severity, 0) / mid;
-  const lastAvg = points.slice(mid).reduce((s, p) => s + p.severity, 0) / (points.length - mid);
+  const firstAvg =
+    points.slice(0, mid).reduce((s, p) => s + p.severity, 0) / mid;
+  const lastAvg =
+    points.slice(mid).reduce((s, p) => s + p.severity, 0) /
+    (points.length - mid);
   const diff = lastAvg - firstAvg;
-  const TrendIcon = diff < -0.3 ? TrendingDown : diff > 0.3 ? TrendingUp : Minus;
-  const trendColor = diff < -0.3 ? "text-green-600" : diff > 0.3 ? "text-red-500" : "text-yellow-500";
-  const trendLabel = diff < -0.3 ? "Improving" : diff > 0.3 ? "Worsening" : "Stable";
+  const TrendIcon =
+    diff < -0.3 ? TrendingDown : diff > 0.3 ? TrendingUp : Minus;
+  const trendColor =
+    diff < -0.3
+      ? "text-green-600"
+      : diff > 0.3
+        ? "text-red-500"
+        : "text-yellow-500";
+  const trendLabel =
+    diff < -0.3 ? "Improving" : diff > 0.3 ? "Worsening" : "Stable";
 
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-muted-foreground">Last {points.length} entries</span>
-        <span className={`flex items-center gap-1 text-xs font-medium ${trendColor}`}>
+        <span className="text-xs text-muted-foreground">
+          Last {points.length} entries
+        </span>
+        <span
+          className={`flex items-center gap-1 text-xs font-medium ${trendColor}`}
+        >
           <TrendIcon className="w-3 h-3" />
           {trendLabel}
         </span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-16" preserveAspectRatio="none">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full h-16"
+        preserveAspectRatio="none"
+      >
         <defs>
           <linearGradient id="sev-grad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
@@ -53,16 +86,41 @@ function SeverityTrendChart({ points }: { points: TrendPoint[] }) {
           </linearGradient>
         </defs>
         <path d={areaD} fill="url(#sev-grad)" />
-        <path d={pathD} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d={pathD}
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         {points.map((p, i) => (
-          <circle key={i} cx={xs[i]} cy={ys[i]} r="3" fill="white" stroke="#3b82f6" strokeWidth="1.5">
+          <circle
+            key={i}
+            cx={xs[i]}
+            cy={ys[i]}
+            r="3"
+            fill="white"
+            stroke="#3b82f6"
+            strokeWidth="1.5"
+          >
             <title>{`${new Date(p.date).toLocaleDateString("en-AU")} — Severity ${p.severity}`}</title>
           </circle>
         ))}
       </svg>
       <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
-        <span>{new Date(points[0].date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</span>
-        <span>{new Date(points[points.length - 1].date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</span>
+        <span>
+          {new Date(points[0].date).toLocaleDateString("en-AU", {
+            day: "numeric",
+            month: "short",
+          })}
+        </span>
+        <span>
+          {new Date(points[points.length - 1].date).toLocaleDateString(
+            "en-AU",
+            { day: "numeric", month: "short" },
+          )}
+        </span>
       </div>
     </div>
   );
@@ -106,7 +164,7 @@ export function SymptomJournalWidget() {
         setEntries(arr.slice(0, 7));
       }
       if (trendsRes.ok) {
-        const trendData = await trendsRes.json() as TrendPoint[];
+        const trendData = (await trendsRes.json()) as TrendPoint[];
         if (Array.isArray(trendData) && trendData.length > 1) {
           setTrendPoints(trendData.slice(-30));
         }
@@ -169,15 +227,20 @@ export function SymptomJournalWidget() {
             <div className="text-sm text-muted-foreground py-1">
               Today&apos;s check-in:{" "}
               <span className="font-medium text-foreground">
-                {SEVERITY_LABELS[todayEntry.severity]?.label ?? `${todayEntry.severity}/5`}
+                {SEVERITY_LABELS[todayEntry.severity]?.label ??
+                  `${todayEntry.severity}/5`}
               </span>
               {todayEntry.notes && (
-                <span className="block text-xs mt-1 italic">&ldquo;{todayEntry.notes}&rdquo;</span>
+                <span className="block text-xs mt-1 italic">
+                  &ldquo;{todayEntry.notes}&rdquo;
+                </span>
               )}
             </div>
           ) : (
             <>
-              <p className="text-sm text-muted-foreground mb-4">How are you feeling today?</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                How are you feeling today?
+              </p>
 
               {/* Severity buttons */}
               <div className="grid grid-cols-5 gap-2 mb-4">
@@ -292,7 +355,9 @@ export function SymptomJournalWidget() {
                         {e.notes}
                       </span>
                     )}
-                    <span className="text-muted-foreground ml-auto">{formatRelative(e.createdAt)}</span>
+                    <span className="text-muted-foreground ml-auto">
+                      {formatRelative(e.createdAt)}
+                    </span>
                   </li>
                 ))}
               </ul>

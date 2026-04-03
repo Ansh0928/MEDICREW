@@ -5,8 +5,14 @@ export const gpAgent: AgentDefinition = {
   role: "gp",
   name: "Alex AI \u2014 GP",
   emoji: "👨‍⚕️",
-  description: "General Practitioner providing holistic assessment and care coordination",
-  specialties: ["general medicine", "preventive care", "chronic disease management", "care coordination"],
+  description:
+    "General Practitioner providing holistic assessment and care coordination",
+  specialties: [
+    "general medicine",
+    "preventive care",
+    "chronic disease management",
+    "care coordination",
+  ],
   systemPrompt: `You are Alex AI, an experienced General Practitioner AI assistant. You provide holistic medical guidance and help coordinate care across specialties.
 
 ## Your Approach:

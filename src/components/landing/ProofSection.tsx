@@ -68,23 +68,37 @@ export function ProofSection() {
               >
                 {s.value}
               </p>
-              <p className="mt-1 text-xs text-slate-500 leading-snug">{s.label}</p>
+              <p className="mt-1 text-xs text-slate-500 leading-snug">
+                {s.label}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Proof in practice */}
-      <section id="proof" className="py-24 px-6" style={{ background: "#F8FBFF" }}>
+      <section
+        id="proof"
+        className="py-24 px-6"
+        style={{ background: "#F8FBFF" }}
+      >
         <LandingSectionViewTracker sectionId="proof" surface="proof_section" />
         <div className="max-w-6xl mx-auto">
           <div className="mb-12 max-w-2xl">
-            <p className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-4" style={{ color: "#637288" }}>
+            <p
+              className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-4"
+              style={{ color: "#637288" }}
+            >
               Proof in Practice
             </p>
-            <h2 className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight" style={{ color: "#12181B", letterSpacing: "-1px" }}>
+            <h2
+              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight"
+              style={{ color: "#12181B", letterSpacing: "-1px" }}
+            >
               What users actually get{" "}
-              <span className="italic" style={{ color: "#118CFD" }}>after a consult.</span>
+              <span className="italic" style={{ color: "#118CFD" }}>
+                after a consult.
+              </span>
             </h2>
           </div>
 
@@ -93,18 +107,31 @@ export function ProofSection() {
               <article
                 key={item.title}
                 className="rounded-2xl border p-6 transition-all duration-300 hover:shadow-md"
-                style={{ background: "rgba(255,255,255,0.9)", borderColor: "#DCEAFE" }}
+                style={{
+                  background: "rgba(255,255,255,0.9)",
+                  borderColor: "#DCEAFE",
+                }}
               >
                 <span
                   className="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-[family-name:var(--font-mono)] tracking-wide"
-                  style={{ color: "#0F4C81", borderColor: "#BFDBFE", background: "#EFF6FF" }}
+                  style={{
+                    color: "#0F4C81",
+                    borderColor: "#BFDBFE",
+                    background: "#EFF6FF",
+                  }}
                 >
                   {item.badge}
                 </span>
-                <h3 className="mt-4 text-lg font-medium" style={{ color: "#12181B" }}>
+                <h3
+                  className="mt-4 text-lg font-medium"
+                  style={{ color: "#12181B" }}
+                >
                   {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed" style={{ color: "#637288" }}>
+                <p
+                  className="mt-2 text-sm leading-relaxed"
+                  style={{ color: "#637288" }}
+                >
                   {item.detail}
                 </p>
               </article>
@@ -113,7 +140,10 @@ export function ProofSection() {
 
           {/* Testimonials */}
           <div className="mb-4">
-            <p className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-8" style={{ color: "#637288" }}>
+            <p
+              className="font-[family-name:var(--font-mono)] text-xs tracking-widest uppercase mb-8"
+              style={{ color: "#637288" }}
+            >
               Beta user feedback
             </p>
           </div>
@@ -122,9 +152,15 @@ export function ProofSection() {
               <div
                 key={t.name}
                 className="rounded-2xl p-6"
-                style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #DCEAFE" }}
+                style={{
+                  background: "rgba(255,255,255,0.85)",
+                  border: "1px solid #DCEAFE",
+                }}
               >
-                <p className="text-sm leading-relaxed mb-5" style={{ color: "#374151" }}>
+                <p
+                  className="text-sm leading-relaxed mb-5"
+                  style={{ color: "#374151" }}
+                >
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
@@ -135,8 +171,15 @@ export function ProofSection() {
                     {t.initials}
                   </div>
                   <div>
-                    <p className="text-sm font-medium" style={{ color: "#12181B" }}>{t.name}</p>
-                    <p className="text-xs" style={{ color: "#637288" }}>{t.location}</p>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: "#12181B" }}
+                    >
+                      {t.name}
+                    </p>
+                    <p className="text-xs" style={{ color: "#637288" }}>
+                      {t.location}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -144,7 +187,9 @@ export function ProofSection() {
           </div>
 
           <p className="mt-6 text-xs text-center" style={{ color: "#9CA3AF" }}>
-            Testimonials from beta program participants. MediCrew is AI-assisted, not AI-decided. All clinical decisions remain with your treating practitioner.
+            Testimonials from beta program participants. MediCrew is
+            AI-assisted, not AI-decided. All clinical decisions remain with your
+            treating practitioner.
           </p>
         </div>
       </section>

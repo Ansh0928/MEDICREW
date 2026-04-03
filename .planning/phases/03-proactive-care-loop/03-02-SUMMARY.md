@@ -19,7 +19,11 @@ affects: [03-03, 03-04]
 
 tech-stack:
   added: []
-  patterns: ["Pure escalation rules function (no DB side effects)", "Respond route owns all DB writes"]
+  patterns:
+    [
+      "Pure escalation rules function (no DB side effects)",
+      "Respond route owns all DB writes",
+    ]
 
 key-files:
   created:

@@ -111,6 +111,7 @@ bun run validate:push:strict
 The repository installs a local `pre-push` hook on dependency install. Pushes are blocked if `validate:push` fails.
 
 This tests:
+
 - **Triage Accuracy**: Urgency level classification
 - **Safety Detection**: Red flag and emergency identification
 - **Specialist Routing**: Correct specialist recommendations
@@ -119,11 +120,11 @@ This tests:
 
 The evaluation framework measures:
 
-| Metric | Description |
-|--------|-------------|
-| Triage Accuracy | Does urgency match expected level? |
-| Safety Score | Are red flags detected and escalated? |
-| Routing Accuracy | Is the right specialist recommended? |
+| Metric           | Description                           |
+| ---------------- | ------------------------------------- |
+| Triage Accuracy  | Does urgency match expected level?    |
+| Safety Score     | Are red flags detected and escalated? |
+| Routing Accuracy | Is the right specialist recommended?  |
 
 ## ⚠️ Disclaimer
 

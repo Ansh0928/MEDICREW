@@ -29,9 +29,13 @@ export default async function Home({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const rawQueryVariant = Array.isArray(params?.lpv) ? params?.lpv[0] : params?.lpv;
+  const rawQueryVariant = Array.isArray(params?.lpv)
+    ? params?.lpv[0]
+    : params?.lpv;
   const cookieStore = await cookies();
-  const landingVariantFromCookie = resolveLandingVariant(cookieStore.get(LANDING_VARIANT_COOKIE)?.value);
+  const landingVariantFromCookie = resolveLandingVariant(
+    cookieStore.get(LANDING_VARIANT_COOKIE)?.value,
+  );
   const landingVariant = isLandingVariant(rawQueryVariant)
     ? rawQueryVariant
     : landingVariantFromCookie;

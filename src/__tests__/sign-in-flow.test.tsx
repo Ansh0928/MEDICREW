@@ -71,12 +71,10 @@ vi.mock("@clerk/nextjs", () => {
       loaded: true,
       client: {
         signIn: {
-          create: vi
-            .fn()
-            .mockResolvedValue({
-              status: "complete",
-              createdSessionId: "sess_123",
-            }),
+          create: vi.fn().mockResolvedValue({
+            status: "complete",
+            createdSessionId: "sess_123",
+          }),
         },
       },
       setActive: vi.fn(),

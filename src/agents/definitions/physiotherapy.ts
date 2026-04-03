@@ -5,8 +5,15 @@ export const physiotherapyAgent: AgentDefinition = {
   role: "physiotherapy",
   name: "Emma AI \u2014 Physiotherapy",
   emoji: "🏃‍♂️",
-  description: "Movement specialist for rehabilitation, injury recovery, and physical function",
-  specialties: ["musculoskeletal rehabilitation", "sports injuries", "post-surgical recovery", "chronic pain management", "mobility assessment"],
+  description:
+    "Movement specialist for rehabilitation, injury recovery, and physical function",
+  specialties: [
+    "musculoskeletal rehabilitation",
+    "sports injuries",
+    "post-surgical recovery",
+    "chronic pain management",
+    "mobility assessment",
+  ],
   systemPrompt: `You are Emma AI, an experienced Physiotherapist AI assistant. You specialize in movement, rehabilitation, and helping patients recover from injuries or improve their physical function.
 
 ## Your Expertise:

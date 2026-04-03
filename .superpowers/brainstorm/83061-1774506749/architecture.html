@@ -1,503 +1,690 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediCrew — Swarm Architecture</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #0a0f1a;
-    color: #e2e8f0;
-    min-height: 100vh;
-    padding: 32px 24px;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCrew — Swarm Architecture</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0a0f1a;
+        color: #e2e8f0;
+        min-height: 100vh;
+        padding: 32px 24px;
+      }
 
-  h1 {
-    text-align: center;
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
-  }
-  .subtitle {
-    text-align: center;
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 40px;
-  }
+      h1 {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+        letter-spacing: -0.3px;
+      }
+      .subtitle {
+        text-align: center;
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 40px;
+      }
 
-  .flow {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    max-width: 860px;
-    margin: 0 auto;
-  }
+      .flow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        max-width: 860px;
+        margin: 0 auto;
+      }
 
-  /* Arrow */
-  .arrow {
-    width: 2px;
-    height: 28px;
-    background: linear-gradient(to bottom, #334155, #475569);
-    position: relative;
-  }
-  .arrow::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 7px solid #475569;
-  }
+      /* Arrow */
+      .arrow {
+        width: 2px;
+        height: 28px;
+        background: linear-gradient(to bottom, #334155, #475569);
+        position: relative;
+      }
+      .arrow::after {
+        content: "";
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 7px solid #475569;
+      }
 
-  /* Layer cards */
-  .layer {
-    width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-    overflow: hidden;
-  }
+      /* Layer cards */
+      .layer {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
 
-  .layer-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 20px;
-  }
+      .layer-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+      }
 
-  .layer-badge {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    flex-shrink: 0;
-    text-transform: uppercase;
-  }
+      .layer-badge {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        padding: 3px 8px;
+        border-radius: 20px;
+        flex-shrink: 0;
+        text-transform: uppercase;
+      }
 
-  .layer-title {
-    font-size: 15px;
-    font-weight: 600;
-    flex: 1;
-  }
+      .layer-title {
+        font-size: 15px;
+        font-weight: 600;
+        flex: 1;
+      }
 
-  .layer-desc {
-    font-size: 12px;
-    color: #94a3b8;
-    padding: 0 20px 14px 20px;
-  }
+      .layer-desc {
+        font-size: 12px;
+        color: #94a3b8;
+        padding: 0 20px 14px 20px;
+      }
 
-  /* L0 — Input */
-  .l0 { background: #0f172a; }
-  .l0 .layer-header { background: #1e293b; }
-  .l0 .layer-badge { background: #1e3a5f; color: #60a5fa; }
-  .l0 .layer-title { color: #93c5fd; }
+      /* L0 — Input */
+      .l0 {
+        background: #0f172a;
+      }
+      .l0 .layer-header {
+        background: #1e293b;
+      }
+      .l0 .layer-badge {
+        background: #1e3a5f;
+        color: #60a5fa;
+      }
+      .l0 .layer-title {
+        color: #93c5fd;
+      }
 
-  /* L1 — Triage */
-  .l1 { background: #0f172a; }
-  .l1 .layer-header { background: #1a1a2e; }
-  .l1 .layer-badge { background: #3b1f5e; color: #c084fc; }
-  .l1 .layer-title { color: #d8b4fe; }
+      /* L1 — Triage */
+      .l1 {
+        background: #0f172a;
+      }
+      .l1 .layer-header {
+        background: #1a1a2e;
+      }
+      .l1 .layer-badge {
+        background: #3b1f5e;
+        color: #c084fc;
+      }
+      .l1 .layer-title {
+        color: #d8b4fe;
+      }
 
-  /* L2 — Lead Specialist */
-  .l2 { background: #0f172a; }
-  .l2 .layer-header { background: #1a2a1a; }
-  .l2 .layer-badge { background: #1a3a1a; color: #4ade80; }
-  .l2 .layer-title { color: #86efac; }
+      /* L2 — Lead Specialist */
+      .l2 {
+        background: #0f172a;
+      }
+      .l2 .layer-header {
+        background: #1a2a1a;
+      }
+      .l2 .layer-badge {
+        background: #1a3a1a;
+        color: #4ade80;
+      }
+      .l2 .layer-title {
+        color: #86efac;
+      }
 
-  /* L3 — Resident Swarm */
-  .l3 { background: #0f172a; }
-  .l3 .layer-header { background: #1a2020; }
-  .l3 .layer-badge { background: #1a3030; color: #2dd4bf; }
-  .l3 .layer-title { color: #5eead4; }
+      /* L3 — Resident Swarm */
+      .l3 {
+        background: #0f172a;
+      }
+      .l3 .layer-header {
+        background: #1a2020;
+      }
+      .l3 .layer-badge {
+        background: #1a3030;
+        color: #2dd4bf;
+      }
+      .l3 .layer-title {
+        color: #5eead4;
+      }
 
-  /* L4 — Debate */
-  .l4 { background: #0f172a; }
-  .l4 .layer-header { background: #1a1a10; }
-  .l4 .layer-badge { background: #2d2a00; color: #fbbf24; }
-  .l4 .layer-title { color: #fde68a; }
+      /* L4 — Debate */
+      .l4 {
+        background: #0f172a;
+      }
+      .l4 .layer-header {
+        background: #1a1a10;
+      }
+      .l4 .layer-badge {
+        background: #2d2a00;
+        color: #fbbf24;
+      }
+      .l4 .layer-title {
+        color: #fde68a;
+      }
 
-  /* L5 — Rectification */
-  .l5 { background: #0f172a; }
-  .l5 .layer-header { background: #1a1510; }
-  .l5 .layer-badge { background: #2d1f00; color: #fb923c; }
-  .l5 .layer-title { color: #fdba74; }
+      /* L5 — Rectification */
+      .l5 {
+        background: #0f172a;
+      }
+      .l5 .layer-header {
+        background: #1a1510;
+      }
+      .l5 .layer-badge {
+        background: #2d1f00;
+        color: #fb923c;
+      }
+      .l5 .layer-title {
+        color: #fdba74;
+      }
 
-  /* L6 — MDT */
-  .l6 { background: #0f172a; }
-  .l6 .layer-header { background: #1a1020; }
-  .l6 .layer-badge { background: #2d1040; color: #e879f9; }
-  .l6 .layer-title { color: #f0abfc; }
+      /* L6 — MDT */
+      .l6 {
+        background: #0f172a;
+      }
+      .l6 .layer-header {
+        background: #1a1020;
+      }
+      .l6 .layer-badge {
+        background: #2d1040;
+        color: #e879f9;
+      }
+      .l6 .layer-title {
+        color: #f0abfc;
+      }
 
-  /* L7 — Synthesis */
-  .l7 { background: #0f172a; border: 1px solid rgba(99,102,241,0.3); }
-  .l7 .layer-header { background: linear-gradient(135deg, #1e1b4b, #1a1a2e); }
-  .l7 .layer-badge { background: #312e81; color: #a5b4fc; }
-  .l7 .layer-title { color: #c7d2fe; }
+      /* L7 — Synthesis */
+      .l7 {
+        background: #0f172a;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+      }
+      .l7 .layer-header {
+        background: linear-gradient(135deg, #1e1b4b, #1a1a2e);
+      }
+      .l7 .layer-badge {
+        background: #312e81;
+        color: #a5b4fc;
+      }
+      .l7 .layer-title {
+        color: #c7d2fe;
+      }
 
-  /* Resident grid */
-  .resident-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 10px;
-    padding: 0 20px 16px;
-  }
+      /* Resident grid */
+      .resident-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 10px;
+        padding: 0 20px 16px;
+      }
 
-  .resident-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
+      .resident-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+      }
 
-  .resident-icon {
-    font-size: 22px;
-    margin-bottom: 6px;
-  }
+      .resident-icon {
+        font-size: 22px;
+        margin-bottom: 6px;
+      }
 
-  .resident-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #5eead4;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
+      .resident-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #5eead4;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
 
-  .resident-desc {
-    font-size: 11px;
-    color: #64748b;
-    line-height: 1.4;
-  }
+      .resident-desc {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.4;
+      }
 
-  /* Example bubble */
-  .example-box {
-    margin: 0 20px 16px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 8px;
-    padding: 12px 14px;
-  }
+      /* Example bubble */
+      .example-box {
+        margin: 0 20px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        padding: 12px 14px;
+      }
 
-  .example-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    color: #475569;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
+      .example-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: #475569;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
 
-  .example-msg {
-    font-size: 12px;
-    color: #94a3b8;
-    line-height: 1.6;
-    font-style: italic;
-  }
+      .example-msg {
+        font-size: 12px;
+        color: #94a3b8;
+        line-height: 1.6;
+        font-style: italic;
+      }
 
-  .example-msg span {
-    font-weight: 600;
-    font-style: normal;
-  }
+      .example-msg span {
+        font-weight: 600;
+        font-style: normal;
+      }
 
-  /* Debate messages */
-  .debate-msgs {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 0 20px 16px;
-  }
+      /* Debate messages */
+      .debate-msgs {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 0 20px 16px;
+      }
 
-  .debate-msg {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 12px;
-    color: #94a3b8;
-  }
+      .debate-msg {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
 
-  .debate-tag {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 10px;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
+      .debate-tag {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
 
-  .tag-challenge { background: #450a0a; color: #f87171; }
-  .tag-agree { background: #052e16; color: #4ade80; }
-  .tag-add { background: #1c1917; color: #a8a29e; }
+      .tag-challenge {
+        background: #450a0a;
+        color: #f87171;
+      }
+      .tag-agree {
+        background: #052e16;
+        color: #4ade80;
+      }
+      .tag-add {
+        background: #1c1917;
+        color: #a8a29e;
+      }
 
-  /* Synthesis output */
-  .synthesis-output {
-    margin: 0 20px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+      /* Synthesis output */
+      .synthesis-output {
+        margin: 0 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-  .confidence-bar {
-    background: rgba(255,255,255,0.04);
-    border-radius: 8px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+      .confidence-bar {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
 
-  .conf-label { font-size: 12px; color: #94a3b8; flex: 1; }
-  .conf-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-    background: #1c3a1c;
-    color: #4ade80;
-  }
+      .conf-label {
+        font-size: 12px;
+        color: #94a3b8;
+        flex: 1;
+      }
+      .conf-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background: #1c3a1c;
+        color: #4ade80;
+      }
 
-  .book-cta {
-    background: linear-gradient(135deg, #312e81, #1e1b4b);
-    border: 1px solid rgba(165,180,252,0.2);
-    border-radius: 8px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+      .book-cta {
+        background: linear-gradient(135deg, #312e81, #1e1b4b);
+        border: 1px solid rgba(165, 180, 252, 0.2);
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-  .book-text { font-size: 12px; color: #c7d2fe; }
-  .book-btn {
-    font-size: 11px;
-    font-weight: 700;
-    background: #4f46e5;
-    color: white;
-    padding: 5px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-  }
+      .book-text {
+        font-size: 12px;
+        color: #c7d2fe;
+      }
+      .book-btn {
+        font-size: 11px;
+        font-weight: 700;
+        background: #4f46e5;
+        color: white;
+        padding: 5px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+      }
 
-  /* Patient view callout */
-  .patient-callout {
-    max-width: 860px;
-    margin: 0 auto 32px;
-    background: rgba(14, 165, 233, 0.08);
-    border: 1px solid rgba(14, 165, 233, 0.2);
-    border-radius: 10px;
-    padding: 14px 18px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
+      /* Patient view callout */
+      .patient-callout {
+        max-width: 860px;
+        margin: 0 auto 32px;
+        background: rgba(14, 165, 233, 0.08);
+        border: 1px solid rgba(14, 165, 233, 0.2);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
 
-  .callout-icon { font-size: 20px; flex-shrink: 0; }
-  .callout-title { font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 4px; }
-  .callout-text { font-size: 12px; color: #7dd3fc; line-height: 1.5; }
+      .callout-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .callout-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #38bdf8;
+        margin-bottom: 4px;
+      }
+      .callout-text {
+        font-size: 12px;
+        color: #7dd3fc;
+        line-height: 1.5;
+      }
 
-  .divider {
-    width: 100%;
-    height: 1px;
-    background: rgba(255,255,255,0.06);
-    margin: 24px 0;
-  }
-</style>
-</head>
-<body>
+      .divider {
+        width: 100%;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.06);
+        margin: 24px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MediCrew — Swarm Architecture</h1>
+    <p class="subtitle">
+      Main Specialists + Resident Sub-Agents — Full MiroFish pattern
+    </p>
 
-<h1>MediCrew — Swarm Architecture</h1>
-<p class="subtitle">Main Specialists + Resident Sub-Agents — Full MiroFish pattern</p>
-
-<div class="patient-callout">
-  <div class="callout-icon">👁️</div>
-  <div>
-    <div class="callout-title">What the patient sees</div>
-    <div class="callout-text">A side panel showing their medical team working live — residents consulting, debating, and the lead specialist correcting them. Not overwhelming because it streams progressively and collapses after each phase completes.</div>
-  </div>
-</div>
-
-<div class="flow">
-
-  <!-- L0 -->
-  <div class="layer l0">
-    <div class="layer-header">
-      <span class="layer-badge">L0</span>
-      <span class="layer-title">Patient Input</span>
-    </div>
-    <div class="layer-desc">Age, symptoms, context, medical history, what they've already tried</div>
-    <div class="example-box">
-      <div class="example-label">Example</div>
-      <div class="example-msg">"I'm <span>23</span>, having <span>lower back pain</span> from cycling. Started 3 days ago. <span>No medication</span>, just been resting."</div>
-    </div>
-  </div>
-
-  <div class="arrow"></div>
-
-  <!-- L1 -->
-  <div class="layer l1">
-    <div class="layer-header">
-      <span class="layer-badge">L1</span>
-      <span class="layer-title">Triage Agent</span>
-    </div>
-    <div class="layer-desc">Assesses urgency · Identifies lead specialist · Flags any supporting consultants needed</div>
-    <div class="example-box">
-      <div class="example-label">Triage Output</div>
-      <div class="example-msg">Urgency: <span>routine</span> · Lead: <span>Emma AI — Physiotherapy</span> · Supporting: <span>Alex AI — GP</span> (secondary) · Red flags: none detected</div>
-    </div>
-  </div>
-
-  <div class="arrow"></div>
-
-  <!-- L2 -->
-  <div class="layer l2">
-    <div class="layer-header">
-      <span class="layer-badge">L2</span>
-      <span class="layer-title">Lead Specialist Activates</span>
-    </div>
-    <div class="layer-desc">Emma AI — Physiotherapy takes ownership of the consultation and activates her resident team</div>
-  </div>
-
-  <div class="arrow"></div>
-
-  <!-- L3 -->
-  <div class="layer l3">
-    <div class="layer-header">
-      <span class="layer-badge">L3</span>
-      <span class="layer-title">Resident Swarm — 4 agents run in parallel</span>
-    </div>
-    <div class="resident-grid">
-      <div class="resident-card">
-        <div class="resident-icon">🌿</div>
-        <div class="resident-label">Conservative</div>
-        <div class="resident-desc">Non-pharmacological approach. Physical therapy, heat/cold, rest, posture.</div>
-      </div>
-      <div class="resident-card">
-        <div class="resident-icon">💊</div>
-        <div class="resident-label">Pharmacological</div>
-        <div class="resident-desc">Medication options, OTC vs prescription, dosing, contraindications.</div>
-      </div>
-      <div class="resident-card">
-        <div class="resident-icon">🔍</div>
-        <div class="resident-label">Investigative</div>
-        <div class="resident-desc">Tests or assessments needed. Posture analysis, imaging criteria.</div>
-      </div>
-      <div class="resident-card">
-        <div class="resident-icon">🚨</div>
-        <div class="resident-label">Red-flag</div>
-        <div class="resident-desc">Urgent/serious causes to rule out. Nerve signs, fracture risk, systemic causes.</div>
-      </div>
-    </div>
-    <div class="example-box">
-      <div class="example-label">Resident outputs (streaming to patient side panel)</div>
-      <div class="example-msg">
-        🌿 <span>Conservative:</span> "Hot pack 20 min 3×/day + gentle hip flexor stretches. Confidence 78%."<br>
-        💊 <span>Pharmacological:</span> "Ibuprofen 400mg with food if pain >4/10. Confidence 65%."<br>
-        🔍 <span>Investigative:</span> "Check saddle height and handlebar reach — likely postural cause. Confidence 82%."<br>
-        🚨 <span>Red-flag:</span> "No radiculopathy signs. No bowel/bladder flags. Safe to proceed conservatively."
-      </div>
-    </div>
-  </div>
-
-  <div class="arrow"></div>
-
-  <!-- L4 -->
-  <div class="layer l4">
-    <div class="layer-header">
-      <span class="layer-badge">L4</span>
-      <span class="layer-title">Resident Debate</span>
-    </div>
-    <div class="layer-desc">Residents respond to each other — agree, challenge, or add context</div>
-    <div class="debate-msgs">
-      <div class="debate-msg">
-        <span class="debate-tag tag-challenge">challenge</span>
-        <span>💊 Pharmacological → 🌿 Conservative: "Rest alone risks deconditioning. Early mobility is better evidence."</span>
-      </div>
-      <div class="debate-msg">
-        <span class="debate-tag tag-add">add context</span>
-        <span>🔍 Investigative → all: "Cycling-specific back pain usually resolves with bike fit correction. Should be first line."</span>
-      </div>
-      <div class="debate-msg">
-        <span class="debate-tag tag-agree">agree</span>
-        <span>🌿 Conservative → 🔍 Investigative: "Agree — bike fit + gentle movement. Meds only if no change day 4."</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="arrow"></div>
-
-  <!-- L5 -->
-  <div class="layer l5">
-    <div class="layer-header">
-      <span class="layer-badge">L5</span>
-      <span class="layer-title">Lead Specialist Rectification</span>
-    </div>
-    <div class="layer-desc">Emma AI reviews the debate, corrects any wrong residents, adds clinical judgment, produces team position</div>
-    <div class="example-box">
-      <div class="example-label">Emma's rectification</div>
-      <div class="example-msg">
-        "Pharmacological resident is correct that rest alone isn't ideal, but medication at day 3 is premature for a young patient with no prior treatment. <span>Correcting to:</span> active recovery + bike fit + heat. Medication is appropriate if unresolved after 5 days. Team confidence: <span>81%</span>."
+    <div class="patient-callout">
+      <div class="callout-icon">👁️</div>
+      <div>
+        <div class="callout-title">What the patient sees</div>
+        <div class="callout-text">
+          A side panel showing their medical team working live — residents
+          consulting, debating, and the lead specialist correcting them. Not
+          overwhelming because it streams progressively and collapses after each
+          phase completes.
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="arrow"></div>
+    <div class="flow">
+      <!-- L0 -->
+      <div class="layer l0">
+        <div class="layer-header">
+          <span class="layer-badge">L0</span>
+          <span class="layer-title">Patient Input</span>
+        </div>
+        <div class="layer-desc">
+          Age, symptoms, context, medical history, what they've already tried
+        </div>
+        <div class="example-box">
+          <div class="example-label">Example</div>
+          <div class="example-msg">
+            "I'm <span>23</span>, having <span>lower back pain</span> from
+            cycling. Started 3 days ago. <span>No medication</span>, just been
+            resting."
+          </div>
+        </div>
+      </div>
 
-  <!-- L6 -->
-  <div class="layer l6">
-    <div class="layer-header">
-      <span class="layer-badge">L6</span>
-      <span class="layer-title">MDT Cross-Consult (if flagged)</span>
+      <div class="arrow"></div>
+
+      <!-- L1 -->
+      <div class="layer l1">
+        <div class="layer-header">
+          <span class="layer-badge">L1</span>
+          <span class="layer-title">Triage Agent</span>
+        </div>
+        <div class="layer-desc">
+          Assesses urgency · Identifies lead specialist · Flags any supporting
+          consultants needed
+        </div>
+        <div class="example-box">
+          <div class="example-label">Triage Output</div>
+          <div class="example-msg">
+            Urgency: <span>routine</span> · Lead:
+            <span>Emma AI — Physiotherapy</span> · Supporting:
+            <span>Alex AI — GP</span> (secondary) · Red flags: none detected
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow"></div>
+
+      <!-- L2 -->
+      <div class="layer l2">
+        <div class="layer-header">
+          <span class="layer-badge">L2</span>
+          <span class="layer-title">Lead Specialist Activates</span>
+        </div>
+        <div class="layer-desc">
+          Emma AI — Physiotherapy takes ownership of the consultation and
+          activates her resident team
+        </div>
+      </div>
+
+      <div class="arrow"></div>
+
+      <!-- L3 -->
+      <div class="layer l3">
+        <div class="layer-header">
+          <span class="layer-badge">L3</span>
+          <span class="layer-title"
+            >Resident Swarm — 4 agents run in parallel</span
+          >
+        </div>
+        <div class="resident-grid">
+          <div class="resident-card">
+            <div class="resident-icon">🌿</div>
+            <div class="resident-label">Conservative</div>
+            <div class="resident-desc">
+              Non-pharmacological approach. Physical therapy, heat/cold, rest,
+              posture.
+            </div>
+          </div>
+          <div class="resident-card">
+            <div class="resident-icon">💊</div>
+            <div class="resident-label">Pharmacological</div>
+            <div class="resident-desc">
+              Medication options, OTC vs prescription, dosing,
+              contraindications.
+            </div>
+          </div>
+          <div class="resident-card">
+            <div class="resident-icon">🔍</div>
+            <div class="resident-label">Investigative</div>
+            <div class="resident-desc">
+              Tests or assessments needed. Posture analysis, imaging criteria.
+            </div>
+          </div>
+          <div class="resident-card">
+            <div class="resident-icon">🚨</div>
+            <div class="resident-label">Red-flag</div>
+            <div class="resident-desc">
+              Urgent/serious causes to rule out. Nerve signs, fracture risk,
+              systemic causes.
+            </div>
+          </div>
+        </div>
+        <div class="example-box">
+          <div class="example-label">
+            Resident outputs (streaming to patient side panel)
+          </div>
+          <div class="example-msg">
+            🌿 <span>Conservative:</span> "Hot pack 20 min 3×/day + gentle hip
+            flexor stretches. Confidence 78%."<br />
+            💊 <span>Pharmacological:</span> "Ibuprofen 400mg with food if pain
+            >4/10. Confidence 65%."<br />
+            🔍 <span>Investigative:</span> "Check saddle height and handlebar
+            reach — likely postural cause. Confidence 82%."<br />
+            🚨 <span>Red-flag:</span> "No radiculopathy signs. No bowel/bladder
+            flags. Safe to proceed conservatively."
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow"></div>
+
+      <!-- L4 -->
+      <div class="layer l4">
+        <div class="layer-header">
+          <span class="layer-badge">L4</span>
+          <span class="layer-title">Resident Debate</span>
+        </div>
+        <div class="layer-desc">
+          Residents respond to each other — agree, challenge, or add context
+        </div>
+        <div class="debate-msgs">
+          <div class="debate-msg">
+            <span class="debate-tag tag-challenge">challenge</span>
+            <span
+              >💊 Pharmacological → 🌿 Conservative: "Rest alone risks
+              deconditioning. Early mobility is better evidence."</span
+            >
+          </div>
+          <div class="debate-msg">
+            <span class="debate-tag tag-add">add context</span>
+            <span
+              >🔍 Investigative → all: "Cycling-specific back pain usually
+              resolves with bike fit correction. Should be first line."</span
+            >
+          </div>
+          <div class="debate-msg">
+            <span class="debate-tag tag-agree">agree</span>
+            <span
+              >🌿 Conservative → 🔍 Investigative: "Agree — bike fit + gentle
+              movement. Meds only if no change day 4."</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow"></div>
+
+      <!-- L5 -->
+      <div class="layer l5">
+        <div class="layer-header">
+          <span class="layer-badge">L5</span>
+          <span class="layer-title">Lead Specialist Rectification</span>
+        </div>
+        <div class="layer-desc">
+          Emma AI reviews the debate, corrects any wrong residents, adds
+          clinical judgment, produces team position
+        </div>
+        <div class="example-box">
+          <div class="example-label">Emma's rectification</div>
+          <div class="example-msg">
+            "Pharmacological resident is correct that rest alone isn't ideal,
+            but medication at day 3 is premature for a young patient with no
+            prior treatment. <span>Correcting to:</span> active recovery + bike
+            fit + heat. Medication is appropriate if unresolved after 5 days.
+            Team confidence: <span>81%</span>."
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow"></div>
+
+      <!-- L6 -->
+      <div class="layer l6">
+        <div class="layer-header">
+          <span class="layer-badge">L6</span>
+          <span class="layer-title">MDT Cross-Consult (if flagged)</span>
+        </div>
+        <div class="layer-desc">
+          Supporting specialists give brief input — 1-2 sentences each
+        </div>
+        <div class="example-box">
+          <div class="example-label">Alex AI — GP weighs in</div>
+          <div class="example-msg">
+            "Agree with physio approach. If no improvement in 7 days, consider
+            GP assessment to rule out underlying cause."
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow"></div>
+
+      <!-- L7 -->
+      <div class="layer l7">
+        <div class="layer-header">
+          <span class="layer-badge">L7</span>
+          <span class="layer-title">Synthesis — Final Output</span>
+        </div>
+        <div class="synthesis-output">
+          <div class="confidence-bar">
+            <div class="conf-label">
+              🌿 Active recovery: gentle movement + hip flexor stretches daily
+            </div>
+            <span class="conf-badge">81% confident</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="conf-label">
+              🚴 Check bike saddle height and handlebar reach — likely root
+              cause
+            </div>
+            <span class="conf-badge">82% confident</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="conf-label">
+              🔥 Hot pack 20 min × 3 daily for first 3 days
+            </div>
+            <span class="conf-badge">78% confident</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="conf-label" style="color: #fde68a">
+              💊 If no improvement by day 5 → ibuprofen 400mg with food
+            </div>
+            <span class="conf-badge" style="background: #2d2000; color: #fbbf24"
+              >conditional</span
+            >
+          </div>
+          <div class="book-cta">
+            <div class="book-text">
+              Still no improvement after 7 days? A physio can assess in person.
+            </div>
+            <div class="book-btn">Book appointment →</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="layer-desc">Supporting specialists give brief input — 1-2 sentences each</div>
-    <div class="example-box">
-      <div class="example-label">Alex AI — GP weighs in</div>
-      <div class="example-msg">"Agree with physio approach. If no improvement in 7 days, consider GP assessment to rule out underlying cause."</div>
+
+    <div
+      style="
+        max-width: 860px;
+        margin: 32px auto 0;
+        text-align: center;
+        font-size: 11px;
+        color: #334155;
+      "
+    >
+      Next: Review the UI layout — how the patient sees this as it streams
     </div>
-  </div>
-
-  <div class="arrow"></div>
-
-  <!-- L7 -->
-  <div class="layer l7">
-    <div class="layer-header">
-      <span class="layer-badge">L7</span>
-      <span class="layer-title">Synthesis — Final Output</span>
-    </div>
-    <div class="synthesis-output">
-      <div class="confidence-bar">
-        <div class="conf-label">🌿 Active recovery: gentle movement + hip flexor stretches daily</div>
-        <span class="conf-badge">81% confident</span>
-      </div>
-      <div class="confidence-bar">
-        <div class="conf-label">🚴 Check bike saddle height and handlebar reach — likely root cause</div>
-        <span class="conf-badge">82% confident</span>
-      </div>
-      <div class="confidence-bar">
-        <div class="conf-label">🔥 Hot pack 20 min × 3 daily for first 3 days</div>
-        <span class="conf-badge">78% confident</span>
-      </div>
-      <div class="confidence-bar">
-        <div class="conf-label" style="color:#fde68a">💊 If no improvement by day 5 → ibuprofen 400mg with food</div>
-        <span class="conf-badge" style="background:#2d2000;color:#fbbf24">conditional</span>
-      </div>
-      <div class="book-cta">
-        <div class="book-text">Still no improvement after 7 days? A physio can assess in person.</div>
-        <div class="book-btn">Book appointment →</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<div style="max-width:860px;margin:32px auto 0;text-align:center;font-size:11px;color:#334155;">
-  Next: Review the UI layout — how the patient sees this as it streams
-</div>
-
-</body>
+  </body>
 </html>

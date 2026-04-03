@@ -94,7 +94,12 @@ export interface AgentDefinition {
 }
 
 // Zod schemas for structured outputs
-export const UrgencyLevelSchema = z.enum(["emergency", "urgent", "routine", "self_care"]);
+export const UrgencyLevelSchema = z.enum([
+  "emergency",
+  "urgent",
+  "routine",
+  "self_care",
+]);
 
 export const TriageOutputSchema = z.object({
   urgencyLevel: UrgencyLevelSchema,

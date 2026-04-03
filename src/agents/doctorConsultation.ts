@@ -1,6 +1,6 @@
 /**
  * Doctor Consultation Stream
- * 
+ *
  * Runs a multi-agent consultation (Triage → GP → Specialists → Summary) from the
  * doctor's perspective. Each agent discusses the case, and the final node produces
  * structured DoctorInsights + TreatmentPlanSuggestion.
@@ -32,10 +32,13 @@ const DoctorConsultationAnnotation = Annotation.Root({
     default: () => [],
     reducer: (current, update) => [...new Set([...current, ...update])],
   }),
-  doctorSummary: Annotation<{
-    insights: DoctorInsights;
-    treatmentPlan: TreatmentPlanSuggestion;
-  } | undefined>,
+  doctorSummary: Annotation<
+    | {
+        insights: DoctorInsights;
+        treatmentPlan: TreatmentPlanSuggestion;
+      }
+    | undefined
+  >,
   sessionId: Annotation<string>,
   currentStep: Annotation<string>,
 });
@@ -59,7 +62,7 @@ Possible Conditions (from initial triage): ${sc.aiAssessment.possibleConditions.
 
 // Triage node - doctor-facing assessment
 async function doctorTriageNode(
-  state: DoctorConsultationState
+  state: DoctorConsultationState,
 ): Promise<Partial<DoctorConsultationState>> {
   const llm = createLLM();
   const agent = agentRegistry.triage;
@@ -86,10 +89,17 @@ Include: urgency level, key red flags, and which specialties should be consulted
   const redFlags: string[] = [];
   const redFlagMatch = content.match(/red flags?:?\s*([^\n]+)/i);
   if (redFlagMatch) {
-    redFlags.push(...redFlagMatch[1].split(/[,;]/).map((s) => s.trim()).filter(Boolean));
+    redFlags.push(
+      ...redFlagMatch[1]
+        .split(/[,;]/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
   }
 
-  const relevantSpecialties = getRelevantSpecialists(sc.symptoms.join(" ")) as AgentRole[];
+  const relevantSpecialties = getRelevantSpecialists(
+    sc.symptoms.join(" "),
+  ) as AgentRole[];
 
   const agentMessage: AgentMessage = {
     role: "triage",
@@ -108,7 +118,7 @@ Include: urgency level, key red flags, and which specialties should be consulted
 
 // GP node - doctor-facing assessment
 async function doctorGpNode(
-  state: DoctorConsultationState
+  state: DoctorConsultationState,
 ): Promise<Partial<DoctorConsultationState>> {
   const llm = createLLM();
   const agent = agentRegistry.gp;
@@ -150,14 +160,14 @@ As the GP, provide your clinical perspective. What's your differential? What wou
 
 // Specialist node - runs relevant specialists
 async function doctorSpecialistNode(
-  state: DoctorConsultationState
+  state: DoctorConsultationState,
 ): Promise<Partial<DoctorConsultationState>> {
   const llm = createLLM();
   const messages: AgentMessage[] = [];
   const sc = state.symptomCheck;
 
   const specialistsToConsult = state.relevantSpecialties.filter(
-    (role) => !["gp", "triage", "orchestrator"].includes(role)
+    (role) => !["gp", "triage", "orchestrator"].includes(role),
   );
 
   const previousMessages = state.messages
@@ -201,7 +211,7 @@ As the ${agent.name}, what's your specialist take? Any specific concerns or reco
 
 // Summary node - produces structured DoctorInsights + TreatmentPlanSuggestion
 async function doctorSummaryNode(
-  state: DoctorConsultationState
+  state: DoctorConsultationState,
 ): Promise<Partial<DoctorConsultationState>> {
   const llm = createLLM();
   const sc = state.symptomCheck;
@@ -243,19 +253,28 @@ Respond with JSON only.
       const parsed = JSON.parse(jsonMatch[0]);
       doctorSummary = {
         insights: {
-          differentialDiagnosis: parsed.insights?.differentialDiagnosis ||
+          differentialDiagnosis:
+            parsed.insights?.differentialDiagnosis ||
             sc.aiAssessment.possibleConditions,
-          recommendedTests: parsed.insights?.recommendedTests ||
-            ["Physical examination", "Vital signs"],
+          recommendedTests: parsed.insights?.recommendedTests || [
+            "Physical examination",
+            "Vital signs",
+          ],
           redFlags: parsed.insights?.redFlags || state.redFlags,
-          aiConfidence: parsed.insights?.aiConfidence || sc.aiAssessment.confidence,
+          aiConfidence:
+            parsed.insights?.aiConfidence || sc.aiAssessment.confidence,
         },
         treatmentPlan: {
-          medications: parsed.treatmentPlan?.medications ||
-            ["Symptomatic treatment as needed"],
-          lifestyle: parsed.treatmentPlan?.lifestyle ||
-            ["Rest", "Adequate hydration", "Monitor symptoms"],
-          followUp: parsed.treatmentPlan?.followUp ||
+          medications: parsed.treatmentPlan?.medications || [
+            "Symptomatic treatment as needed",
+          ],
+          lifestyle: parsed.treatmentPlan?.lifestyle || [
+            "Rest",
+            "Adequate hydration",
+            "Monitor symptoms",
+          ],
+          followUp:
+            parsed.treatmentPlan?.followUp ||
             "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
         },
       };
@@ -267,14 +286,19 @@ Respond with JSON only.
     doctorSummary = {
       insights: {
         differentialDiagnosis: sc.aiAssessment.possibleConditions,
-        recommendedTests: ["Physical examination", "Vital signs", "Basic metabolic panel"],
+        recommendedTests: [
+          "Physical examination",
+          "Vital signs",
+          "Basic metabolic panel",
+        ],
         redFlags: state.redFlags,
         aiConfidence: sc.aiAssessment.confidence,
       },
       treatmentPlan: {
         medications: ["Symptomatic treatment as needed"],
         lifestyle: ["Rest", "Adequate hydration", "Monitor symptoms"],
-        followUp: "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
+        followUp:
+          "Schedule follow-up in 1-2 weeks or sooner if symptoms worsen.",
       },
     };
   }
@@ -300,7 +324,7 @@ function routeAfterTriage(state: DoctorConsultationState): string {
 
 function routeAfterGp(state: DoctorConsultationState): string {
   const specialists = state.relevantSpecialties.filter(
-    (role) => !["gp", "triage", "orchestrator"].includes(role)
+    (role) => !["gp", "triage", "orchestrator"].includes(role),
   );
   if (specialists.length > 0) {
     return "specialist";
@@ -331,7 +355,7 @@ export function createDoctorConsultationGraph() {
 
 // Streaming doctor consultation
 export async function* streamDoctorConsultation(
-  symptomCheck: SymptomCheck
+  symptomCheck: SymptomCheck,
 ): AsyncGenerator<{
   step: string;
   data: {
@@ -356,7 +380,7 @@ export async function* streamDoctorConsultation(
   for await (const event of await graph.stream(initialState)) {
     const [nodeName, nodeOutput] = Object.entries(event)[0] as [
       string,
-      Partial<DoctorConsultationState>
+      Partial<DoctorConsultationState>,
     ];
     yield {
       step: nodeName,

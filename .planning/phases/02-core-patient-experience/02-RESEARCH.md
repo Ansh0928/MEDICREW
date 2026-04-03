@@ -19,11 +19,13 @@ The Prisma `Patient` model is missing: DOB, medications, emergency contact, GP d
 ---
 
 <user_constraints>
+
 ## User Constraints (from CONTEXT.md)
 
 No CONTEXT.md exists for Phase 2. The following constraints are derived from the Phase 1 decisions that carry forward:
 
 ### Locked Decisions (from Phase 1 CONTEXT.md)
+
 - Agent naming format: `"Alex AI — GP"` (em dash, not hyphen) — already applied in all 8 agent definition files
 - AHPRA disclaimer text: `AHPRA_DISCLAIMER` constant in `src/lib/compliance.ts` — use this, do not create a new string
 - Emergency detection: `detectEmergency()` pure function in `src/lib/emergency-rules.ts` — must be called before any LLM invocation
@@ -35,12 +37,14 @@ No CONTEXT.md exists for Phase 2. The following constraints are derived from the
 - Soft delete: `deletedAt` + `deletedEmail` pattern already in schema — do not change deletion logic
 
 ### Claude's Discretion
+
 - Supabase Auth strategy: magic link vs email/password session — research recommends email/password sessions via `@supabase/ssr` for Next.js App Router (see Standard Stack)
 - Care team avatar implementation: SVG initials vs uploaded images — research recommends generated SVG avatars per agent (no file upload complexity)
 - Symptom journal storage: new Prisma model vs JSONB on Patient — research recommends separate `SymptomJournal` model (queryable, Phase 4 trend charts need it)
 - Onboarding flow routing: separate `/onboarding` route vs modal — research recommends dedicated `/onboarding` multi-step page
 
 ### Deferred Ideas (OUT OF SCOPE for Phase 2)
+
 - Proactive check-ins (Phase 3)
 - Escalation rules beyond what Phase 1 already built (Phase 3)
 - Email notifications via Resend (Phase 3)
@@ -48,29 +52,31 @@ No CONTEXT.md exists for Phase 2. The following constraints are derived from the
 - Care plan detail UI (Phase 4)
 - TGA SaMD assessment — external task
 - LLM provider DPA documentation — external task
-</user_constraints>
+  </user_constraints>
 
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|-----------------|
-| ONBD-01 | Patient completes onboarding: name, DOB, gender, known conditions, medications, emergency contact, GP details | Prisma schema needs DOB + medications + emergencyContact + gpDetails fields added; multi-step form with shadcn/ui Card + stepper pattern |
-| ONBD-02 | Onboarding includes consent step with Privacy Act disclosure | `/consent` page already built; integrate as Step 2 of onboarding flow; `/api/patient/consent` POST endpoint must be created |
+| ID      | Description                                                                                                              | Research Support                                                                                                                                                                   |
+| ------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ONBD-01 | Patient completes onboarding: name, DOB, gender, known conditions, medications, emergency contact, GP details            | Prisma schema needs DOB + medications + emergencyContact + gpDetails fields added; multi-step form with shadcn/ui Card + stepper pattern                                           |
+| ONBD-02 | Onboarding includes consent step with Privacy Act disclosure                                                             | `/consent` page already built; integrate as Step 2 of onboarding flow; `/api/patient/consent` POST endpoint must be created                                                        |
 | ONBD-03 | Care team introduced during onboarding — named agents with avatars, specialties, "I'm here to help with..." descriptions | `agentRegistry` in `src/agents/definitions/index.ts` has all 8 agents with `name`, `emoji`, `description`, `specialties` — use directly; add `avatar` field (SVG initial or emoji) |
-| DASH-01 | Dashboard shows named care team with live status indicators ("Alex AI — GP: Reviewed your symptoms today") | New `CareTeamStatus` table or JSONB field on Patient; Supabase Realtime `postgres_changes` subscription for 2-second updates |
-| DASH-02 | Dashboard shows active care plan — monitoring status, next check-in, open action items (basic form; Phase 4 deepens) | Store monitoring status on Patient or consultation; basic static card for Phase 2; Phase 4 adds detail |
-| DASH-03 | Dashboard shows consultation history with urgency levels, agent names, outcome summary | Already partially in `patient/page.tsx` history tab; need to surface agent names from `Consultation.gpResponse`/`specialistResponse` fields |
-| DASH-04 | Realtime care team status via Supabase Realtime — no polling, updates within 2 seconds | `@supabase/supabase-js` v2.100.0 already installed; `.channel().on('postgres_changes', ...)` pattern confirmed in docs |
-| CONS-01 | Consultation UI shows which AI agent is currently speaking — name, avatar, specialty badge during streaming | Modify `streamConsultation()` to attach `agentName`/`agentRole` per chunk; client reads agent metadata per SSE event |
-| CONS-02 | Agent responses stream in real-time via SSE — progressive text, not all-at-once | Existing SSE machinery works at node granularity; switch agent nodes from `llm.invoke()` to `llm.stream()` for token-level streaming |
-| CONS-03 | After triage, patient sees which specialists are reviewing ("Sarah AI — Cardiology is reviewing") | `relevantSpecialties` array available in LangGraph state after triage node; emit a `{ step: 'routing', specialists: [...] }` SSE event |
-| CONS-04 | Consultation ends with structured Care Summary: urgency, findings, next steps, timeframe, disclaimer | `CareRecommendation` type already exists; store as JSONB in `Consultation.recommendation`; `CareSummary` React component with `AHPRA_DISCLAIMER` |
-| PROF-01 | Persistent health profile: conditions, medications, allergies, consultation history summary | Extend `Patient` schema with new fields + allergies; profile page at `/patient/profile` |
-| PROF-02 | Agents access patient profile context at consultation start — personalized responses | Pass patient profile snapshot into LangGraph initial state; prepend to `symptoms` string or add `patientContext` annotation |
-| PROF-03 | Symptom journal: patient logs daily symptoms 1–5 severity + free text (basic form; Phase 4 adds trends) | New `SymptomJournal` model in Prisma; POST `/api/patient/journal`; simple form UI on profile page |
+| DASH-01 | Dashboard shows named care team with live status indicators ("Alex AI — GP: Reviewed your symptoms today")               | New `CareTeamStatus` table or JSONB field on Patient; Supabase Realtime `postgres_changes` subscription for 2-second updates                                                       |
+| DASH-02 | Dashboard shows active care plan — monitoring status, next check-in, open action items (basic form; Phase 4 deepens)     | Store monitoring status on Patient or consultation; basic static card for Phase 2; Phase 4 adds detail                                                                             |
+| DASH-03 | Dashboard shows consultation history with urgency levels, agent names, outcome summary                                   | Already partially in `patient/page.tsx` history tab; need to surface agent names from `Consultation.gpResponse`/`specialistResponse` fields                                        |
+| DASH-04 | Realtime care team status via Supabase Realtime — no polling, updates within 2 seconds                                   | `@supabase/supabase-js` v2.100.0 already installed; `.channel().on('postgres_changes', ...)` pattern confirmed in docs                                                             |
+| CONS-01 | Consultation UI shows which AI agent is currently speaking — name, avatar, specialty badge during streaming              | Modify `streamConsultation()` to attach `agentName`/`agentRole` per chunk; client reads agent metadata per SSE event                                                               |
+| CONS-02 | Agent responses stream in real-time via SSE — progressive text, not all-at-once                                          | Existing SSE machinery works at node granularity; switch agent nodes from `llm.invoke()` to `llm.stream()` for token-level streaming                                               |
+| CONS-03 | After triage, patient sees which specialists are reviewing ("Sarah AI — Cardiology is reviewing")                        | `relevantSpecialties` array available in LangGraph state after triage node; emit a `{ step: 'routing', specialists: [...] }` SSE event                                             |
+| CONS-04 | Consultation ends with structured Care Summary: urgency, findings, next steps, timeframe, disclaimer                     | `CareRecommendation` type already exists; store as JSONB in `Consultation.recommendation`; `CareSummary` React component with `AHPRA_DISCLAIMER`                                   |
+| PROF-01 | Persistent health profile: conditions, medications, allergies, consultation history summary                              | Extend `Patient` schema with new fields + allergies; profile page at `/patient/profile`                                                                                            |
+| PROF-02 | Agents access patient profile context at consultation start — personalized responses                                     | Pass patient profile snapshot into LangGraph initial state; prepend to `symptoms` string or add `patientContext` annotation                                                        |
+| PROF-03 | Symptom journal: patient logs daily symptoms 1–5 severity + free text (basic form; Phase 4 adds trends)                  | New `SymptomJournal` model in Prisma; POST `/api/patient/journal`; simple form UI on profile page                                                                                  |
+
 </phase_requirements>
 
 ---
@@ -79,29 +85,30 @@ No CONTEXT.md exists for Phase 2. The following constraints are derived from the
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `@supabase/supabase-js` | 2.100.0 (installed) | Database client + Realtime subscriptions | Already installed; provides both Postgres client and Realtime channel API |
-| `@supabase/ssr` | latest | Supabase Auth with Next.js App Router server components + cookies | Official Supabase package for Next.js; handles cookie-based sessions for SSR |
-| `@prisma/client` | 6.19.2 (installed) | Database ORM for all writes/reads | Already the data layer; use for all Prisma model operations |
-| `next` | 16.1.6 (installed) | App Router, Server Actions, Route Handlers | Already in use; Route Handlers are the correct pattern for SSE endpoints |
-| `shadcn/ui` | (installed via components.json) | Card, Badge, Avatar, Slider, Textarea components | Already the component library; use existing primitives |
-| `framer-motion` | 12.29.2 (installed) | Step transitions in onboarding, streaming text fade-in | Already installed; used in patient page |
-| `zod` | 4.3.6 (installed) | Form validation schemas for onboarding | Already used for LangGraph output parsing |
-| `lucide-react` | 0.563.0 (installed) | Icons in care team cards, status badges | Already in use throughout |
+| Library                 | Version                         | Purpose                                                           | Why Standard                                                                 |
+| ----------------------- | ------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `@supabase/supabase-js` | 2.100.0 (installed)             | Database client + Realtime subscriptions                          | Already installed; provides both Postgres client and Realtime channel API    |
+| `@supabase/ssr`         | latest                          | Supabase Auth with Next.js App Router server components + cookies | Official Supabase package for Next.js; handles cookie-based sessions for SSR |
+| `@prisma/client`        | 6.19.2 (installed)              | Database ORM for all writes/reads                                 | Already the data layer; use for all Prisma model operations                  |
+| `next`                  | 16.1.6 (installed)              | App Router, Server Actions, Route Handlers                        | Already in use; Route Handlers are the correct pattern for SSE endpoints     |
+| `shadcn/ui`             | (installed via components.json) | Card, Badge, Avatar, Slider, Textarea components                  | Already the component library; use existing primitives                       |
+| `framer-motion`         | 12.29.2 (installed)             | Step transitions in onboarding, streaming text fade-in            | Already installed; used in patient page                                      |
+| `zod`                   | 4.3.6 (installed)               | Form validation schemas for onboarding                            | Already used for LangGraph output parsing                                    |
+| `lucide-react`          | 0.563.0 (installed)             | Icons in care team cards, status badges                           | Already in use throughout                                                    |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `@radix-ui/react-avatar` | 1.1.11 (installed) | Avatar component with fallback initials | Care team cards and consultation agent overlay |
-| `@radix-ui/react-slider` | needs install | 1–5 severity slider for symptom journal | Only if shadcn Slider component is not already in components.json |
+| Library                  | Version            | Purpose                                 | When to Use                                                       |
+| ------------------------ | ------------------ | --------------------------------------- | ----------------------------------------------------------------- |
+| `@radix-ui/react-avatar` | 1.1.11 (installed) | Avatar component with fallback initials | Care team cards and consultation agent overlay                    |
+| `@radix-ui/react-slider` | needs install      | 1–5 severity slider for symptom journal | Only if shadcn Slider component is not already in components.json |
 
 ### Not Needed
 
 `@ai-sdk/langchain` is not installed and is not needed. The existing `streamConsultation()` generator with the SSE `ReadableStream` wrapper in `/api/consult/route.ts` is the correct streaming mechanism. The `ai` SDK v6 `streamText` is irrelevant here because the LLM calls are inside LangGraph nodes managed by LangChain — the LangChain streaming approach (`.stream()` on the LLM) is the right path.
 
 **Installation (new packages only):**
+
 ```bash
 bun add @supabase/ssr
 ```
@@ -109,6 +116,7 @@ bun add @supabase/ssr
 Check if shadcn Slider is available before installing `@radix-ui/react-slider` separately — run `bunx shadcn-ui@latest add slider` instead.
 
 **Version verification:**
+
 ```bash
 bun pm ls | grep supabase
 ```
@@ -167,6 +175,7 @@ src/
 **When to use:** When the user must not be able to skip steps (consent is required before profile save).
 
 **Example:**
+
 ```typescript
 // src/app/onboarding/page.tsx
 'use client';
@@ -198,36 +207,39 @@ export default function OnboardingPage() {
 **When to use:** Any UI that needs to reflect database changes within 2 seconds without polling. Must be in a Client Component.
 
 **Example:**
+
 ```typescript
 // Source: Supabase docs — Postgres Changes
-'use client';
-import { createBrowserClient } from '@supabase/ssr';
-import { useEffect } from 'react';
+"use client";
+import { createBrowserClient } from "@supabase/ssr";
+import { useEffect } from "react";
 
 export function CareTeamCard({ patientId }: { patientId: string }) {
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   useEffect(() => {
     const channel = supabase
       .channel(`care-status-${patientId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'CareTeamStatus',
+          event: "UPDATE",
+          schema: "public",
+          table: "CareTeamStatus",
           filter: `patientId=eq.${patientId}`,
         },
         (payload) => {
           // Update local state with payload.new
-        }
+        },
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [patientId, supabase]);
 }
 ```
@@ -241,12 +253,13 @@ export function CareTeamCard({ patientId }: { patientId: string }) {
 **When to use:** CONS-01 (agent identity overlay) and CONS-02 (progressive text streaming).
 
 **Example:**
+
 ```typescript
 // Inside a modified agent node (e.g., gpNode) — token-level streaming
 async function* gpNodeStream(state: ConsultationGraphState) {
   const llm = createLLM();
   const agent = agentRegistry.gp;
-  let fullContent = '';
+  let fullContent = "";
 
   for await (const chunk of await llm.stream([
     new SystemMessage(agent.systemPrompt),
@@ -257,12 +270,21 @@ async function* gpNodeStream(state: ConsultationGraphState) {
       agentName: agent.name,
       agentRole: agent.role,
       chunk: chunk.content as string,
-      step: 'gp',
+      step: "gp",
     };
   }
 
   // Return full message for state
-  return { messages: [{ role: 'gp', agentName: agent.name, content: fullContent, timestamp: new Date() }] };
+  return {
+    messages: [
+      {
+        role: "gp",
+        agentName: agent.name,
+        content: fullContent,
+        timestamp: new Date(),
+      },
+    ],
+  };
 }
 ```
 
@@ -275,6 +297,7 @@ async function* gpNodeStream(state: ConsultationGraphState) {
 **When to use:** Every consultation where the patient has a saved profile.
 
 **Example:**
+
 ```typescript
 // In /api/consult/route.ts, before streamConsultation() call
 const patient = await prisma.patient.findUnique({
@@ -284,10 +307,15 @@ const patient = await prisma.patient.findUnique({
 
 const patientContext = patient
   ? `Patient profile: Age ${patient.age}, ${patient.gender}. Known conditions: ${patient.knownConditions}. Current medications: ${patient.medications}.`
-  : '';
+  : "";
 
 // Pass into streamConsultation
-for await (const event of streamConsultation(symptoms, sessionId, consultationId, patientContext)) {
+for await (const event of streamConsultation(
+  symptoms,
+  sessionId,
+  consultationId,
+  patientContext,
+)) {
   // ...
 }
 ```
@@ -304,14 +332,14 @@ for await (const event of streamConsultation(symptoms, sessionId, consultationId
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Real-time DB updates | `setInterval` + re-fetch | Supabase `.channel().on('postgres_changes')` | Built-in WebSocket management, filter support, automatic reconnect |
-| Multi-step form state | Custom context + localStorage | URL query params + Next.js `useSearchParams` | URL is shareable, survives refresh, no serialization bugs |
-| Auth session management | Custom JWT cookies | `@supabase/ssr` `createServerClient` | Handles cookie rotation, PKCE, refresh tokens |
-| Agent avatar images | File upload + CDN | Generated SVG initials or emoji from `agentRegistry.emoji` | Zero infra, consistent rendering, no upload flow |
-| SSE reconnection | Custom `EventSource` with retry logic | Browser native `EventSource` API (auto-reconnects) | Browser handles reconnect natively |
-| Care Summary structure | Free text concatenation | `CareRecommendation` type serialized to JSONB | Already typed, already structured — just persist it |
+| Problem                 | Don't Build                           | Use Instead                                                | Why                                                                |
+| ----------------------- | ------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| Real-time DB updates    | `setInterval` + re-fetch              | Supabase `.channel().on('postgres_changes')`               | Built-in WebSocket management, filter support, automatic reconnect |
+| Multi-step form state   | Custom context + localStorage         | URL query params + Next.js `useSearchParams`               | URL is shareable, survives refresh, no serialization bugs          |
+| Auth session management | Custom JWT cookies                    | `@supabase/ssr` `createServerClient`                       | Handles cookie rotation, PKCE, refresh tokens                      |
+| Agent avatar images     | File upload + CDN                     | Generated SVG initials or emoji from `agentRegistry.emoji` | Zero infra, consistent rendering, no upload flow                   |
+| SSE reconnection        | Custom `EventSource` with retry logic | Browser native `EventSource` API (auto-reconnects)         | Browser handles reconnect natively                                 |
+| Care Summary structure  | Free text concatenation               | `CareRecommendation` type serialized to JSONB              | Already typed, already structured — just persist it                |
 
 **Key insight:** The existing codebase has all the hard pieces. Phase 2 is assembly + augmentation, not greenfield. Resist the urge to replace working patterns.
 
@@ -320,45 +348,53 @@ for await (const event of streamConsultation(symptoms, sessionId, consultationId
 ## Common Pitfalls
 
 ### Pitfall 1: `agentRegistry` Cannot Be Imported in Client Components
+
 **What goes wrong:** `agentRegistry` imports agent definition files which import `AGENT_COMPLIANCE_RULE` from `@/lib/compliance`, which is fine, but they also use `createModel()` from `@/lib/ai/config` indirectly. More critically, any future Node.js-only code in agent files will break the client bundle.
 **Why it happens:** Next.js App Router bundles client components separately; server-only imports cause build errors.
 **How to avoid:** Create `src/lib/care-team-config.ts` — a pure data file with just `{ name, emoji, description, specialties, avatar }` for each agent. Import this in all client components. `agentRegistry` stays server-only.
 **Warning signs:** Build error `Module not found: Can't resolve 'fs'` or similar Node.js built-in errors in client bundle.
 
 ### Pitfall 2: Supabase Realtime Requires `REPLICA IDENTITY FULL`
+
 **What goes wrong:** The Realtime `postgres_changes` listener silently receives no events even though the subscription appears active.
 **Why it happens:** By default Postgres only logs the primary key in WAL for UPDATE events. Supabase Realtime needs the full row diff.
 **How to avoid:** Add to the migration for any table used with Realtime: `ALTER TABLE "CareTeamStatus" REPLICA IDENTITY FULL;`
 **Warning signs:** Subscription `.subscribe()` returns `SUBSCRIBED` but `on('postgres_changes', ...)` callback never fires on UPDATE.
 
 ### Pitfall 3: LangGraph `.stream()` is Node-Level, Not Token-Level
+
 **What goes wrong:** Using `graph.stream(initialState)` yields one object per completed node (e.g., the entire GP response appears at once), not individual tokens. The patient sees chunks appear node-by-node rather than word-by-word.
 **Why it happens:** LangGraph's default stream mode emits state snapshots after each node completes, not token streams from within nodes.
 **How to avoid:** For token-level streaming, use `streamMode: 'messages'` in LangGraph v0.2+ which streams LLM message tokens. Check if `@langchain/langgraph` 1.1.2 supports this:
+
 ```typescript
 for await (const chunk of await graph.stream(initialState, {
   ...streamConfig,
-  streamMode: 'messages',
+  streamMode: "messages",
 })) {
   // chunk is [AIMessageChunk, metadata]
 }
 ```
+
 If `streamMode: 'messages'` is not available in 1.1.2, fall back to node-level streaming (each full agent response appears progressively, not word-by-word) — this still satisfies CONS-02 meaningfully and is an acceptable Phase 2 tradeoff.
 **Warning signs:** All text from one agent appears simultaneously rather than progressively.
 
 ### Pitfall 4: `/api/patient/consent` POST Does Not Exist Yet
+
 **What goes wrong:** The `/consent` page posts to `/api/patient/consent` (see consent page source) but this route was explicitly marked as Phase 2 to implement (Phase 1 STATE.md: "Phase 2 will implement consent record creation endpoint").
 **Why it happens:** Phase 1 built the UI and schema but deferred the API endpoint.
 **How to avoid:** Plan 02-01 must create `src/app/api/patient/consent/route.ts` as its first task. Until this exists, the entire consent flow is broken.
 **Warning signs:** Onboarding Step 2 throws 404 on form submit.
 
 ### Pitfall 5: Auth Transition — `x-patient-id` Header Must Be Replaced
+
 **What goes wrong:** All Phase 1 API routes use `request.headers.get("x-patient-id")` for identity. If Phase 2 adds Supabase Auth sessions but doesn't update these routes, the consent endpoint, journal endpoint, and care status endpoint will have inconsistent auth patterns.
 **Why it happens:** Phase 1 intentionally deferred auth migration to Phase 2 ("TODO: Phase 2 will replace with Supabase Auth session").
 **How to avoid:** Implement `@supabase/ssr` session reading in a shared `getSession(request)` helper early in Phase 2 (Plan 02-01). All new routes use this helper. Existing routes can be updated incrementally in the same plan wave.
 **Warning signs:** New routes work but existing routes (export, delete) break after auth migration.
 
 ### Pitfall 6: `Consultation.recommendation` is TEXT, Not JSONB
+
 **What goes wrong:** The `CareRecommendation` object is serialized to a string somewhere before saving (or not saved at all in current code). Attempting to display structured Care Summary fields will require fragile JSON.parse.
 **Why it happens:** Original schema used `TEXT` for the recommendation field.
 **How to avoid:** Migration in Plan 02-04 must `ALTER TABLE "Consultation" ALTER COLUMN "recommendation" TYPE JSONB USING recommendation::jsonb`. Then update Prisma schema to `Json @db.JsonB`.
@@ -371,6 +407,7 @@ If `streamMode: 'messages'` is not available in 1.1.2, fall back to node-level s
 Verified patterns from codebase inspection and Supabase documentation:
 
 ### Existing SSE Stream Pattern (from `/api/consult/route.ts`)
+
 ```typescript
 // Existing — works, extend this, don't replace
 const readable = new ReadableStream({
@@ -393,33 +430,39 @@ return new Response(readable, {
 ```
 
 ### Supabase Realtime Channel Setup (DASH-04)
+
 ```typescript
 // Source: @supabase/supabase-js v2 docs — Postgres Changes
 // Create in src/lib/supabase/client.ts
-import { createBrowserClient } from '@supabase/ssr';
+import { createBrowserClient } from "@supabase/ssr";
 
 export function createSupabaseBrowser() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 }
 
 // Usage in CareTeamCard.tsx
 const channel = supabase
   .channel(`care-status-${patientId}`)
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'CareTeamStatus',
-    filter: `patientId=eq.${patientId}`,
-  }, (payload) => {
-    setCareStatuses(prev => updateStatus(prev, payload.new));
-  })
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "CareTeamStatus",
+      filter: `patientId=eq.${patientId}`,
+    },
+    (payload) => {
+      setCareStatuses((prev) => updateStatus(prev, payload.new));
+    },
+  )
   .subscribe();
 ```
 
 ### Onboarding Data Shape (for Prisma schema migration)
+
 ```typescript
 // New fields to add to Patient model
 model Patient {
@@ -451,21 +494,71 @@ model CareTeamStatus {
 ```
 
 ### Agent Display Config (client-safe, no LangChain imports)
+
 ```typescript
 // src/lib/care-team-config.ts — safe for client components
 export const CARE_TEAM = [
-  { role: 'gp',          name: 'Alex AI — GP',            emoji: '👨‍⚕️', specialty: 'General Practice',    bio: "I'm here to help with your overall health and coordinate your care." },
-  { role: 'cardiology',  name: 'Sarah AI — Cardiology',   emoji: '❤️',  specialty: 'Cardiology',           bio: "I specialise in heart health and cardiovascular concerns." },
-  { role: 'mental_health',name: 'Maya AI — Mental Health', emoji: '🧠',  specialty: 'Mental Health',        bio: "I'm here to support your mental wellbeing and emotional health." },
-  { role: 'dermatology', name: 'Priya AI — Dermatology',  emoji: '🌿',  specialty: 'Dermatology',          bio: "I focus on skin health, rashes, and dermatological concerns." },
-  { role: 'orthopedic',  name: 'James AI — Orthopedic',   emoji: '🦴',  specialty: 'Orthopedics',          bio: "I help with joint, bone, and musculoskeletal issues." },
-  { role: 'gastro',      name: 'Chen AI — Gastroenterology', emoji: '🫃', specialty: 'Gastroenterology',  bio: "I specialise in digestive health and gastrointestinal concerns." },
-  { role: 'physiotherapy',name: 'Emma AI — Physiotherapy', emoji: '🏃',  specialty: 'Physiotherapy',       bio: "I help with movement, rehabilitation, and physical recovery." },
-  { role: 'triage',      name: 'Triage AI',               emoji: '🚦',  specialty: 'Triage',               bio: "I assess your symptoms and route you to the right specialist." },
+  {
+    role: "gp",
+    name: "Alex AI — GP",
+    emoji: "👨‍⚕️",
+    specialty: "General Practice",
+    bio: "I'm here to help with your overall health and coordinate your care.",
+  },
+  {
+    role: "cardiology",
+    name: "Sarah AI — Cardiology",
+    emoji: "❤️",
+    specialty: "Cardiology",
+    bio: "I specialise in heart health and cardiovascular concerns.",
+  },
+  {
+    role: "mental_health",
+    name: "Maya AI — Mental Health",
+    emoji: "🧠",
+    specialty: "Mental Health",
+    bio: "I'm here to support your mental wellbeing and emotional health.",
+  },
+  {
+    role: "dermatology",
+    name: "Priya AI — Dermatology",
+    emoji: "🌿",
+    specialty: "Dermatology",
+    bio: "I focus on skin health, rashes, and dermatological concerns.",
+  },
+  {
+    role: "orthopedic",
+    name: "James AI — Orthopedic",
+    emoji: "🦴",
+    specialty: "Orthopedics",
+    bio: "I help with joint, bone, and musculoskeletal issues.",
+  },
+  {
+    role: "gastro",
+    name: "Chen AI — Gastroenterology",
+    emoji: "🫃",
+    specialty: "Gastroenterology",
+    bio: "I specialise in digestive health and gastrointestinal concerns.",
+  },
+  {
+    role: "physiotherapy",
+    name: "Emma AI — Physiotherapy",
+    emoji: "🏃",
+    specialty: "Physiotherapy",
+    bio: "I help with movement, rehabilitation, and physical recovery.",
+  },
+  {
+    role: "triage",
+    name: "Triage AI",
+    emoji: "🚦",
+    specialty: "Triage",
+    bio: "I assess your symptoms and route you to the right specialist.",
+  },
 ] as const;
 ```
 
 ### Care Summary Component Structure (CONS-04)
+
 ```typescript
 // Uses AHPRA_DISCLAIMER from existing compliance.ts
 import { AHPRA_DISCLAIMER } from '@/lib/compliance';
@@ -488,14 +581,15 @@ export function CareSummary({ recommendation }: { recommendation: CareRecommenda
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Supabase client-side only | `@supabase/ssr` for Next.js App Router server components | Supabase v2 / Next.js 13+ | Must use `createServerClient` in Route Handlers, `createBrowserClient` in Client Components |
-| `@supabase/auth-helpers-nextjs` | `@supabase/ssr` | 2024 | `auth-helpers-nextjs` is deprecated; `@supabase/ssr` is the current official package |
-| LangGraph `streamMode` default | `streamMode: 'messages'` for token streaming | LangGraph v0.2+ | Enables token-level streaming without custom node architecture |
-| Prisma `@db.Json` | `@db.JsonB` for JSONB columns | Prisma v5+ | `JsonB` is explicit; use for all new structured fields |
+| Old Approach                    | Current Approach                                         | When Changed              | Impact                                                                                      |
+| ------------------------------- | -------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------- |
+| Supabase client-side only       | `@supabase/ssr` for Next.js App Router server components | Supabase v2 / Next.js 13+ | Must use `createServerClient` in Route Handlers, `createBrowserClient` in Client Components |
+| `@supabase/auth-helpers-nextjs` | `@supabase/ssr`                                          | 2024                      | `auth-helpers-nextjs` is deprecated; `@supabase/ssr` is the current official package        |
+| LangGraph `streamMode` default  | `streamMode: 'messages'` for token streaming             | LangGraph v0.2+           | Enables token-level streaming without custom node architecture                              |
+| Prisma `@db.Json`               | `@db.JsonB` for JSONB columns                            | Prisma v5+                | `JsonB` is explicit; use for all new structured fields                                      |
 
 **Deprecated/outdated:**
+
 - `@supabase/auth-helpers-nextjs`: deprecated, replaced by `@supabase/ssr`
 - `EventSource` polyfills: not needed in modern Next.js — native `EventSource` works in all target browsers
 
@@ -524,31 +618,31 @@ export function CareSummary({ recommendation }: { recommendation: CareRecommenda
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | vitest 4.1.1 |
-| Config file | `vitest.config.ts` (root) |
-| Quick run command | `bun test` |
+| Property           | Value                                                             |
+| ------------------ | ----------------------------------------------------------------- |
+| Framework          | vitest 4.1.1                                                      |
+| Config file        | `vitest.config.ts` (root)                                         |
+| Quick run command  | `bun test`                                                        |
 | Full suite command | `bun test` (runs all files matching `src/__tests__/**/*.test.ts`) |
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| ONBD-01 | Medical history form saves all required fields to DB | unit | `bun test src/__tests__/api/patient-onboarding.test.ts` | Wave 0 |
-| ONBD-02 | Consent step integrates correctly — POST to `/api/patient/consent` succeeds | unit | `bun test src/__tests__/api/patient-consent-api.test.ts` | Wave 0 |
-| ONBD-03 | All 8 agents present in CARE_TEAM config with required display fields | unit | `bun test src/__tests__/onboarding/care-team-config.test.ts` | Wave 0 |
-| DASH-01 | CareTeamStatus row created/updated after consultation | unit | `bun test src/__tests__/api/care-team-status.test.ts` | Wave 0 |
-| DASH-03 | Consultation history includes urgency level and agent names | unit | `bun test src/__tests__/api/consultation-history.test.ts` | Wave 0 |
-| DASH-04 | Realtime subscription setup does not throw | unit | `bun test src/__tests__/lib/supabase-realtime.test.ts` | Wave 0 |
-| CONS-01 | Each SSE event includes `agentName` and `agentRole` fields | unit | `bun test src/__tests__/api/consult-stream-identity.test.ts` | Wave 0 |
-| CONS-04 | Care Summary contains urgency, nextSteps, timeframe, and AHPRA disclaimer | unit | `bun test src/__tests__/components/care-summary.test.ts` | Wave 0 |
-| PROF-01 | Patient profile page renders conditions, medications, allergies | manual | n/a — visual verification | manual-only |
-| PROF-02 | Patient context injected into consultation initial state | unit | `bun test src/__tests__/agents/profile-context-injection.test.ts` | Wave 0 |
-| PROF-03 | Symptom journal POST saves severity + notes; GET returns entries | unit | `bun test src/__tests__/api/symptom-journal.test.ts` | Wave 0 |
-| DASH-02 | Active care plan card renders without errors | manual | n/a — basic static card | manual-only |
-| CONS-02 | SSE stream produces multiple events (not single all-at-once) | unit | `bun test src/__tests__/api/consult-stream-events.test.ts` | Wave 0 |
-| CONS-03 | Routing event emitted after triage with specialist names | unit | included in `consult-stream-identity.test.ts` | Wave 0 |
+| Req ID  | Behavior                                                                    | Test Type | Automated Command                                                 | File Exists? |
+| ------- | --------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------- | ------------ |
+| ONBD-01 | Medical history form saves all required fields to DB                        | unit      | `bun test src/__tests__/api/patient-onboarding.test.ts`           | Wave 0       |
+| ONBD-02 | Consent step integrates correctly — POST to `/api/patient/consent` succeeds | unit      | `bun test src/__tests__/api/patient-consent-api.test.ts`          | Wave 0       |
+| ONBD-03 | All 8 agents present in CARE_TEAM config with required display fields       | unit      | `bun test src/__tests__/onboarding/care-team-config.test.ts`      | Wave 0       |
+| DASH-01 | CareTeamStatus row created/updated after consultation                       | unit      | `bun test src/__tests__/api/care-team-status.test.ts`             | Wave 0       |
+| DASH-03 | Consultation history includes urgency level and agent names                 | unit      | `bun test src/__tests__/api/consultation-history.test.ts`         | Wave 0       |
+| DASH-04 | Realtime subscription setup does not throw                                  | unit      | `bun test src/__tests__/lib/supabase-realtime.test.ts`            | Wave 0       |
+| CONS-01 | Each SSE event includes `agentName` and `agentRole` fields                  | unit      | `bun test src/__tests__/api/consult-stream-identity.test.ts`      | Wave 0       |
+| CONS-04 | Care Summary contains urgency, nextSteps, timeframe, and AHPRA disclaimer   | unit      | `bun test src/__tests__/components/care-summary.test.ts`          | Wave 0       |
+| PROF-01 | Patient profile page renders conditions, medications, allergies             | manual    | n/a — visual verification                                         | manual-only  |
+| PROF-02 | Patient context injected into consultation initial state                    | unit      | `bun test src/__tests__/agents/profile-context-injection.test.ts` | Wave 0       |
+| PROF-03 | Symptom journal POST saves severity + notes; GET returns entries            | unit      | `bun test src/__tests__/api/symptom-journal.test.ts`              | Wave 0       |
+| DASH-02 | Active care plan card renders without errors                                | manual    | n/a — basic static card                                           | manual-only  |
+| CONS-02 | SSE stream produces multiple events (not single all-at-once)                | unit      | `bun test src/__tests__/api/consult-stream-events.test.ts`        | Wave 0       |
+| CONS-03 | Routing event emitted after triage with specialist names                    | unit      | included in `consult-stream-identity.test.ts`                     | Wave 0       |
 
 ### Sampling Rate
 
@@ -576,17 +670,20 @@ export function CareSummary({ recommendation }: { recommendation: CareRecommenda
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - Codebase inspection: `src/agents/orchestrator.ts`, `src/agents/definitions/`, `src/lib/compliance.ts`, `src/lib/emergency-rules.ts`, `src/lib/consent-check.ts`, `src/app/api/consult/route.ts`, `src/app/consent/page.tsx`, `src/app/patient/page.tsx`, `prisma/schema.prisma`, `package.json`, `vitest.config.ts`
 - Phase 1 CONTEXT.md — all Phase 1 decisions that constrain Phase 2
 - `@supabase/supabase-js` v2.100.0 — installed and confirmed; Realtime API stable
 - `@langchain/langgraph` v1.1.2 — installed; `.stream()` method confirmed in codebase
 
 ### Secondary (MEDIUM confidence)
+
 - Supabase Realtime `postgres_changes` pattern — standard documented API, `REPLICA IDENTITY FULL` requirement is official Supabase documentation
 - `@supabase/ssr` replacing `@supabase/auth-helpers-nextjs` — confirmed deprecated in Supabase changelog circa 2024
 - LangGraph `streamMode: 'messages'` — exists in LangGraph docs but JS v1.x exact API needs verification during implementation
 
 ### Tertiary (LOW confidence)
+
 - LangGraph JS v1.1.2 `streamMode: 'messages'` availability — not verified against installed package source; treat as needing runtime validation in Plan 02-03
 
 ---
@@ -594,6 +691,7 @@ export function CareSummary({ recommendation }: { recommendation: CareRecommenda
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — all libraries already installed and in use; only `@supabase/ssr` is new
 - Architecture: HIGH — patterns derived from direct codebase inspection
 - Pitfalls: HIGH — 5 of 6 pitfalls identified from direct code reading (not hypothetical); Pitfall 3 LangGraph streaming is MEDIUM (version-dependent)

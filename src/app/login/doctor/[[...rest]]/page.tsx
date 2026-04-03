@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 const SignInPage = dynamic(
   () => import("@/components/ui/sign-in-flow-1").then((m) => m.SignInPage),
-  { ssr: false }
+  { ssr: false },
 );
 
 export default function DoctorLogin() {

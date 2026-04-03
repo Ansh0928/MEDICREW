@@ -71,7 +71,10 @@ export function NotificationInbox({
         }
 
         // Emergency/escalation notifications — alert styling
-        if (notification.type === "emergency" || notification.type === "escalation") {
+        if (
+          notification.type === "emergency" ||
+          notification.type === "escalation"
+        ) {
           const isEmergency = notification.type === "emergency";
           return (
             <Card
@@ -91,15 +94,23 @@ export function NotificationInbox({
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-sm">{notification.title}</h4>
+                      <h4 className="font-medium text-sm">
+                        {notification.title}
+                      </h4>
                       {!notification.read && (
-                        <Badge variant="destructive" className="text-xs">New</Badge>
+                        <Badge variant="destructive" className="text-xs">
+                          New
+                        </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {notification.message}
+                    </p>
                     <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
-                      {new Date(notification.createdAt).toLocaleDateString("en-AU")}
+                      {new Date(notification.createdAt).toLocaleDateString(
+                        "en-AU",
+                      )}
                     </div>
                   </div>
                 </div>
@@ -133,10 +144,14 @@ export function NotificationInbox({
                 <div className="flex items-center gap-2">
                   <h4 className="font-medium text-sm">{notification.title}</h4>
                   {!notification.read && (
-                    <Badge variant="default" className="text-xs">New</Badge>
+                    <Badge variant="default" className="text-xs">
+                      New
+                    </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {notification.message}
+                </p>
                 <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
                   {new Date(notification.createdAt).toLocaleDateString("en-AU")}

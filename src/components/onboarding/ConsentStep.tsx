@@ -56,8 +56,8 @@ export function ConsentStep({ onComplete }: ConsentStepProps) {
   return (
     <div>
       <p className="mb-6 text-sm text-muted-foreground">
-        Before using Medicrew, please review and consent to the following. This is required
-        under the Australian Privacy Act 1988.
+        Before using Medicrew, please review and consent to the following. This
+        is required under the Australian Privacy Act 1988.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -71,9 +71,9 @@ export function ConsentStep({ onComplete }: ConsentStepProps) {
           <div>
             <p className="font-medium">Health Data Collection</p>
             <p className="text-sm text-muted-foreground">
-              I consent to Medicrew collecting and storing my health information including
-              symptoms, consultation history, and health profile data to provide AI-assisted
-              health guidance.
+              I consent to Medicrew collecting and storing my health information
+              including symptoms, consultation history, and health profile data
+              to provide AI-assisted health guidance.
             </p>
           </div>
         </label>
@@ -88,9 +88,10 @@ export function ConsentStep({ onComplete }: ConsentStepProps) {
           <div>
             <p className="font-medium">AI Health Guidance</p>
             <p className="text-sm text-muted-foreground">
-              I understand that Medicrew uses AI agents to provide health information and
-              navigation. This is not medical diagnosis or treatment. I should always consult
-              a registered healthcare professional for medical concerns.
+              I understand that Medicrew uses AI agents to provide health
+              information and navigation. This is not medical diagnosis or
+              treatment. I should always consult a registered healthcare
+              professional for medical concerns.
             </p>
           </div>
         </label>
@@ -105,22 +106,27 @@ export function ConsentStep({ onComplete }: ConsentStepProps) {
           <div>
             <p className="font-medium">Overseas Data Processing</p>
             <p className="text-sm text-muted-foreground">
-              I consent to my health information being processed by AI language model providers
-              (such as Groq and OpenAI) whose servers may be located outside Australia. Medicrew
-              stores all data in Sydney (ap-southeast-2) but AI processing may occur overseas.
+              I consent to my health information being processed by AI language
+              model providers (such as Groq and OpenAI) whose servers may be
+              located outside Australia. Medicrew stores all data in Sydney
+              (ap-southeast-2) but AI processing may occur overseas.
             </p>
           </div>
         </label>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <Button type="submit" disabled={!allChecked || submitting} className="w-full">
+        <Button
+          type="submit"
+          disabled={!allChecked || submitting}
+          className="w-full"
+        >
           {submitting ? "Saving..." : "I Consent — Continue"}
         </Button>
 
         <p className="text-xs text-muted-foreground text-center">
-          Consent version {CONSENT_VERSION}. You can withdraw consent and request data
-          deletion at any time from your profile settings.
+          Consent version {CONSENT_VERSION}. You can withdraw consent and
+          request data deletion at any time from your profile settings.
         </p>
       </form>
     </div>

@@ -9,7 +9,10 @@ interface LandingSectionViewTrackerProps {
   surface: string;
 }
 
-export function LandingSectionViewTracker({ sectionId, surface }: LandingSectionViewTrackerProps) {
+export function LandingSectionViewTracker({
+  sectionId,
+  surface,
+}: LandingSectionViewTrackerProps) {
   useEffect(() => {
     const target = document.getElementById(sectionId);
     if (!target) return;
@@ -20,10 +23,13 @@ export function LandingSectionViewTracker({ sectionId, surface }: LandingSection
         const entry = entries[0];
         if (!entry || tracked || !entry.isIntersecting) return;
         tracked = true;
-        trackEvent(ANALYTICS_EVENTS.landingSectionViewed, { sectionId, surface });
+        trackEvent(ANALYTICS_EVENTS.landingSectionViewed, {
+          sectionId,
+          surface,
+        });
         observer.disconnect();
       },
-      { threshold: 0.35 }
+      { threshold: 0.35 },
     );
 
     observer.observe(target);

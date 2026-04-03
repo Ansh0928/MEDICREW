@@ -6,8 +6,8 @@ export interface AgentNodeProps {
   name: string;
   role: string;
   avatarSeed: string;
-  x: number;        // centre x as px offset from container centre
-  y: number;        // centre y as px offset from container centre
+  x: number; // centre x as px offset from container centre
+  y: number; // centre y as px offset from container centre
   state: AgentState;
   bubbleText?: string;
   isCenter?: boolean;
@@ -20,10 +20,20 @@ function bubbleAnchor(x: number, y: number): string {
   if (absX > absY) {
     return x > 0 ? "right-full mr-2 top-0" : "left-full ml-2 top-0";
   }
-  return y > 0 ? "bottom-full mb-2 left-1/2 -translate-x-1/2" : "top-full mt-2 left-1/2 -translate-x-1/2";
+  return y > 0
+    ? "bottom-full mb-2 left-1/2 -translate-x-1/2"
+    : "top-full mt-2 left-1/2 -translate-x-1/2";
 }
 
-export function AgentNode({ name, avatarSeed, x, y, state, bubbleText, isCenter }: AgentNodeProps) {
+export function AgentNode({
+  name,
+  avatarSeed,
+  x,
+  y,
+  state,
+  bubbleText,
+  isCenter,
+}: AgentNodeProps) {
   const avatarUrl = `https://api.dicebear.com/8.x/notionists-neutral/svg?seed=${encodeURIComponent(avatarSeed)}&size=48`;
 
   const ringClass = {
@@ -38,17 +48,25 @@ export function AgentNode({ name, avatarSeed, x, y, state, bubbleText, isCenter 
   return (
     <div
       className="absolute flex flex-col items-center gap-1"
-      style={{ transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%))`, left: "50%", top: "50%" }}
+      style={{
+        transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%))`,
+        left: "50%",
+        top: "50%",
+      }}
     >
       {/* Speech bubble */}
       {(state === "speaking" || state === "active") && bubbleText && (
-        <div className={`absolute z-10 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1 text-xs text-gray-700 max-w-[140px] leading-tight whitespace-normal ${bubbleAnchor(x, y)}`}>
+        <div
+          className={`absolute z-10 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1 text-xs text-gray-700 max-w-[140px] leading-tight whitespace-normal ${bubbleAnchor(x, y)}`}
+        >
           {bubbleText}
         </div>
       )}
 
       {/* Avatar circle */}
-      <div className={`relative rounded-full overflow-hidden bg-gray-100 ${size} ${ringClass} flex-shrink-0`}>
+      <div
+        className={`relative rounded-full overflow-hidden bg-gray-100 ${size} ${ringClass} flex-shrink-0`}
+      >
         <img
           src={avatarUrl}
           alt={name}

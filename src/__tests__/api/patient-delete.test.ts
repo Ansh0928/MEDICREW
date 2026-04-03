@@ -16,12 +16,12 @@ vi.mock("@/lib/auth", () => ({
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedPatient } from "@/lib/auth";
 
-const AUTH_P1 = { patient: { id: 'p1' }, error: null };
+const AUTH_P1 = { patient: { id: "p1" }, error: null };
 const AUTH_NONE = {
   patient: null,
-  error: new Response(JSON.stringify({ error: 'Authentication required' }), {
+  error: new Response(JSON.stringify({ error: "Authentication required" }), {
     status: 401,
-    headers: { 'content-type': 'application/json' },
+    headers: { "content-type": "application/json" },
   }),
 };
 
@@ -43,7 +43,9 @@ describe("COMP-05b: Account deletion", () => {
     } as any);
 
     const { DELETE } = await import("@/app/api/patient/route");
-    const req = new Request("http://localhost/api/patient", { method: "DELETE" });
+    const req = new Request("http://localhost/api/patient", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any);
     expect(res.status).toBe(200);
 
@@ -53,14 +55,16 @@ describe("COMP-05b: Account deletion", () => {
         data: expect.objectContaining({
           email: "deleted-p1@medicrew.au",
         }),
-      })
+      }),
     );
   });
 
   test("delete returns 401 when not authenticated", async () => {
     vi.mocked(getAuthenticatedPatient).mockResolvedValue(AUTH_NONE as any);
     const { DELETE } = await import("@/app/api/patient/route");
-    const req = new Request("http://localhost/api/patient", { method: "DELETE" });
+    const req = new Request("http://localhost/api/patient", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any);
     expect(res.status).toBe(401);
   });

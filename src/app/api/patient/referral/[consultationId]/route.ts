@@ -29,7 +29,10 @@ export async function GET(
   });
 
   if (!consultation) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   if (!consultation.referralLetter) {

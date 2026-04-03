@@ -37,19 +37,21 @@ export function LoginForm({
       router.push(role === "doctor" ? "/doctor" : "/patient");
       return;
     }
-    setError(
-      `Invalid login. Use ${role}@demo.com (any password).`
-    );
+    setError(`Invalid login. Use ${role}@demo.com (any password).`);
   };
 
   const title =
-    role === "doctor" ? "Doctor Portal" : role === "patient" ? "Patient Portal" : "Doctors & Patients Portal";
+    role === "doctor"
+      ? "Doctor Portal"
+      : role === "patient"
+        ? "Patient Portal"
+        : "Doctors & Patients Portal";
   const subtitle =
     role === "doctor"
       ? "Sign in to access the doctor dashboard"
       : role === "patient"
-      ? "Sign in to check your symptoms"
-      : "Sign in to access the patient or doctor portal";
+        ? "Sign in to check your symptoms"
+        : "Sign in to access the patient or doctor portal";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">

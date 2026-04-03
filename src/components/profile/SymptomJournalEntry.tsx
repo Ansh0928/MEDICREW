@@ -46,7 +46,10 @@ const severityButtonActive: Record<number, string> = {
   5: "bg-red-700 text-white border-red-700",
 };
 
-export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEntryProps) {
+export function SymptomJournalEntry({
+  entries,
+  onEntryAdded,
+}: SymptomJournalEntryProps) {
   const [severity, setSeverity] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -79,7 +82,9 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
       setSeverity(null);
       setNotes("");
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Failed to save entry.");
+      setSubmitError(
+        err instanceof Error ? err.message : "Failed to save entry.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -113,7 +118,9 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
                   aria-label={`Severity ${level}: ${severityLabels[level]}`}
                 >
                   <span className="block text-center font-bold">{level}</span>
-                  <span className="block text-center text-xs">{severityLabels[level]}</span>
+                  <span className="block text-center text-xs">
+                    {severityLabels[level]}
+                  </span>
                 </button>
               ))}
             </div>
@@ -121,7 +128,10 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
 
           {/* Notes */}
           <div>
-            <Label htmlFor="journal-notes" className="text-xs font-medium text-muted-foreground">
+            <Label
+              htmlFor="journal-notes"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Notes (optional)
             </Label>
             <Textarea
@@ -135,7 +145,9 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
           </div>
 
           {submitError && (
-            <p className="text-sm text-red-600 dark:text-red-400">{submitError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {submitError}
+            </p>
           )}
 
           <Button
@@ -151,7 +163,9 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
       {/* Recent entries list */}
       {entries.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Recent Entries</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">
+            Recent Entries
+          </h3>
           <div className="space-y-2">
             {entries.map((entry) => (
               <Card key={entry.id} className="p-3">
@@ -160,10 +174,12 @@ export function SymptomJournalEntry({ entries, onEntryAdded }: SymptomJournalEnt
                     <div className="flex items-center gap-2 mb-1">
                       <span
                         className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
-                          severityBadgeClasses[entry.severity] ?? severityBadgeClasses[3]
+                          severityBadgeClasses[entry.severity] ??
+                          severityBadgeClasses[3]
                         }`}
                       >
-                        {entry.severity} — {severityLabels[entry.severity] ?? "Unknown"}
+                        {entry.severity} —{" "}
+                        {severityLabels[entry.severity] ?? "Unknown"}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {new Date(entry.createdAt).toLocaleDateString("en-AU", {

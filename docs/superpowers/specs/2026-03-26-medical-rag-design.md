@@ -38,14 +38,14 @@ debate → synthesis — unchanged
 
 ## Stack
 
-| Component | Choice | Reason |
-|-----------|--------|--------|
-| Vector DB | Neon pgvector (existing) | Already in stack, free, no new service |
-| DB client | `@neondatabase/serverless` | Required for raw vector queries — Prisma does not support pgvector operators |
-| Embeddings (build) | Nomic AI `nomic-embed-text-v1.5` | Free tier, 768-dim, best medical quality among free options |
-| Embeddings (query) | Same Nomic API | Single provider, consistent vector space |
-| LLM | Groq (existing) | Unchanged |
-| Corpus script | `bun` local script → prod Neon | One-time setup, no serverless timeout issues |
+| Component          | Choice                           | Reason                                                                       |
+| ------------------ | -------------------------------- | ---------------------------------------------------------------------------- |
+| Vector DB          | Neon pgvector (existing)         | Already in stack, free, no new service                                       |
+| DB client          | `@neondatabase/serverless`       | Required for raw vector queries — Prisma does not support pgvector operators |
+| Embeddings (build) | Nomic AI `nomic-embed-text-v1.5` | Free tier, 768-dim, best medical quality among free options                  |
+| Embeddings (query) | Same Nomic API                   | Single provider, consistent vector space                                     |
+| LLM                | Groq (existing)                  | Unchanged                                                                    |
+| Corpus script      | `bun` local script → prod Neon   | One-time setup, no serverless timeout issues                                 |
 
 ---
 
@@ -77,17 +77,19 @@ CREATE INDEX ON medical_chunks
 
 Healthdirect.gov.au is NOT CC-licensed — it uses a bespoke Crown Copyright notice. It is excluded from this spec pending a formal data agreement.
 
-| Dataset | Source | Chunks | Specialty tagging | License |
-|---------|--------|--------|-------------------|---------|
-| MedQA-USMLE | HuggingFace: GBaker/MedQA-USMLE-4-options | ~12k Q&A pairs | Keyword-based | Apache 2.0 |
-| PubMedQA | HuggingFace: qiaojin/PubMedQA | ~1k expert-annotated | Keyword-based | MIT |
+| Dataset     | Source                                    | Chunks               | Specialty tagging | License    |
+| ----------- | ----------------------------------------- | -------------------- | ----------------- | ---------- |
+| MedQA-USMLE | HuggingFace: GBaker/MedQA-USMLE-4-options | ~12k Q&A pairs       | Keyword-based     | Apache 2.0 |
+| PubMedQA    | HuggingFace: qiaojin/PubMedQA             | ~1k expert-annotated | Keyword-based     | MIT        |
 
 **US-content disclaimer (AHPRA):** MedQA-USMLE is US-centric. All retrieved chunks are injected with a mandatory prefix:
+
 > `[Reference material — US clinical guidelines. Apply Australian clinical standards where they differ.]`
 
 This prefix is applied in `retrieve.ts` before returning chunks. It is not shown to the patient.
 
 Specialty keyword mapping:
+
 - `cardiology`: cardiac, heart, chest pain, arrhythmia, hypertension, ECG
 - `mental_health`: depression, anxiety, psychiatric, mood, PTSD, self-harm (**not** suicidal — see Safety note below)
 - `dermatology`: skin, rash, lesion, eczema, psoriasis, melanoma
@@ -102,27 +104,27 @@ Specialty keyword mapping:
 
 ## New Files
 
-| File | Purpose |
-|------|---------|
-| `src/lib/rag/embed.ts` | Calls Nomic API with `res.ok` guard, returns `number[]` |
+| File                      | Purpose                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/rag/embed.ts`    | Calls Nomic API with `res.ok` guard, returns `number[]`                                                                    |
 | `src/lib/rag/retrieve.ts` | Parallel pgvector queries via `@neondatabase/serverless`, returns `Record<DoctorRole, string[]>` with AU disclaimer prefix |
-| `scripts/embed-corpus.ts` | One-time corpus download, chunk, embed, insert — run locally against prod Neon |
+| `scripts/embed-corpus.ts` | One-time corpus download, chunk, embed, insert — run locally against prod Neon                                             |
 
 ## Modified Files
 
-| File | Change |
-|------|--------|
+| File                  | Change                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `src/agents/swarm.ts` | One call to `retrieveMedicalContext()` before specialist fan-out; result passed into specialist system prompts |
-| `prisma/migrations/` | Add `medical_chunks` table (schema only; index created post-insert by corpus script) |
+| `prisma/migrations/`  | Add `medical_chunks` table (schema only; index created post-insert by corpus script)                           |
 
 ---
 
 ## Environment Variables
 
-| Var | Where | Notes |
-|-----|-------|-------|
+| Var             | Where                 | Notes                              |
+| --------------- | --------------------- | ---------------------------------- |
 | `NOMIC_API_KEY` | Vercel + `.env.local` | Already added to Vercel production |
-| `DATABASE_URL` | Already present | Neon connection string |
+| `DATABASE_URL`  | Already present       | Neon connection string             |
 
 ---
 
@@ -135,6 +137,7 @@ DATABASE_URL=<prod-neon-url> NOMIC_API_KEY=<key> bun run scripts/embed-corpus.ts
 ```
 
 Steps:
+
 1. Download MedQA-USMLE + PubMedQA from HuggingFace
 2. For each Q&A pair: tag specialty via keyword matching
 3. Filter out chunks containing suicidal ideation → tag `general` instead
@@ -173,7 +176,7 @@ const AU_DISCLAIMER =
 
 export async function retrieveMedicalContext(
   symptoms: string,
-  specialties: DoctorRole[]
+  specialties: DoctorRole[],
 ): Promise<Record<DoctorRole, string[]>> {
   const vector = await embedText(symptoms);
   const sql = neon(process.env.DATABASE_URL!);
@@ -188,7 +191,7 @@ export async function retrieveMedicalContext(
       `;
       const chunks = rows.map((r) => AU_DISCLAIMER + r.content);
       return [role, chunks] as [DoctorRole, string[]];
-    })
+    }),
   );
   return Object.fromEntries(results);
 }

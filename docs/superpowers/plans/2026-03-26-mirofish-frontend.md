@@ -14,26 +14,27 @@
 
 ## File Map
 
-| Action | File | Responsibility |
-|--------|------|----------------|
-| Create | `src/components/consult/AgentNode.tsx` | Single agent circle: avatar + name + animated state ring + speech bubble |
-| Create | `src/components/consult/HuddleConnections.tsx` | SVG overlay: dashed lines between debating agents |
-| Create | `src/components/consult/HuddleChatPanel.tsx` | Right-side live debate feed |
-| Create | `src/components/consult/RoutingChip.tsx` | Follow-up routing decision badge |
-| Create | `src/components/consult/FollowUpBar.tsx` | Bottom Q&A input bar |
-| Create | `src/components/consult/HuddleRoom.tsx` | Root: manages SSE, owns all huddle state, composes sub-components |
-| Create | `src/components/layout/AppShell.tsx` | 3-column layout: sidebar + sessions + main |
-| Create | `src/components/layout/Sidebar.tsx` | Left nav: logo, nav items, doctor profile |
-| Create | `src/components/layout/SessionsColumn.tsx` | Sessions list with tabs + patient rows |
-| Modify | `src/app/doctor/page.tsx` | Replace existing content with AppShell + HuddleRoom |
-| Create | `src/__tests__/components/agent-node.test.tsx` | Unit: AgentNode renders correct avatar URL + states |
-| Create | `src/__tests__/components/huddle-room.test.tsx` | Unit: HuddleRoom circle geometry helpers |
+| Action | File                                            | Responsibility                                                           |
+| ------ | ----------------------------------------------- | ------------------------------------------------------------------------ |
+| Create | `src/components/consult/AgentNode.tsx`          | Single agent circle: avatar + name + animated state ring + speech bubble |
+| Create | `src/components/consult/HuddleConnections.tsx`  | SVG overlay: dashed lines between debating agents                        |
+| Create | `src/components/consult/HuddleChatPanel.tsx`    | Right-side live debate feed                                              |
+| Create | `src/components/consult/RoutingChip.tsx`        | Follow-up routing decision badge                                         |
+| Create | `src/components/consult/FollowUpBar.tsx`        | Bottom Q&A input bar                                                     |
+| Create | `src/components/consult/HuddleRoom.tsx`         | Root: manages SSE, owns all huddle state, composes sub-components        |
+| Create | `src/components/layout/AppShell.tsx`            | 3-column layout: sidebar + sessions + main                               |
+| Create | `src/components/layout/Sidebar.tsx`             | Left nav: logo, nav items, doctor profile                                |
+| Create | `src/components/layout/SessionsColumn.tsx`      | Sessions list with tabs + patient rows                                   |
+| Modify | `src/app/doctor/page.tsx`                       | Replace existing content with AppShell + HuddleRoom                      |
+| Create | `src/__tests__/components/agent-node.test.tsx`  | Unit: AgentNode renders correct avatar URL + states                      |
+| Create | `src/__tests__/components/huddle-room.test.tsx` | Unit: HuddleRoom circle geometry helpers                                 |
 
 ---
 
 ## Task 1: AgentNode component
 
 **Files:**
+
 - Create: `src/components/consult/AgentNode.tsx`
 - Test: `src/__tests__/components/agent-node.test.tsx`
 
@@ -79,6 +80,7 @@ describe('AgentNode', () => {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/components/agent-node.test.tsx
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 1.3: Create AgentNode.tsx**
@@ -93,8 +95,8 @@ export interface AgentNodeProps {
   name: string;
   role: string;
   avatarSeed: string;
-  x: number;        // centre x as px offset from container centre
-  y: number;        // centre y as px offset from container centre
+  x: number; // centre x as px offset from container centre
+  y: number; // centre y as px offset from container centre
   state: AgentState;
   bubbleText?: string;
   isCenter?: boolean;
@@ -108,10 +110,20 @@ function bubbleAnchor(x: number, y: number): string {
     // predominantly left or right
     return x > 0 ? "right-full mr-2 top-0" : "left-full ml-2 top-0";
   }
-  return y > 0 ? "bottom-full mb-2 left-1/2 -translate-x-1/2" : "top-full mt-2 left-1/2 -translate-x-1/2";
+  return y > 0
+    ? "bottom-full mb-2 left-1/2 -translate-x-1/2"
+    : "top-full mt-2 left-1/2 -translate-x-1/2";
 }
 
-export function AgentNode({ name, avatarSeed, x, y, state, bubbleText, isCenter }: AgentNodeProps) {
+export function AgentNode({
+  name,
+  avatarSeed,
+  x,
+  y,
+  state,
+  bubbleText,
+  isCenter,
+}: AgentNodeProps) {
   const avatarUrl = `https://api.dicebear.com/8.x/notionists-neutral/svg?seed=${encodeURIComponent(avatarSeed)}&size=48`;
 
   const ringClass = {
@@ -126,17 +138,25 @@ export function AgentNode({ name, avatarSeed, x, y, state, bubbleText, isCenter 
   return (
     <div
       className="absolute flex flex-col items-center gap-1"
-      style={{ transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%))`, left: "50%", top: "50%" }}
+      style={{
+        transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%))`,
+        left: "50%",
+        top: "50%",
+      }}
     >
       {/* Speech bubble */}
       {(state === "speaking" || state === "active") && bubbleText && (
-        <div className={`absolute z-10 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1 text-xs text-gray-700 max-w-[140px] leading-tight whitespace-normal ${bubbleAnchor(x, y)}`}>
+        <div
+          className={`absolute z-10 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1 text-xs text-gray-700 max-w-[140px] leading-tight whitespace-normal ${bubbleAnchor(x, y)}`}
+        >
           {bubbleText}
         </div>
       )}
 
       {/* Avatar circle */}
-      <div className={`relative rounded-full overflow-hidden bg-gray-100 ${size} ${ringClass} flex-shrink-0`}>
+      <div
+        className={`relative rounded-full overflow-hidden bg-gray-100 ${size} ${ringClass} flex-shrink-0`}
+      >
         <img
           src={avatarUrl}
           alt={name}
@@ -166,6 +186,7 @@ export function AgentNode({ name, avatarSeed, x, y, state, bubbleText, isCenter 
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/components/agent-node.test.tsx
 ```
+
 Expected: PASS (4 tests)
 
 - [ ] **Step 1.5: Commit**
@@ -180,6 +201,7 @@ git commit -m "feat(ui): add AgentNode component with state rings and speech bub
 ## Task 2: HuddleConnections SVG overlay
 
 **Files:**
+
 - Create: `src/components/consult/HuddleConnections.tsx`
 
 No dedicated test — geometry is visual. This component receives a list of debate connections and draws SVG dashed lines between agent positions.
@@ -194,14 +216,16 @@ export type ConnectionType = "agree" | "challenge" | "add_context";
 
 export interface HuddleConnection {
   id: string;
-  fromX: number; fromY: number;
-  toX: number;   toY: number;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
   type: ConnectionType;
 }
 
 const colorMap: Record<ConnectionType, string> = {
-  agree: "#22c55e",        // green-500
-  challenge: "#f97316",   // orange-500
+  agree: "#22c55e", // green-500
+  challenge: "#f97316", // orange-500
   add_context: "#3b82f6", // blue-500
 };
 
@@ -257,6 +281,7 @@ git commit -m "feat(ui): add HuddleConnections SVG overlay for debate lines"
 ## Task 3: HuddleChatPanel — live debate feed
 
 **Files:**
+
 - Create: `src/components/consult/HuddleChatPanel.tsx`
 
 - [ ] **Step 3.1: Create HuddleChatPanel.tsx**
@@ -273,7 +298,13 @@ export interface ChatMessage {
   agentName: string;
   content: string;
   type: "hypothesis" | "debate" | "rectification" | "mdt" | "system";
-  messageType?: "agree" | "challenge" | "add_context" | "agree" | "note" | "escalate";
+  messageType?:
+    | "agree"
+    | "challenge"
+    | "add_context"
+    | "agree"
+    | "note"
+    | "escalate";
 }
 
 const typeColors: Record<string, string> = {
@@ -297,21 +328,29 @@ export function HuddleChatPanel({ messages }: { messages: ChatMessage[] }) {
   return (
     <div className="flex flex-col h-full border-l border-gray-100">
       <div className="px-3 py-2 border-b border-gray-100">
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Team Discussion</span>
+        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          Team Discussion
+        </span>
       </div>
       <ScrollArea className="flex-1 px-3 py-2">
         <div className="space-y-2">
           {messages.map((msg) => (
             <div key={msg.id} className="flex flex-col gap-0.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-gray-700 truncate max-w-[100px]">{msg.agentName}</span>
+                <span className="text-xs font-semibold text-gray-700 truncate max-w-[100px]">
+                  {msg.agentName}
+                </span>
                 {msg.messageType && (
-                  <Badge className={`text-[10px] px-1 py-0 h-4 ${typeColors[msg.messageType] ?? ""}`}>
+                  <Badge
+                    className={`text-[10px] px-1 py-0 h-4 ${typeColors[msg.messageType] ?? ""}`}
+                  >
                     {msg.messageType.replace("_", " ")}
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-gray-600 leading-snug">{msg.content}</p>
+              <p className="text-xs text-gray-600 leading-snug">
+                {msg.content}
+              </p>
             </div>
           ))}
           <div ref={bottomRef} />
@@ -334,6 +373,7 @@ git commit -m "feat(ui): add HuddleChatPanel live debate feed"
 ## Task 4: RoutingChip and FollowUpBar
 
 **Files:**
+
 - Create: `src/components/consult/RoutingChip.tsx`
 - Create: `src/components/consult/FollowUpBar.tsx`
 
@@ -344,7 +384,13 @@ git commit -m "feat(ui): add HuddleChatPanel live debate feed"
 "use client";
 import { Badge } from "@/components/ui/badge";
 
-export function RoutingChip({ questionType, activatedRoles }: { questionType: "simple" | "complex"; activatedRoles: string[] }) {
+export function RoutingChip({
+  questionType,
+  activatedRoles,
+}: {
+  questionType: "simple" | "complex";
+  activatedRoles: string[];
+}) {
   if (questionType === "simple") {
     return (
       <Badge className="bg-blue-50 text-blue-700 text-xs font-normal">
@@ -375,7 +421,11 @@ interface FollowUpBarProps {
   placeholder?: string;
 }
 
-export function FollowUpBar({ onSubmit, disabled, placeholder = "Ask a follow-up question…" }: FollowUpBarProps) {
+export function FollowUpBar({
+  onSubmit,
+  disabled,
+  placeholder = "Ask a follow-up question…",
+}: FollowUpBarProps) {
   const [value, setValue] = useState("");
 
   const submit = () => {
@@ -386,7 +436,10 @@ export function FollowUpBar({ onSubmit, disabled, placeholder = "Ask a follow-up
   };
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
   };
 
   return (
@@ -419,6 +472,7 @@ git commit -m "feat(ui): add RoutingChip and FollowUpBar for Q&A flow"
 ## Task 4.5: Update SynthesisCard for new SwarmSynthesis shape
 
 **Files:**
+
 - Modify: `src/components/consult/SynthesisCard.tsx`
 
 The existing `SynthesisCard` was written for the old `SwarmSynthesis` shape (`rankedHypotheses`, `questionsForDoctor`, `timeframe`) and requires an `onStartNew` prop. The new shape is `{ urgency, primaryRecommendation, nextSteps, bookingNeeded, disclaimer }`. This must be done before Task 5 or `tsc --noEmit` will fail.
@@ -456,21 +510,31 @@ export function SynthesisCard({ synthesis, onStartNew }: SynthesisCardProps) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <Badge className={urgencyColors[synthesis.urgency] ?? ""}>{synthesis.urgency}</Badge>
-        <span className="text-sm font-medium text-gray-900">Team Recommendation</span>
+        <Badge className={urgencyColors[synthesis.urgency] ?? ""}>
+          {synthesis.urgency}
+        </Badge>
+        <span className="text-sm font-medium text-gray-900">
+          Team Recommendation
+        </span>
       </div>
       <p className="text-sm text-gray-700">{synthesis.primaryRecommendation}</p>
       {synthesis.nextSteps.length > 0 && (
         <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
-          {synthesis.nextSteps.map((step, i) => <li key={i}>{step}</li>)}
+          {synthesis.nextSteps.map((step, i) => (
+            <li key={i}>{step}</li>
+          ))}
         </ul>
       )}
       {synthesis.bookingNeeded && (
-        <p className="text-xs text-blue-600 font-medium">Booking with a healthcare provider is recommended.</p>
+        <p className="text-xs text-blue-600 font-medium">
+          Booking with a healthcare provider is recommended.
+        </p>
       )}
       <p className="text-[10px] text-gray-400">{synthesis.disclaimer}</p>
       {onStartNew && (
-        <Button variant="outline" size="sm" onClick={onStartNew}>Start new consultation</Button>
+        <Button variant="outline" size="sm" onClick={onStartNew}>
+          Start new consultation
+        </Button>
       )}
     </div>
   );
@@ -482,6 +546,7 @@ export function SynthesisCard({ synthesis, onStartNew }: SynthesisCardProps) {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit 2>&1 | head -20
 ```
+
 Expected: 0 errors (requires backend plan already complete).
 
 - [ ] **Step 4.5.4: Commit**
@@ -496,6 +561,7 @@ git commit -m "feat(ui): update SynthesisCard for new SwarmSynthesis shape (prim
 ## Task 5: HuddleRoom — main orchestrator component
 
 **Files:**
+
 - Create: `src/components/consult/HuddleRoom.tsx`
 - Test: `src/__tests__/components/huddle-room.test.tsx`
 
@@ -506,24 +572,40 @@ This is the largest component. It owns the SSE stream, maps events to visual sta
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && grep -n "rectification_complete\|mdt_message\|residentRole\|primaryLeadRole" src/agents/swarm-types.ts
 ```
+
 Expected: All 4 terms found. If any are missing, stop and complete `2026-03-26-mirofish-backend.md` before continuing.
 
 - [ ] **Step 5.1: Write the failing test (geometry helpers)**
 
 ```typescript
 // src/__tests__/components/huddle-room.test.tsx
-import { describe, it, expect } from 'vitest';
-import { computeAgentPositions } from '@/components/consult/HuddleRoom';
+import { describe, it, expect } from "vitest";
+import { computeAgentPositions } from "@/components/consult/HuddleRoom";
 
-describe('computeAgentPositions', () => {
-  it('places primary lead at centre (0,0)', () => {
-    const positions = computeAgentPositions(['physiotherapy'], ['physiotherapy', 'gp', 'conservative', 'pharmacological', 'investigative', 'red-flag'], 160);
-    expect(positions['physiotherapy']).toEqual({ x: 0, y: 0, isCenter: true });
+describe("computeAgentPositions", () => {
+  it("places primary lead at centre (0,0)", () => {
+    const positions = computeAgentPositions(
+      ["physiotherapy"],
+      [
+        "physiotherapy",
+        "gp",
+        "conservative",
+        "pharmacological",
+        "investigative",
+        "red-flag",
+      ],
+      160,
+    );
+    expect(positions["physiotherapy"]).toEqual({ x: 0, y: 0, isCenter: true });
   });
 
-  it('places outer agents at the given radius', () => {
-    const outer = ['gp', 'conservative', 'pharmacological'];
-    const positions = computeAgentPositions(['physiotherapy'], ['physiotherapy', ...outer], 160);
+  it("places outer agents at the given radius", () => {
+    const outer = ["gp", "conservative", "pharmacological"];
+    const positions = computeAgentPositions(
+      ["physiotherapy"],
+      ["physiotherapy", ...outer],
+      160,
+    );
     for (const role of outer) {
       const pos = positions[role];
       const dist = Math.sqrt(pos.x ** 2 + pos.y ** 2);
@@ -531,10 +613,10 @@ describe('computeAgentPositions', () => {
     }
   });
 
-  it('scales radius to 200 when >10 outer agents', () => {
+  it("scales radius to 200 when >10 outer agents", () => {
     const outer = Array.from({ length: 11 }, (_, i) => `agent-${i}`);
-    const positions = computeAgentPositions(['lead'], ['lead', ...outer], 160);
-    const pos = positions['agent-0'];
+    const positions = computeAgentPositions(["lead"], ["lead", ...outer], 160);
+    const pos = positions["agent-0"];
     const dist = Math.sqrt(pos.x ** 2 + pos.y ** 2);
     expect(dist).toBeCloseTo(200, 0);
   });
@@ -546,6 +628,7 @@ describe('computeAgentPositions', () => {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/components/huddle-room.test.tsx
 ```
+
 Expected: FAIL — `computeAgentPositions` not exported.
 
 - [ ] **Step 5.3: Create HuddleRoom.tsx**
@@ -579,7 +662,7 @@ export interface AgentPosition {
 export function computeAgentPositions(
   primaryLeadRoles: string[],
   allRoles: string[],
-  baseRadius: number
+  baseRadius: number,
 ): Record<string, AgentPosition> {
   const primaryLead = primaryLeadRoles[0] ?? allRoles[0];
   const outer = allRoles.filter((r) => r !== primaryLead);
@@ -610,7 +693,11 @@ const residentNames: Record<string, string> = {
 };
 
 function getAgentDisplayName(role: string): string {
-  return residentNames[role] ?? agentRegistry[role as keyof typeof agentRegistry]?.name ?? role;
+  return (
+    residentNames[role] ??
+    agentRegistry[role as keyof typeof agentRegistry]?.name ??
+    role
+  );
 }
 
 // ── HuddleRoom ────────────────────────────────────────────────────────────────
@@ -633,112 +720,160 @@ interface HuddleRoomProps {
   onReset?: () => void;
 }
 
-export function HuddleRoom({ symptoms, patientInfo, onReset }: HuddleRoomProps) {
+export function HuddleRoom({
+  symptoms,
+  patientInfo,
+  onReset,
+}: HuddleRoomProps) {
   const [agents, setAgents] = useState<Record<string, AgentVisualState>>({});
   const [connections, setConnections] = useState<HuddleConnection[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [synthesis, setSynthesis] = useState<SwarmSynthesis | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [followupRouting, setFollowupRouting] = useState<{ type: "simple" | "complex"; roles: string[] } | null>(null);
+  const [followupRouting, setFollowupRouting] = useState<{
+    type: "simple" | "complex";
+    roles: string[];
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   // positionsRef holds the latest computed agent positions so handleEvent (memoised) can read them
   const positionsRef = useRef<Record<string, AgentPosition>>({});
 
   const RADIUS = 160;
 
-  const updateAgent = useCallback((role: string, state: AgentState, bubbleText?: string) => {
-    setAgents((prev) => ({
-      ...prev,
-      [role]: { role, state, bubbleText },
-    }));
-  }, []);
+  const updateAgent = useCallback(
+    (role: string, state: AgentState, bubbleText?: string) => {
+      setAgents((prev) => ({
+        ...prev,
+        [role]: { role, state, bubbleText },
+      }));
+    },
+    [],
+  );
 
-  const addChatMessage = useCallback((agentName: string, content: string, type: ChatMessage["type"], messageType?: ChatMessage["messageType"]) => {
-    setChatMessages((prev) => [
-      ...prev,
-      { id: Math.random().toString(36).slice(2), agentName, content, type, messageType },
-    ]);
-  }, []);
+  const addChatMessage = useCallback(
+    (
+      agentName: string,
+      content: string,
+      type: ChatMessage["type"],
+      messageType?: ChatMessage["messageType"],
+    ) => {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).slice(2),
+          agentName,
+          content,
+          type,
+          messageType,
+        },
+      ]);
+    },
+    [],
+  );
 
-  const handleEvent = useCallback((event: SwarmEvent) => {
-    switch (event.type) {
-      case "doctor_activated":
-        updateAgent(event.role, "active");
-        break;
+  const handleEvent = useCallback(
+    (event: SwarmEvent) => {
+      switch (event.type) {
+        case "doctor_activated":
+          updateAgent(event.role, "active");
+          break;
 
-      case "hypothesis_found":
-        updateAgent(event.residentRole, "speaking", `${event.name} (${event.confidence}%)`);
-        addChatMessage(
-          residentNames[event.residentRole] ?? event.residentRole,
-          `${event.name} — confidence ${event.confidence}%`,
-          "hypothesis",
-        );
-        break;
+        case "hypothesis_found":
+          updateAgent(
+            event.residentRole,
+            "speaking",
+            `${event.name} (${event.confidence}%)`,
+          );
+          addChatMessage(
+            residentNames[event.residentRole] ?? event.residentRole,
+            `${event.name} — confidence ${event.confidence}%`,
+            "hypothesis",
+          );
+          break;
 
-      case "debate_message": {
-        updateAgent(event.residentRole, "speaking", event.content.slice(0, 60));
-        addChatMessage(
-          residentNames[event.residentRole] ?? event.residentRole,
-          event.content,
-          "debate",
-          event.messageType,
-        );
-        // Draw connection line between the debating resident and the lead
-        // positionsRef holds the last-computed positions map (updated in render via useEffect)
-        if (event.referencingHypothesisId && positionsRef.current) {
-          const fromPos = positionsRef.current[event.residentRole];
-          const toPos = positionsRef.current[event.role];
-          if (fromPos && toPos) {
-            setConnections((prev) => [
-              ...prev,
-              {
-                id: Math.random().toString(36).slice(2),
-                fromX: fromPos.x, fromY: fromPos.y,
-                toX: toPos.x, toY: toPos.y,
-                type: event.messageType,
-              },
-            ]);
+        case "debate_message": {
+          updateAgent(
+            event.residentRole,
+            "speaking",
+            event.content.slice(0, 60),
+          );
+          addChatMessage(
+            residentNames[event.residentRole] ?? event.residentRole,
+            event.content,
+            "debate",
+            event.messageType,
+          );
+          // Draw connection line between the debating resident and the lead
+          // positionsRef holds the last-computed positions map (updated in render via useEffect)
+          if (event.referencingHypothesisId && positionsRef.current) {
+            const fromPos = positionsRef.current[event.residentRole];
+            const toPos = positionsRef.current[event.role];
+            if (fromPos && toPos) {
+              setConnections((prev) => [
+                ...prev,
+                {
+                  id: Math.random().toString(36).slice(2),
+                  fromX: fromPos.x,
+                  fromY: fromPos.y,
+                  toX: toPos.x,
+                  toY: toPos.y,
+                  type: event.messageType,
+                },
+              ]);
+            }
           }
+          break;
         }
-        break;
+
+        case "rectification_complete":
+          updateAgent(event.role, "done");
+          addChatMessage(
+            getAgentDisplayName(event.role),
+            event.summary,
+            "rectification",
+          );
+          break;
+
+        case "mdt_message":
+          addChatMessage(
+            getAgentDisplayName(event.role),
+            event.content,
+            "mdt",
+            event.messageType as ChatMessage["messageType"],
+          );
+          break;
+
+        case "doctor_complete":
+          updateAgent(event.role, "done");
+          break;
+
+        case "synthesis_complete":
+          setSynthesis(event.data);
+          // Set all agents to done
+          setAgents((prev) =>
+            Object.fromEntries(
+              Object.entries(prev).map(([r, a]) => [
+                r,
+                { ...a, state: "done" as AgentState, bubbleText: undefined },
+              ]),
+            ),
+          );
+          break;
+
+        case "followup_routed":
+          setFollowupRouting({
+            type: event.questionType,
+            roles: event.activatedRoles,
+          });
+          break;
+
+        case "error":
+          addChatMessage("System", event.message, "system");
+          break;
       }
-
-      case "rectification_complete":
-        updateAgent(event.role, "done");
-        addChatMessage(
-          getAgentDisplayName(event.role),
-          event.summary,
-          "rectification",
-        );
-        break;
-
-      case "mdt_message":
-        addChatMessage(getAgentDisplayName(event.role), event.content, "mdt", event.messageType as ChatMessage["messageType"]);
-        break;
-
-      case "doctor_complete":
-        updateAgent(event.role, "done");
-        break;
-
-      case "synthesis_complete":
-        setSynthesis(event.data);
-        // Set all agents to done
-        setAgents((prev) =>
-          Object.fromEntries(
-            Object.entries(prev).map(([r, a]) => [r, { ...a, state: "done" as AgentState, bubbleText: undefined }])
-          )
-        );
-        break;
-
-      case "followup_routed":
-        setFollowupRouting({ type: event.questionType, roles: event.activatedRoles });
-        break;
-
-      case "error":
-        addChatMessage("System", event.message, "system");
-        break;
-    }
-  }, [updateAgent, addChatMessage]);
+    },
+    [updateAgent, addChatMessage],
+  );
 
   const startConsultation = useCallback(async () => {
     setIsRunning(true);
@@ -754,7 +889,10 @@ export function HuddleRoom({ symptoms, patientInfo, onReset }: HuddleRoomProps) 
       body: JSON.stringify({ symptoms, patientInfo }),
     });
 
-    if (!response.body) { setIsRunning(false); return; }
+    if (!response.body) {
+      setIsRunning(false);
+      return;
+    }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -771,8 +909,13 @@ export function HuddleRoom({ symptoms, patientInfo, onReset }: HuddleRoomProps) 
         try {
           const event: SwarmEvent = JSON.parse(line.slice(5).trim());
           handleEvent(event);
-          if (event.type === "done") { setIsRunning(false); return; }
-        } catch { /* ignore parse errors */ }
+          if (event.type === "done") {
+            setIsRunning(false);
+            return;
+          }
+        } catch {
+          /* ignore parse errors */
+        }
       }
     }
     setIsRunning(false);
@@ -782,41 +925,49 @@ export function HuddleRoom({ symptoms, patientInfo, onReset }: HuddleRoomProps) 
     startConsultation();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleFollowUp = useCallback(async (question: string) => {
-    setFollowupRouting(null);
-    const response = await fetch("/api/swarm/followup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // MVP: "current" is accepted by the backend as any non-empty string.
-      // Phase 2: capture real sessionId from a session_id SSE event emitted by /api/swarm/start.
-      body: JSON.stringify({ sessionId: "current", question }),
-    });
-    if (!response.body) return;
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n\n");
-      buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        try {
-          const event: SwarmEvent = JSON.parse(line.slice(5).trim());
-          handleEvent(event);
-        } catch { /* ignore */ }
+  const handleFollowUp = useCallback(
+    async (question: string) => {
+      setFollowupRouting(null);
+      const response = await fetch("/api/swarm/followup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // MVP: "current" is accepted by the backend as any non-empty string.
+        // Phase 2: capture real sessionId from a session_id SSE event emitted by /api/swarm/start.
+        body: JSON.stringify({ sessionId: "current", question }),
+      });
+      if (!response.body) return;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          try {
+            const event: SwarmEvent = JSON.parse(line.slice(5).trim());
+            handleEvent(event);
+          } catch {
+            /* ignore */
+          }
+        }
       }
-    }
-  }, [handleEvent]);
+    },
+    [handleEvent],
+  );
 
   const allRoles = Object.keys(agents);
-  const primaryLead = allRoles.find((r) => agents[r]?.state === "done" || allRoles.length === 1) ?? allRoles[0];
+  const primaryLead =
+    allRoles.find(
+      (r) => agents[r]?.state === "done" || allRoles.length === 1,
+    ) ?? allRoles[0];
   const positions = computeAgentPositions(
     primaryLead ? [primaryLead] : [],
     allRoles,
-    RADIUS
+    RADIUS,
   );
   // Keep positionsRef in sync so handleEvent can read current positions without re-memoising
   positionsRef.current = positions;
@@ -868,7 +1019,10 @@ export function HuddleRoom({ symptoms, patientInfo, onReset }: HuddleRoomProps) 
         {/* Routing chip */}
         {followupRouting && (
           <div className="px-4 py-1">
-            <RoutingChip questionType={followupRouting.type} activatedRoles={followupRouting.roles} />
+            <RoutingChip
+              questionType={followupRouting.type}
+              activatedRoles={followupRouting.roles}
+            />
           </div>
         )}
 
@@ -892,6 +1046,7 @@ export function HuddleRoom({ symptoms, patientInfo, onReset }: HuddleRoomProps) 
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/components/huddle-room.test.tsx
 ```
+
 Expected: PASS (3 tests)
 
 - [ ] **Step 5.5: TypeScript check**
@@ -899,6 +1054,7 @@ Expected: PASS (3 tests)
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit 2>&1 | head -30
 ```
+
 Expected: 0 errors.
 
 - [ ] **Step 5.6: Commit**
@@ -913,6 +1069,7 @@ git commit -m "feat(ui): add HuddleRoom with circle geometry, SSE stream, and fo
 ## Task 6: AppShell — 3-column layout
 
 **Files:**
+
 - Create: `src/components/layout/AppShell.tsx`
 - Create: `src/components/layout/Sidebar.tsx`
 - Create: `src/components/layout/SessionsColumn.tsx`
@@ -978,9 +1135,28 @@ interface Patient {
 }
 
 const MOCK_PATIENTS: Patient[] = [
-  { id: "1", name: "Jordan K.", avatarSeed: "Jordan", urgency: "routine", time: "Now", isActive: true },
-  { id: "2", name: "Maria S.", avatarSeed: "Maria", urgency: "urgent", time: "2:30 PM" },
-  { id: "3", name: "David T.", avatarSeed: "David", urgency: "routine", time: "3:00 PM" },
+  {
+    id: "1",
+    name: "Jordan K.",
+    avatarSeed: "Jordan",
+    urgency: "routine",
+    time: "Now",
+    isActive: true,
+  },
+  {
+    id: "2",
+    name: "Maria S.",
+    avatarSeed: "Maria",
+    urgency: "urgent",
+    time: "2:30 PM",
+  },
+  {
+    id: "3",
+    name: "David T.",
+    avatarSeed: "David",
+    urgency: "routine",
+    time: "3:00 PM",
+  },
 ];
 
 const urgencyColor: Record<string, string> = {
@@ -989,7 +1165,11 @@ const urgencyColor: Record<string, string> = {
   routine: "bg-green-100 text-green-700",
 };
 
-export function SessionsColumn({ activePatientId }: { activePatientId?: string }) {
+export function SessionsColumn({
+  activePatientId,
+}: {
+  activePatientId?: string;
+}) {
   const [tab, setTab] = useState<"upcoming" | "recent">("upcoming");
 
   return (
@@ -1025,7 +1205,9 @@ export function SessionsColumn({ activePatientId }: { activePatientId?: string }
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-800 truncate">{p.name}</p>
+              <p className="text-xs font-medium text-gray-800 truncate">
+                {p.name}
+              </p>
               <p className="text-[10px] text-gray-400">{p.time}</p>
             </div>
             <Badge className={`text-[9px] px-1 h-4 ${urgencyColor[p.urgency]}`}>
@@ -1077,6 +1259,7 @@ git commit -m "feat(ui): add AppShell 3-column layout (Sidebar + SessionsColumn 
 ## Task 7: Integrate into doctor page
 
 **Files:**
+
 - Modify: `src/app/doctor/page.tsx`
 
 Read the existing doctor page first, then wrap with AppShell and add HuddleRoom. The existing `SwarmDebugPanel` can remain for doctors who want the debug view — add it as a tab.
@@ -1102,9 +1285,15 @@ return (
     {/* Patient header bar */}
     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
       <div className="flex items-center gap-3">
-        <img src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=Jordan&size=36" alt="Jordan K." className="w-9 h-9 rounded-full" />
+        <img
+          src="https://api.dicebear.com/8.x/notionists-neutral/svg?seed=Jordan&size=36"
+          alt="Jordan K."
+          className="w-9 h-9 rounded-full"
+        />
         <div>
-          <h2 className="text-sm font-semibold text-gray-900">Jordan K. — Back pain</h2>
+          <h2 className="text-sm font-semibold text-gray-900">
+            Jordan K. — Back pain
+          </h2>
           <p className="text-xs text-gray-500">Today · Routine</p>
         </div>
       </div>
@@ -1126,6 +1315,7 @@ return (
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit
 ```
+
 Expected: 0 errors.
 
 - [ ] **Step 7.4: Run all tests**
@@ -1133,6 +1323,7 @@ Expected: 0 errors.
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test
 ```
+
 Expected: All passing.
 
 - [ ] **Step 7.5: Commit**
@@ -1147,6 +1338,7 @@ git commit -m "feat(doctor): integrate AppShell + HuddleRoom into doctor consult
 ## Done
 
 Frontend plan complete. The full feature is now end-to-end:
+
 1. Doctor opens consultation page → 3-column layout
 2. HuddleRoom auto-starts consultation → agents appear in circle
 3. Residents animate with speech bubbles + debate lines

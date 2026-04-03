@@ -74,6 +74,7 @@ completed: 2026-03-26
 - **Files modified:** 15
 
 ## Accomplishments
+
 - Migrated Prisma from SQLite to PostgreSQL with dual connection strings (pooled + direct) for Supabase compatibility
 - Created PatientConsent model with JsonB dataCategories, soft delete fields on Patient, and Cascade deletes on all relations
 - Built migration SQL with CREATE TABLE DDL for all 5 tables, RLS enabled on each, 7 RLS policies, and pg_cron 90-day checkpoint cleanup
@@ -89,11 +90,12 @@ Each task was committed atomically:
 **Plan metadata:** (pending final commit)
 
 ## Files Created/Modified
+
 - `prisma/schema.prisma` - Switched to postgresql provider with DATABASE_URL + DIRECT_URL; added PatientConsent model; added deletedAt/deletedEmail to Patient; added Cascade deletes
 - `prisma/migrations/0001_supabase_init/migration.sql` - Full DDL for 5 tables, RLS enable on all 5, 7 RLS policies, pg_cron cleanup job
 - `.env.example` - Template with DATABASE_URL, DIRECT_URL, SUPABASE_SERVICE_ROLE_KEY, GROQ_API_KEY, OPENAI_API_KEY, INNGEST keys
 - `.env.local` - Local dev SQLite override (gitignored)
-- `vitest.config.ts` - defineConfig with node environment, src/__tests__ include path, @ alias
+- `vitest.config.ts` - defineConfig with node environment, src/**tests** include path, @ alias
 - `package.json` - Added test/test:watch scripts; removed better-sqlite3 adapter packages
 - `src/__tests__/compliance/disclaimer.test.ts` - COMP-01: AHPRA disclaimer stubs
 - `src/__tests__/compliance/agent-names.test.ts` - COMP-02: Agent AI naming stubs
@@ -107,6 +109,7 @@ Each task was committed atomically:
 - `src/__tests__/infra/inngest-handler.test.ts` - INFRA-04: Inngest handler stubs
 
 ## Decisions Made
+
 - **Lowercase SQL in RLS statements:** Used lowercase `enable row level security` in ALTER TABLE statements to match the plan's grep acceptance criteria. PostgreSQL is case-insensitive so this is valid.
 - **Force-add .env.example:** The gitignore pattern `.env*` blocks .env.example, but it's a template with placeholder values only. Used `git add -f` to commit it correctly.
 - **Remove better-sqlite3:** Checked `src/lib/prisma.ts` before removal — it uses `new PrismaClient()` with no adapter import, so removal is safe. Local dev uses SQLite via DATABASE_URL=file:./dev.db in .env.local (built-in Prisma driver).
@@ -116,20 +119,24 @@ Each task was committed atomically:
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 - Plan lists "11 test stub files" but counting the spec (compliance/2, lib/1, api/3, infra/4) yields 10 unique files. Verified all 10 required test files are present. The "11" in the plan was a counting error in the task name. All 10 listed test files in the plan's `<files>` block were created.
 
 ## User Setup Required
+
 - **Supabase project must be confirmed in ap-southeast-2 (Sydney) before running migration.** See COMP-06 in VALIDATION.md for manual verification steps.
 - Copy `.env.example` to `.env.local` and populate with real Supabase credentials before running `prisma db push` or `prisma migrate deploy`.
 
 ## Next Phase Readiness
+
 - PostgreSQL schema ready — run `prisma db push` or `prisma migrate deploy` with a Supabase connection to apply
 - vitest infrastructure ready for all Phase 1 implementation plans (01-02 through 01-04) to fill in test.todo stubs
 - All Phase 1 test files exist and exit 0 with `bun test --run`
 
 ---
-*Phase: 01-foundation-compliance*
-*Completed: 2026-03-26*
+
+_Phase: 01-foundation-compliance_
+_Completed: 2026-03-26_
 
 ## Self-Check: PASSED
 

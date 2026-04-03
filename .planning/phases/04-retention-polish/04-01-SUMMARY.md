@@ -17,7 +17,12 @@ affects: [future phase analytics, any UI consuming symptom severity data]
 # Tech tracking
 tech-stack:
   added: [recharts@3.8.1]
-  patterns: [x-patient-id header auth on new trends endpoint, custom Recharts tooltip component, severity label map reuse pattern]
+  patterns:
+    [
+      x-patient-id header auth on new trends endpoint,
+      custom Recharts tooltip component,
+      severity label map reuse pattern,
+    ]
 
 key-files:
   created:
@@ -107,5 +112,6 @@ None — no external service configuration required.
 - Ready to proceed with remaining Phase 4 retention polish plans
 
 ---
-*Phase: 04-retention-polish*
-*Completed: 2026-03-26*
+
+_Phase: 04-retention-polish_
+_Completed: 2026-03-26_

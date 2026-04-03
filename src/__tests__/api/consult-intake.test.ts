@@ -22,7 +22,7 @@ vi.mock("@/lib/emergency-rules", () => ({
 }));
 
 import { POST } from "@/app/api/consult/intake/route";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 function makeRequest(body: unknown) {
   return new NextRequest("http://localhost/api/consult/intake", {
@@ -59,21 +59,35 @@ describe("POST /api/consult/intake", () => {
       }),
     });
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where is your main symptom?", answer: "Chest" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          {
+            questionId: "location",
+            question: "Where is your main symptom?",
+            answer: "Chest",
+          },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.question).toBe("Does the chest pain radiate to your arm or jaw?");
+    expect(data.question).toBe(
+      "Does the chest pain radiate to your arm or jaw?",
+    );
     expect(data.type).toBe("chips");
   });
 
   it("falls back to static questions when LLM times out", async () => {
     mockInvoke.mockRejectedValueOnce(new Error("timeout"));
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where?", answer: "Chest" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          { questionId: "location", question: "Where?", answer: "Chest" },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data).toHaveProperty("questionId");
@@ -84,9 +98,13 @@ describe("POST /api/consult/intake", () => {
   it("falls back when LLM returns malformed JSON", async () => {
     mockInvoke.mockResolvedValueOnce({ content: "not valid json at all" });
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where?", answer: "Back" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          { questionId: "location", question: "Where?", answer: "Back" },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data).toHaveProperty("questionId");
@@ -115,13 +133,25 @@ describe("POST /api/consult/intake", () => {
     const { detectEmergency } = await import("@/lib/emergency-rules");
     vi.mocked(detectEmergency).mockReturnValueOnce({
       isEmergency: true,
-      response: { message: "Call 000 immediately", urgency: "emergency", callToAction: "000" as const },
+      response: {
+        message: "Call 000 immediately",
+        urgency: "emergency",
+        callToAction: "000" as const,
+      },
       category: "cardiac" as const,
     });
 
-    const res = await POST(makeRequest({
-      answers: [{ questionId: "location", question: "Where?", answer: "crushing chest pain can't breathe" }],
-    }));
+    const res = await POST(
+      makeRequest({
+        answers: [
+          {
+            questionId: "location",
+            question: "Where?",
+            answer: "crushing chest pain can't breathe",
+          },
+        ],
+      }),
+    );
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.message).toBe("Call 000 immediately");
@@ -132,7 +162,7 @@ describe("POST /api/consult/intake", () => {
     vi.mocked(getAuthenticatedPatient).mockResolvedValueOnce({
       patient: null,
       needsOnboarding: false,
-      error: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 }),
+      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
     });
 
     const res = await POST(makeRequest({ answers: [] }));

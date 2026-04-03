@@ -12,7 +12,7 @@ export interface EscalationResult {
 
 export function evaluateCheckInResponse(
   response: CheckInResponse,
-  freeText: string
+  freeText: string,
 ): EscalationResult {
   // Always check free text for emergency keywords (same rules engine as Phase 1)
   const emergencyCheck = detectEmergency(freeText);
@@ -33,7 +33,8 @@ export function evaluateCheckInResponse(
       newUrgencyTier: "urgent",
       notifySpecialist: true,
       emergency: null,
-      specialistMessage: "Patient reported feeling worse since last consultation. Review recommended.",
+      specialistMessage:
+        "Patient reported feeling worse since last consultation. Review recommended.",
     };
   }
 

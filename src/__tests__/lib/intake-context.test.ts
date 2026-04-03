@@ -1,14 +1,29 @@
 import { describe, it, expect } from "vitest";
 import { buildPatientContext } from "@/lib/consultation-intake";
-import { buildSymptomsFromAnswers, buildHistorySummaryFromAnswers } from "@/lib/intake-types";
+import {
+  buildSymptomsFromAnswers,
+  buildHistorySummaryFromAnswers,
+} from "@/lib/intake-types";
 import type { IntakeAnswer } from "@/lib/intake-types";
 
 const sampleAnswers: IntakeAnswer[] = [
-  { questionId: "location", question: "Where is your main symptom?", answer: "Chest" },
+  {
+    questionId: "location",
+    question: "Where is your main symptom?",
+    answer: "Chest",
+  },
   { questionId: "duration", question: "How long?", answer: "A few days" },
   { questionId: "severity", question: "How severe?", answer: "7" },
-  { questionId: "emotional", question: "How are you feeling?", answer: "😟 Anxious" },
-  { questionId: "associated", question: "Any other symptoms?", answer: "shortness of breath" },
+  {
+    questionId: "emotional",
+    question: "How are you feeling?",
+    answer: "😟 Anxious",
+  },
+  {
+    questionId: "associated",
+    question: "Any other symptoms?",
+    answer: "shortness of breath",
+  },
 ];
 
 describe("intake context building", () => {

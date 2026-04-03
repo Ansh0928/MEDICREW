@@ -40,7 +40,9 @@ async function main() {
     });
     console.log(`Assigned ${patientResult.count} patient(s) to clinic`);
   } else {
-    console.log("Skipping patient assignment (set ASSIGN_PATIENTS=true to include)");
+    console.log(
+      "Skipping patient assignment (set ASSIGN_PATIENTS=true to include)",
+    );
   }
 }
 

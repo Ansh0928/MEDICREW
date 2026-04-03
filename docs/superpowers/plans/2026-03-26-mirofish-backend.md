@@ -12,26 +12,27 @@
 
 ## File Map
 
-| Action | File | Responsibility |
-|--------|------|----------------|
-| Replace | `src/agents/swarm-types.ts` | All types: ResidentRole, extended SwarmState, full event union |
-| Replace | `src/agents/swarm.ts` | 7-layer orchestrator |
-| Create | `src/agents/definitions/residents/conservative.ts` | Conservative resident prompt + role |
-| Create | `src/agents/definitions/residents/pharmacological.ts` | Pharmacological resident prompt + role |
-| Create | `src/agents/definitions/residents/investigative.ts` | Investigative resident prompt + role |
-| Create | `src/agents/definitions/residents/red-flag.ts` | Red-flag resident prompt + role |
-| Create | `src/agents/definitions/residents/index.ts` | Barrel export |
-| Modify | `src/app/api/swarm/start/route.ts` | Wire to new swarm (minimal change — export name stays `streamSwarm`) |
-| Create | `src/app/api/swarm/followup/route.ts` | Follow-up routing endpoint, returns SSE |
-| Create | `src/__tests__/agents/swarm-v2-types.test.ts` | Unit: type guards + SwarmState initialiser |
-| Create | `src/__tests__/agents/residents.test.ts` | Unit: resident prompt shape |
-| Create | `src/__tests__/api/swarm-followup.test.ts` | Unit: followup route validation |
+| Action  | File                                                  | Responsibility                                                       |
+| ------- | ----------------------------------------------------- | -------------------------------------------------------------------- |
+| Replace | `src/agents/swarm-types.ts`                           | All types: ResidentRole, extended SwarmState, full event union       |
+| Replace | `src/agents/swarm.ts`                                 | 7-layer orchestrator                                                 |
+| Create  | `src/agents/definitions/residents/conservative.ts`    | Conservative resident prompt + role                                  |
+| Create  | `src/agents/definitions/residents/pharmacological.ts` | Pharmacological resident prompt + role                               |
+| Create  | `src/agents/definitions/residents/investigative.ts`   | Investigative resident prompt + role                                 |
+| Create  | `src/agents/definitions/residents/red-flag.ts`        | Red-flag resident prompt + role                                      |
+| Create  | `src/agents/definitions/residents/index.ts`           | Barrel export                                                        |
+| Modify  | `src/app/api/swarm/start/route.ts`                    | Wire to new swarm (minimal change — export name stays `streamSwarm`) |
+| Create  | `src/app/api/swarm/followup/route.ts`                 | Follow-up routing endpoint, returns SSE                              |
+| Create  | `src/__tests__/agents/swarm-v2-types.test.ts`         | Unit: type guards + SwarmState initialiser                           |
+| Create  | `src/__tests__/agents/residents.test.ts`              | Unit: resident prompt shape                                          |
+| Create  | `src/__tests__/api/swarm-followup.test.ts`            | Unit: followup route validation                                      |
 
 ---
 
 ## Task 1: Extend swarm-types.ts with v2 types
 
 **Files:**
+
 - Replace: `src/agents/swarm-types.ts`
 - Test: `src/__tests__/agents/swarm-v2-types.test.ts`
 
@@ -39,21 +40,24 @@
 
 ```typescript
 // src/__tests__/agents/swarm-v2-types.test.ts
-import { describe, it, expect } from 'vitest';
-import { RESIDENT_ROLES, createInitialSwarmState } from '@/agents/swarm-types';
+import { describe, it, expect } from "vitest";
+import { RESIDENT_ROLES, createInitialSwarmState } from "@/agents/swarm-types";
 
-describe('SwarmV2 types', () => {
-  it('RESIDENT_ROLES contains exactly 4 roles', () => {
+describe("SwarmV2 types", () => {
+  it("RESIDENT_ROLES contains exactly 4 roles", () => {
     expect(RESIDENT_ROLES).toHaveLength(4);
-    expect(RESIDENT_ROLES).toContain('conservative');
-    expect(RESIDENT_ROLES).toContain('pharmacological');
-    expect(RESIDENT_ROLES).toContain('investigative');
-    expect(RESIDENT_ROLES).toContain('red-flag');
+    expect(RESIDENT_ROLES).toContain("conservative");
+    expect(RESIDENT_ROLES).toContain("pharmacological");
+    expect(RESIDENT_ROLES).toContain("investigative");
+    expect(RESIDENT_ROLES).toContain("red-flag");
   });
 
-  it('createInitialSwarmState sets currentPhase to triage', () => {
-    const state = createInitialSwarmState('sess-1', 'back pain', { age: '23', gender: 'male' });
-    expect(state.currentPhase).toBe('triage');
+  it("createInitialSwarmState sets currentPhase to triage", () => {
+    const state = createInitialSwarmState("sess-1", "back pain", {
+      age: "23",
+      gender: "male",
+    });
+    expect(state.currentPhase).toBe("triage");
     expect(state.primaryLeadRole).toBeNull();
     expect(state.pendingClarifications).toEqual([]);
   });
@@ -65,6 +69,7 @@ describe('SwarmV2 types', () => {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/agents/swarm-v2-types.test.ts
 ```
+
 Expected: FAIL — `RESIDENT_ROLES` not exported, `createInitialSwarmState` not exported.
 
 - [ ] **Step 1.3: Replace swarm-types.ts**
@@ -89,21 +94,29 @@ export type ResidentRole =
   | "red-flag";
 
 export const DOCTOR_ROLES: DoctorRole[] = [
-  "gp", "cardiology", "mental_health", "dermatology",
-  "orthopedic", "gastro", "physiotherapy",
+  "gp",
+  "cardiology",
+  "mental_health",
+  "dermatology",
+  "orthopedic",
+  "gastro",
+  "physiotherapy",
 ];
 
 export const RESIDENT_ROLES: ResidentRole[] = [
-  "conservative", "pharmacological", "investigative", "red-flag",
+  "conservative",
+  "pharmacological",
+  "investigative",
+  "red-flag",
 ];
 
 export type DebateMessageType = "agree" | "challenge" | "add_context";
 export type MdtMessageType = "agree" | "note" | "escalate";
 
 export interface SwarmHypothesis {
-  id: string;          // uuid
+  id: string; // uuid
   name: string;
-  confidence: number;  // 0-100
+  confidence: number; // 0-100
   reasoning: string;
   residentRole: ResidentRole;
 }
@@ -122,12 +135,12 @@ export interface SwarmResidentDebateMessage {
   residentRole: ResidentRole;
   type: DebateMessageType;
   content: string;
-  referencingHypothesisId?: string;  // matches SwarmHypothesis.id
+  referencingHypothesisId?: string; // matches SwarmHypothesis.id
 }
 
 export interface SwarmRectification {
   doctorRole: DoctorRole;
-  summary: string;     // lead's rectified recommendation for this specialty
+  summary: string; // lead's rectified recommendation for this specialty
 }
 
 export interface SwarmMdtMessage {
@@ -168,8 +181,8 @@ export interface SwarmState {
 
   // Clarification Q&A
   clarifications: SwarmClarification[];
-  activeClarificationIds: string[];   // max 2
-  pendingClarifications: SwarmClarification[];  // queued if >2 active
+  activeClarificationIds: string[]; // max 2
+  pendingClarifications: SwarmClarification[]; // queued if >2 active
 
   // L6
   mdtMessages: SwarmMdtMessage[];
@@ -198,13 +211,41 @@ export type SwarmEvent =
   | { type: "phase_changed"; phase: SwarmPhase }
   | { type: "doctor_activated"; role: DoctorRole; name: string }
   | { type: "doctor_complete"; role: DoctorRole }
-  | { type: "hypothesis_found"; role: DoctorRole; residentRole: ResidentRole; hypothesisId: string; name: string; confidence: number }
-  | { type: "question_ready"; clarificationId: string; role: DoctorRole; question: string }
-  | { type: "debate_message"; role: DoctorRole; residentRole: ResidentRole; messageType: DebateMessageType; content: string; referencingHypothesisId?: string }
+  | {
+      type: "hypothesis_found";
+      role: DoctorRole;
+      residentRole: ResidentRole;
+      hypothesisId: string;
+      name: string;
+      confidence: number;
+    }
+  | {
+      type: "question_ready";
+      clarificationId: string;
+      role: DoctorRole;
+      question: string;
+    }
+  | {
+      type: "debate_message";
+      role: DoctorRole;
+      residentRole: ResidentRole;
+      messageType: DebateMessageType;
+      content: string;
+      referencingHypothesisId?: string;
+    }
   | { type: "rectification_complete"; role: DoctorRole; summary: string }
-  | { type: "mdt_message"; role: DoctorRole; messageType: MdtMessageType; content: string }
+  | {
+      type: "mdt_message";
+      role: DoctorRole;
+      messageType: MdtMessageType;
+      content: string;
+    }
   | { type: "synthesis_complete"; data: SwarmSynthesis }
-  | { type: "followup_routed"; questionType: "simple" | "complex"; activatedRoles: string[] }
+  | {
+      type: "followup_routed";
+      questionType: "simple" | "complex";
+      activatedRoles: string[];
+    }
   | { type: "followup_answer"; answer: string }
   | { type: "error"; message: string }
   | { type: "done" };
@@ -240,6 +281,7 @@ export const answerStore = new Map<string, string>();
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/agents/swarm-v2-types.test.ts
 ```
+
 Expected: PASS (2 tests)
 
 - [ ] **Step 1.5: TypeScript check**
@@ -247,6 +289,7 @@ Expected: PASS (2 tests)
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit 2>&1 | head -30
 ```
+
 Expected: Errors only from swarm.ts (which still references old types) — those will be fixed in Task 3.
 
 - [ ] **Step 1.6: Commit**
@@ -261,6 +304,7 @@ git commit -m "feat(swarm): extend swarm-types with v2 resident + rectification 
 ## Task 2: Create resident agent definitions
 
 **Files:**
+
 - Create: `src/agents/definitions/residents/conservative.ts`
 - Create: `src/agents/definitions/residents/pharmacological.ts`
 - Create: `src/agents/definitions/residents/investigative.ts`
@@ -272,29 +316,31 @@ git commit -m "feat(swarm): extend swarm-types with v2 resident + rectification 
 
 ```typescript
 // src/__tests__/agents/residents.test.ts
-import { describe, it, expect } from 'vitest';
-import { residentDefinitions } from '@/agents/definitions/residents';
+import { describe, it, expect } from "vitest";
+import { residentDefinitions } from "@/agents/definitions/residents";
 
-describe('Resident definitions', () => {
-  it('exports exactly 4 residents', () => {
+describe("Resident definitions", () => {
+  it("exports exactly 4 residents", () => {
     expect(Object.keys(residentDefinitions)).toHaveLength(4);
   });
 
-  it.each(['conservative', 'pharmacological', 'investigative', 'red-flag'] as const)(
-    '%s resident has required fields',
-    (role) => {
-      const def = residentDefinitions[role];
-      expect(def.role).toBe(role);
-      expect(typeof def.systemPrompt).toBe('string');
-      expect(def.systemPrompt.length).toBeGreaterThan(100);
-      expect(def.systemPrompt).toContain('JSON');
-      expect(def.systemPrompt).toContain('confidence');
-    }
-  );
+  it.each([
+    "conservative",
+    "pharmacological",
+    "investigative",
+    "red-flag",
+  ] as const)("%s resident has required fields", (role) => {
+    const def = residentDefinitions[role];
+    expect(def.role).toBe(role);
+    expect(typeof def.systemPrompt).toBe("string");
+    expect(def.systemPrompt.length).toBeGreaterThan(100);
+    expect(def.systemPrompt).toContain("JSON");
+    expect(def.systemPrompt).toContain("confidence");
+  });
 
-  it('red-flag resident prompt instructs to return confidence 100 only if critical', () => {
-    const rf = residentDefinitions['red-flag'];
-    expect(rf.systemPrompt).toContain('emergency');
+  it("red-flag resident prompt instructs to return confidence 100 only if critical", () => {
+    const rf = residentDefinitions["red-flag"];
+    expect(rf.systemPrompt).toContain("emergency");
   });
 });
 ```
@@ -304,6 +350,7 @@ describe('Resident definitions', () => {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/agents/residents.test.ts
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 2.3: Create `src/agents/definitions/residents/conservative.ts`**
@@ -464,6 +511,7 @@ export const residentDefinitions: Record<ResidentRole, ResidentDefinition> = {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/agents/residents.test.ts
 ```
+
 Expected: PASS (6 tests)
 
 - [ ] **Step 2.9: Commit**
@@ -478,6 +526,7 @@ git commit -m "feat(agents): add 4 resident agent definitions (conservative, pha
 ## Task 3: Replace swarm.ts with 7-layer orchestrator
 
 **Files:**
+
 - Replace: `src/agents/swarm.ts`
 - Test: `src/__tests__/agents/swarm-v2-events.test.ts` (new)
 
@@ -488,56 +537,90 @@ L1 Triage → L2 Lead activation → L3 Resident swarm (per lead, parallel) → 
 
 ```typescript
 // src/__tests__/agents/swarm-v2-events.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { createInitialSwarmState } from '@/agents/swarm-types';
+import { describe, it, expect, vi } from "vitest";
+import { createInitialSwarmState } from "@/agents/swarm-types";
 
 // We test the state machine logic, not the LLM calls
 // Import the internal helpers we'll export from swarm.ts
-import { selectPrimaryLead, buildResidentPrompt } from '@/agents/swarm';
+import { selectPrimaryLead, buildResidentPrompt } from "@/agents/swarm";
 
-describe('selectPrimaryLead', () => {
-  it('returns the lead with the highest average resident confidence', () => {
+describe("selectPrimaryLead", () => {
+  it("returns the lead with the highest average resident confidence", () => {
     const leadSwarms = {
       physiotherapy: {
-        status: 'complete' as const,
+        status: "complete" as const,
         hypotheses: [
-          { id: '1', name: 'h1', confidence: 80, reasoning: '', residentRole: 'conservative' as const },
-          { id: '2', name: 'h2', confidence: 60, reasoning: '', residentRole: 'pharmacological' as const },
+          {
+            id: "1",
+            name: "h1",
+            confidence: 80,
+            reasoning: "",
+            residentRole: "conservative" as const,
+          },
+          {
+            id: "2",
+            name: "h2",
+            confidence: 60,
+            reasoning: "",
+            residentRole: "pharmacological" as const,
+          },
         ],
         residentDebate: [],
-        rectification: { doctorRole: 'physiotherapy' as const, summary: 'test' },
+        rectification: {
+          doctorRole: "physiotherapy" as const,
+          summary: "test",
+        },
       },
       gp: {
-        status: 'complete' as const,
+        status: "complete" as const,
         hypotheses: [
-          { id: '3', name: 'h3', confidence: 50, reasoning: '', residentRole: 'conservative' as const },
+          {
+            id: "3",
+            name: "h3",
+            confidence: 50,
+            reasoning: "",
+            residentRole: "conservative" as const,
+          },
         ],
         residentDebate: [],
-        rectification: { doctorRole: 'gp' as const, summary: 'test' },
+        rectification: { doctorRole: "gp" as const, summary: "test" },
       },
     };
-    expect(selectPrimaryLead(leadSwarms)).toBe('physiotherapy'); // avg 70 vs 50
+    expect(selectPrimaryLead(leadSwarms)).toBe("physiotherapy"); // avg 70 vs 50
   });
 
-  it('returns first key if all confidences equal', () => {
+  it("returns first key if all confidences equal", () => {
     const leadSwarms = {
       gp: {
-        status: 'complete' as const,
-        hypotheses: [{ id: '1', name: 'h1', confidence: 50, reasoning: '', residentRole: 'conservative' as const }],
+        status: "complete" as const,
+        hypotheses: [
+          {
+            id: "1",
+            name: "h1",
+            confidence: 50,
+            reasoning: "",
+            residentRole: "conservative" as const,
+          },
+        ],
         residentDebate: [],
-        rectification: { doctorRole: 'gp' as const, summary: '' },
+        rectification: { doctorRole: "gp" as const, summary: "" },
       },
     };
-    expect(selectPrimaryLead(leadSwarms)).toBe('gp');
+    expect(selectPrimaryLead(leadSwarms)).toBe("gp");
   });
 });
 
-describe('buildResidentPrompt', () => {
-  it('injects specialty context into resident system prompt', () => {
-    const prompt = buildResidentPrompt('conservative', 'physiotherapy', 'back pain', { age: '23', gender: 'male' });
-    expect(prompt).toContain('physiotherapy');
-    expect(prompt).toContain('back pain');
-    expect(prompt).toContain('23');
+describe("buildResidentPrompt", () => {
+  it("injects specialty context into resident system prompt", () => {
+    const prompt = buildResidentPrompt(
+      "conservative",
+      "physiotherapy",
+      "back pain",
+      { age: "23", gender: "male" },
+    );
+    expect(prompt).toContain("physiotherapy");
+    expect(prompt).toContain("back pain");
+    expect(prompt).toContain("23");
   });
 });
 ```
@@ -547,13 +630,14 @@ describe('buildResidentPrompt', () => {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/agents/swarm-v2-events.test.ts
 ```
+
 Expected: FAIL — `selectPrimaryLead`, `buildResidentPrompt` not exported.
 
 - [ ] **Step 3.3: Write swarm.ts — helper functions first**
 
 Replace `src/agents/swarm.ts` with the following. Write the full file:
 
-```typescript
+````typescript
 // src/agents/swarm.ts
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { createJsonModel, createFastModel } from "@/lib/ai/config";
@@ -579,14 +663,22 @@ import crypto from "crypto";
  * Exported for testing.
  */
 export function selectPrimaryLead(
-  leadSwarms: SwarmState["leadSwarms"]
+  leadSwarms: SwarmState["leadSwarms"],
 ): DoctorRole {
   let best: DoctorRole | null = null;
   let bestAvg = -1;
-  for (const [role, lead] of Object.entries(leadSwarms) as [DoctorRole, SwarmLeadState][]) {
+  for (const [role, lead] of Object.entries(leadSwarms) as [
+    DoctorRole,
+    SwarmLeadState,
+  ][]) {
     if (!lead || lead.hypotheses.length === 0) continue;
-    const avg = lead.hypotheses.reduce((sum, h) => sum + h.confidence, 0) / lead.hypotheses.length;
-    if (avg > bestAvg) { bestAvg = avg; best = role; }
+    const avg =
+      lead.hypotheses.reduce((sum, h) => sum + h.confidence, 0) /
+      lead.hypotheses.length;
+    if (avg > bestAvg) {
+      bestAvg = avg;
+      best = role;
+    }
   }
   return best ?? (Object.keys(leadSwarms)[0] as DoctorRole);
 }
@@ -599,7 +691,7 @@ export function buildResidentPrompt(
   residentRole: ResidentRole,
   specialtyRole: DoctorRole,
   symptoms: string,
-  patientInfo: SwarmState["patientInfo"]
+  patientInfo: SwarmState["patientInfo"],
 ): string {
   const base = residentDefinitions[residentRole].systemPrompt;
   const context = `\n\n## Specialty Context\nYou are embedded in the ${specialtyRole} specialty team.\nPatient: ${patientInfo.age}y ${patientInfo.gender}${patientInfo.knownConditions ? `, conditions: ${patientInfo.knownConditions}` : ""}\nSymptoms: ${symptoms}`;
@@ -612,7 +704,7 @@ const SCOPE_BOUNDARY = `\n\n## Scope Boundaries\nYou provide health navigation g
 
 async function runTriage(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const llm = createJsonModel();
   const response = await llm.invoke([
@@ -650,10 +742,12 @@ Symptoms: ${state.symptoms}`),
   if (urgency === "emergency") {
     state.synthesis = {
       urgency: "emergency",
-      primaryRecommendation: "This may be a medical emergency. Call 000 (Australia) or your local emergency number immediately.",
+      primaryRecommendation:
+        "This may be a medical emergency. Call 000 (Australia) or your local emergency number immediately.",
       nextSteps: ["Call emergency services now", "Do not drive yourself"],
       bookingNeeded: false,
-      disclaimer: "This is AI-generated health navigation guidance. Always call emergency services in an emergency.",
+      disclaimer:
+        "This is AI-generated health navigation guidance. Always call emergency services in an emergency.",
     };
     emit({ type: "synthesis_complete", data: state.synthesis });
     emit({ type: "done" });
@@ -667,14 +761,21 @@ async function runResident(
   residentRole: ResidentRole,
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const llm = createFastModel();
-  const systemPrompt = buildResidentPrompt(residentRole, specialtyRole, state.symptoms, state.patientInfo);
+  const systemPrompt = buildResidentPrompt(
+    residentRole,
+    specialtyRole,
+    state.symptoms,
+    state.patientInfo,
+  );
 
   const response = await llm.invoke([
     new SystemMessage(systemPrompt),
-    new HumanMessage(`Assess the patient's symptoms from your ${residentRole} perspective. Return ONLY JSON.`),
+    new HumanMessage(
+      `Assess the patient's symptoms from your ${residentRole} perspective. Return ONLY JSON.`,
+    ),
   ]);
 
   let hypothesis = `${residentRole} assessment`;
@@ -688,7 +789,10 @@ async function runResident(
     confidence = Math.min(100, Math.max(0, Number(parsed.confidence) || 50));
     reasoning = parsed.reasoning ?? "";
   } catch (e) {
-    console.error(`[swarm-v2] resident ${residentRole}/${specialtyRole} parse failed:`, e);
+    console.error(
+      `[swarm-v2] resident ${residentRole}/${specialtyRole} parse failed:`,
+      e,
+    );
   }
 
   const hypothesisId = crypto.randomUUID();
@@ -715,17 +819,22 @@ async function runResident(
 async function runResidentDebate(
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const leadState = state.leadSwarms[specialtyRole]!;
   const hypothesesSummary = leadState.hypotheses
-    .map((h) => `[${h.residentRole}] "${h.name}" (confidence: ${h.confidence}) — ${h.reasoning}`)
+    .map(
+      (h) =>
+        `[${h.residentRole}] "${h.name}" (confidence: ${h.confidence}) — ${h.reasoning}`,
+    )
     .join("\n");
 
   const llm = createFastModel();
 
   for (const residentRole of RESIDENT_ROLES) {
-    const myHypothesis = leadState.hypotheses.find((h) => h.residentRole === residentRole);
+    const myHypothesis = leadState.hypotheses.find(
+      (h) => h.residentRole === residentRole,
+    );
     if (!myHypothesis) continue;
 
     const response = await llm.invoke([
@@ -736,7 +845,9 @@ Respond ONLY with valid JSON:
   "content": "<max 2 sentences>",
   "referencingHypothesisId": "<id of hypothesis you are challenging or agreeing with, or omit>"
 }`),
-      new HumanMessage(`All resident hypotheses:\n${hypothesesSummary}\n\nYour hypothesis: "${myHypothesis.name}" (id: ${myHypothesis.id})\nProvide your debate response.`),
+      new HumanMessage(
+        `All resident hypotheses:\n${hypothesesSummary}\n\nYour hypothesis: "${myHypothesis.name}" (id: ${myHypothesis.id})\nProvide your debate response.`,
+      ),
     ]);
 
     let type: "agree" | "challenge" | "add_context" = "add_context";
@@ -744,18 +855,36 @@ Respond ONLY with valid JSON:
     let referencingHypothesisId: string | undefined;
 
     try {
-      const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+      const parsed = JSON.parse(
+        (response.content as string).replace(/```json\n?|\n?```/g, ""),
+      );
       type = parsed.type ?? "add_context";
       content = parsed.content ?? "";
       referencingHypothesisId = parsed.referencingHypothesisId;
     } catch (e) {
-      console.error(`[swarm-v2] debate parse failed ${residentRole}/${specialtyRole}:`, e);
+      console.error(
+        `[swarm-v2] debate parse failed ${residentRole}/${specialtyRole}:`,
+        e,
+      );
       continue;
     }
 
-    const msg = { doctorRole: specialtyRole, residentRole, type, content, referencingHypothesisId };
+    const msg = {
+      doctorRole: specialtyRole,
+      residentRole,
+      type,
+      content,
+      referencingHypothesisId,
+    };
     leadState.residentDebate.push(msg);
-    emit({ type: "debate_message", role: specialtyRole, residentRole, messageType: type, content, referencingHypothesisId });
+    emit({
+      type: "debate_message",
+      role: specialtyRole,
+      residentRole,
+      messageType: type,
+      content,
+      referencingHypothesisId,
+    });
   }
 }
 
@@ -764,12 +893,15 @@ Respond ONLY with valid JSON:
 async function runLeadRectification(
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const leadState = state.leadSwarms[specialtyRole]!;
   const leadDef = agentRegistry[specialtyRole];
   const hypothesesSummary = leadState.hypotheses
-    .map((h) => `${h.residentRole}: "${h.name}" (${h.confidence}%) — ${h.reasoning}`)
+    .map(
+      (h) =>
+        `${h.residentRole}: "${h.name}" (${h.confidence}%) — ${h.reasoning}`,
+    )
     .join("\n");
   const debateSummary = leadState.residentDebate
     .map((d) => `${d.residentRole} [${d.type}]: ${d.content}`)
@@ -782,12 +914,16 @@ Respond ONLY with valid JSON:
 {
   "summary": "<2-3 sentences: your rectified recommendation, noting which residents you agree with and any you overrule>"
 }`),
-    new HumanMessage(`Resident hypotheses:\n${hypothesesSummary}\n\nResident debate:\n${debateSummary}\n\nPatient symptoms: ${state.symptoms}`),
+    new HumanMessage(
+      `Resident hypotheses:\n${hypothesesSummary}\n\nResident debate:\n${debateSummary}\n\nPatient symptoms: ${state.symptoms}`,
+    ),
   ]);
 
   let summary = `${leadDef?.name ?? specialtyRole} reviewed all resident input.`;
   try {
-    const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+    const parsed = JSON.parse(
+      (response.content as string).replace(/```json\n?|\n?```/g, ""),
+    );
     summary = parsed.summary ?? summary;
   } catch (e) {
     console.error(`[swarm-v2] rectification parse failed ${specialtyRole}:`, e);
@@ -804,7 +940,7 @@ Respond ONLY with valid JSON:
 async function runLeadSwarm(
   specialtyRole: DoctorRole,
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const leadDef = agentRegistry[specialtyRole];
   state.leadSwarms[specialtyRole] = {
@@ -814,13 +950,17 @@ async function runLeadSwarm(
     rectification: null,
   };
 
-  emit({ type: "doctor_activated", role: specialtyRole, name: leadDef?.name ?? specialtyRole });
+  emit({
+    type: "doctor_activated",
+    role: specialtyRole,
+    name: leadDef?.name ?? specialtyRole,
+  });
 
   // L3: residents run in parallel
   await Promise.all(
     RESIDENT_ROLES.map((residentRole) =>
-      runResident(residentRole, specialtyRole, state, emit)
-    )
+      runResident(residentRole, specialtyRole, state, emit),
+    ),
   );
 
   // L4: debate
@@ -835,7 +975,7 @@ async function runLeadSwarm(
 
 async function runMdt(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   const activatedLeads = Object.keys(state.leadSwarms) as DoctorRole[];
   if (activatedLeads.length < 2) return; // skip MDT if only 1 specialty
@@ -862,14 +1002,18 @@ Respond ONLY with valid JSON:
   "content": "<max 2 sentences>"
 }
 Use "escalate" ONLY if you believe urgency should be raised based on another specialist's finding.`),
-      new HumanMessage(`MDT rectified recommendations:\n${rectificationsSummary}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}\nSymptoms: ${state.symptoms}`),
+      new HumanMessage(
+        `MDT rectified recommendations:\n${rectificationsSummary}\n\nPatient: ${state.patientInfo.age}y ${state.patientInfo.gender}\nSymptoms: ${state.symptoms}`,
+      ),
     ]);
 
     let type: "agree" | "note" | "escalate" = "agree";
     let content = "";
 
     try {
-      const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+      const parsed = JSON.parse(
+        (response.content as string).replace(/```json\n?|\n?```/g, ""),
+      );
       type = parsed.type ?? "agree";
       content = parsed.content ?? "";
     } catch (e) {
@@ -886,7 +1030,7 @@ Use "escalate" ONLY if you believe urgency should be raised based on another spe
 
 async function runSynthesis(
   state: SwarmState,
-  emit: (e: SwarmEvent) => void
+  emit: (e: SwarmEvent) => void,
 ): Promise<void> {
   emit({ type: "phase_changed", phase: "synthesis" });
 
@@ -910,7 +1054,9 @@ Respond ONLY with valid JSON:
   "bookingNeeded": true | false,
   "disclaimer": "This is AI-generated health navigation guidance. Always consult a qualified healthcare provider."
 }${SCOPE_BOUNDARY}`),
-    new HumanMessage(`Specialist rectified recommendations:\n${rectSummary}\n\nMDT discussion:\n${mdtSummary}\n\nOriginal triage urgency: ${state.triage?.urgency}`),
+    new HumanMessage(
+      `Specialist rectified recommendations:\n${rectSummary}\n\nMDT discussion:\n${mdtSummary}\n\nOriginal triage urgency: ${state.triage?.urgency}`,
+    ),
   ]);
 
   let synthesis = state.synthesis ?? {
@@ -918,14 +1064,18 @@ Respond ONLY with valid JSON:
     primaryRecommendation: "Please consult a healthcare provider.",
     nextSteps: [],
     bookingNeeded: true,
-    disclaimer: "This is AI-generated health navigation guidance. Always consult a qualified healthcare provider.",
+    disclaimer:
+      "This is AI-generated health navigation guidance. Always consult a qualified healthcare provider.",
   };
 
   try {
-    const parsed = JSON.parse((response.content as string).replace(/```json\n?|\n?```/g, ""));
+    const parsed = JSON.parse(
+      (response.content as string).replace(/```json\n?|\n?```/g, ""),
+    );
     synthesis = {
       urgency: parsed.urgency ?? synthesis.urgency,
-      primaryRecommendation: parsed.primaryRecommendation ?? synthesis.primaryRecommendation,
+      primaryRecommendation:
+        parsed.primaryRecommendation ?? synthesis.primaryRecommendation,
       nextSteps: parsed.nextSteps ?? [],
       bookingNeeded: parsed.bookingNeeded ?? true,
       disclaimer: parsed.disclaimer ?? synthesis.disclaimer,
@@ -946,7 +1096,7 @@ Respond ONLY with valid JSON:
 
 export async function* streamSwarm(
   symptoms: string,
-  patientInfo: SwarmState["patientInfo"]
+  patientInfo: SwarmState["patientInfo"],
 ): AsyncGenerator<SwarmEvent> {
   const sessionId = crypto.randomUUID();
   const state = createInitialSwarmState(sessionId, symptoms, patientInfo);
@@ -964,7 +1114,9 @@ export async function* streamSwarm(
 
   // L2-L5: all lead swarms in parallel
   const relevantDoctors = state.triage!.relevantDoctors;
-  await Promise.all(relevantDoctors.map((role) => runLeadSwarm(role, state, emit)));
+  await Promise.all(
+    relevantDoctors.map((role) => runLeadSwarm(role, state, emit)),
+  );
   yield* flush();
 
   // L6
@@ -975,13 +1127,14 @@ export async function* streamSwarm(
   await runSynthesis(state, emit);
   yield* flush();
 }
-```
+````
 
 - [ ] **Step 3.4: Run the helper tests**
 
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/agents/swarm-v2-events.test.ts
 ```
+
 Expected: PASS (3 tests)
 
 - [ ] **Step 3.5: TypeScript check**
@@ -989,6 +1142,7 @@ Expected: PASS (3 tests)
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit 2>&1 | head -40
 ```
+
 Expected: 0 errors (or only errors in unrelated files).
 
 - [ ] **Step 3.6: Commit**
@@ -1003,6 +1157,7 @@ git commit -m "feat(swarm): implement 7-layer MiroFish resident swarm orchestrat
 ## Task 4: Add follow-up routing API endpoint
 
 **Files:**
+
 - Create: `src/app/api/swarm/followup/route.ts`
 - Test: `src/__tests__/api/swarm-followup.test.ts`
 
@@ -1010,15 +1165,15 @@ git commit -m "feat(swarm): implement 7-layer MiroFish resident swarm orchestrat
 
 ```typescript
 // src/__tests__/api/swarm-followup.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('POST /api/swarm/followup input validation', () => {
-  it('rejects missing question', async () => {
-    const { POST } = await import('@/app/api/swarm/followup/route');
-    const req = new Request('http://localhost/api/swarm/followup', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId: 'abc' }),
-      headers: { 'Content-Type': 'application/json' },
+describe("POST /api/swarm/followup input validation", () => {
+  it("rejects missing question", async () => {
+    const { POST } = await import("@/app/api/swarm/followup/route");
+    const req = new Request("http://localhost/api/swarm/followup", {
+      method: "POST",
+      body: JSON.stringify({ sessionId: "abc" }),
+      headers: { "Content-Type": "application/json" },
     });
     const res = await POST(req as any);
     expect(res.status).toBe(400);
@@ -1026,12 +1181,12 @@ describe('POST /api/swarm/followup input validation', () => {
     expect(body.error).toMatch(/question/);
   });
 
-  it('rejects missing sessionId', async () => {
-    const { POST } = await import('@/app/api/swarm/followup/route');
-    const req = new Request('http://localhost/api/swarm/followup', {
-      method: 'POST',
-      body: JSON.stringify({ question: 'how long should I rest?' }),
-      headers: { 'Content-Type': 'application/json' },
+  it("rejects missing sessionId", async () => {
+    const { POST } = await import("@/app/api/swarm/followup/route");
+    const req = new Request("http://localhost/api/swarm/followup", {
+      method: "POST",
+      body: JSON.stringify({ question: "how long should I rest?" }),
+      headers: { "Content-Type": "application/json" },
     });
     const res = await POST(req as any);
     expect(res.status).toBe(400);
@@ -1044,11 +1199,12 @@ describe('POST /api/swarm/followup input validation', () => {
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/api/swarm-followup.test.ts
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 4.3: Create the followup route**
 
-```typescript
+````typescript
 // src/app/api/swarm/followup/route.ts
 import { NextRequest } from "next/server";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
@@ -1068,14 +1224,19 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "question required" }, { status: 400 });
   }
   if (question.length > 500) {
-    return Response.json({ error: "question must be under 500 characters" }, { status: 400 });
+    return Response.json(
+      { error: "question must be under 500 characters" },
+      { status: 400 },
+    );
   }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: SwarmEvent) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+        );
       };
 
       try {
@@ -1088,21 +1249,33 @@ Complex: involves new symptoms, contradicts recommendation, or needs clinical re
 
 Respond ONLY with valid JSON: { "type": "simple" | "complex", "relevantResidentRoles": ["conservative" | "pharmacological" | "investigative" | "red-flag"] }
 relevantResidentRoles is only populated for complex questions.`),
-          new HumanMessage(`Follow-up question: "${question}"\nContext: ${synthesisContext ?? "General consultation"}`),
+          new HumanMessage(
+            `Follow-up question: "${question}"\nContext: ${synthesisContext ?? "General consultation"}`,
+          ),
         ]);
 
         let questionType: "simple" | "complex" = "simple";
         let relevantResidentRoles: string[] = [];
 
         try {
-          const parsed = JSON.parse((classifyResponse.content as string).replace(/```json\n?|\n?```/g, ""));
+          const parsed = JSON.parse(
+            (classifyResponse.content as string).replace(
+              /```json\n?|\n?```/g,
+              "",
+            ),
+          );
           questionType = parsed.type ?? "simple";
           relevantResidentRoles = parsed.relevantResidentRoles ?? [];
         } catch (e) {
           console.error("[followup] classify parse failed:", e);
         }
 
-        send({ type: "followup_routed", questionType, activatedRoles: questionType === "simple" ? ["lead"] : relevantResidentRoles });
+        send({
+          type: "followup_routed",
+          questionType,
+          activatedRoles:
+            questionType === "simple" ? ["lead"] : relevantResidentRoles,
+        });
 
         // Answer
         const llm = createFastModel();
@@ -1110,7 +1283,9 @@ relevantResidentRoles is only populated for complex questions.`),
           new SystemMessage(`You are a helpful AI health navigator. Answer this follow-up question concisely and clearly.
 Provide practical guidance. Keep answer under 150 words.
 Always end with a reminder to consult a healthcare provider for personalised advice.`),
-          new HumanMessage(`Question: "${question}"\nContext: ${synthesisContext ?? ""}`),
+          new HumanMessage(
+            `Question: "${question}"\nContext: ${synthesisContext ?? ""}`,
+          ),
         ]);
 
         send({ type: "followup_answer", answer: answer.content as string });
@@ -1131,13 +1306,14 @@ Always end with a reminder to consult a healthcare provider for personalised adv
     },
   });
 }
-```
+````
 
 - [ ] **Step 4.4: Run test to verify it passes**
 
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test src/__tests__/api/swarm-followup.test.ts
 ```
+
 Expected: PASS (2 tests)
 
 - [ ] **Step 4.5: Full test suite — verify nothing regressed**
@@ -1145,6 +1321,7 @@ Expected: PASS (2 tests)
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test
 ```
+
 Expected: All passing (or same failures as before this plan).
 
 - [ ] **Step 4.6: Commit**
@@ -1165,6 +1342,7 @@ The existing `start/route.ts` already imports `streamSwarm` from `@/agents/swarm
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run tsc --noEmit
 ```
+
 Expected: 0 errors.
 
 - [ ] **Step 5.2: Run all tests**
@@ -1172,6 +1350,7 @@ Expected: 0 errors.
 ```bash
 cd /Users/tasmanstar/Desktop/projects/medicrew && bun run test
 ```
+
 Expected: All passing.
 
 - [ ] **Step 5.3: Commit if any fixes were needed**

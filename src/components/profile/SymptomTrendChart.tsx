@@ -18,7 +18,6 @@ interface TrendDataPoint {
   notes: string | null;
 }
 
-
 const severityLabels: Record<number, string> = {
   1: "Minimal",
   2: "Mild",
@@ -60,7 +59,9 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         Severity: {severity} — {label}
       </p>
       {notes && (
-        <p className="text-foreground mt-1 max-w-[200px] break-words">{notes}</p>
+        <p className="text-foreground mt-1 max-w-[200px] break-words">
+          {notes}
+        </p>
       )}
     </div>
   );
@@ -137,8 +138,8 @@ export function SymptomTrendChart() {
         )}
 
         <p className="text-xs text-muted-foreground border-t pt-3">
-          This chart shows self-reported symptom data for informational purposes only.
-          It is not a medical diagnosis.
+          This chart shows self-reported symptom data for informational purposes
+          only. It is not a medical diagnosis.
         </p>
       </CardContent>
     </Card>

@@ -47,7 +47,12 @@ describe("COMP-03: Emergency rules engine", () => {
   });
 
   test("all emergency responses include callToAction='000'", () => {
-    const emergencies = ["chest pain", "want to kill myself", "can't breathe", "severe bleeding"];
+    const emergencies = [
+      "chest pain",
+      "want to kill myself",
+      "can't breathe",
+      "severe bleeding",
+    ];
     for (const text of emergencies) {
       const result = detectEmergency(text);
       expect(result.response?.callToAction).toBe("000");

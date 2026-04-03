@@ -19,7 +19,7 @@ export interface StreamEvent {
   agentName?: string;
   agentRole?: string;
   specialty?: string;
-  eventType?: 'node_output' | 'token_delta' | 'routing' | 'complete';
+  eventType?: "node_output" | "token_delta" | "routing" | "complete";
   delta?: string; // Token-level text chunk for progressive streaming
 }
 
@@ -57,7 +57,9 @@ const createLLM = () => {
 };
 
 // Triage node - assesses urgency and identifies red flags
-async function triageNode(state: ConsultationGraphState): Promise<Partial<ConsultationGraphState>> {
+async function triageNode(
+  state: ConsultationGraphState,
+): Promise<Partial<ConsultationGraphState>> {
   const llm = createLLM();
   const agent = agentRegistry.triage;
 
@@ -123,7 +125,9 @@ Please provide a structured triage assessment in the following JSON format:
 }
 
 // GP consultation node
-async function gpNode(state: ConsultationGraphState): Promise<Partial<ConsultationGraphState>> {
+async function gpNode(
+  state: ConsultationGraphState,
+): Promise<Partial<ConsultationGraphState>> {
   const llm = createLLM();
   const agent = agentRegistry.gp;
 
@@ -160,13 +164,15 @@ Please provide your GP assessment, focusing on the overall picture and any addit
 }
 
 // Specialist consultation node (runs relevant specialists in parallel conceptually)
-async function specialistNode(state: ConsultationGraphState): Promise<Partial<ConsultationGraphState>> {
+async function specialistNode(
+  state: ConsultationGraphState,
+): Promise<Partial<ConsultationGraphState>> {
   const llm = createLLM();
   const messages: AgentMessage[] = [];
 
   // Get specialists that should be consulted (excluding GP and triage)
   const specialistsToConsult = state.relevantSpecialties.filter(
-    (role) => !["gp", "triage", "orchestrator"].includes(role)
+    (role) => !["gp", "triage", "orchestrator"].includes(role),
   );
 
   // Run specialist consultations in parallel (limit to 2)
@@ -202,7 +208,7 @@ Focus on aspects relevant to your specialty and any specific recommendations.
         content: response.content as string,
         timestamp: new Date(),
       };
-    })
+    }),
   );
 
   for (const msg of results) {
@@ -216,7 +222,9 @@ Focus on aspects relevant to your specialty and any specific recommendations.
 }
 
 // Final recommendation node - synthesizes all inputs
-async function recommendationNode(state: ConsultationGraphState): Promise<Partial<ConsultationGraphState>> {
+async function recommendationNode(
+  state: ConsultationGraphState,
+): Promise<Partial<ConsultationGraphState>> {
   const llm = createLLM();
 
   const allAssessments = state.messages
@@ -300,7 +308,7 @@ function routeAfterTriage(state: ConsultationGraphState): string {
 function routeAfterGP(state: ConsultationGraphState): string {
   // If there are relevant specialists, consult them
   const specialists = state.relevantSpecialties.filter(
-    (role) => !["gp", "triage", "orchestrator"].includes(role)
+    (role) => !["gp", "triage", "orchestrator"].includes(role),
   );
   if (specialists.length > 0) {
     return "specialist";
@@ -337,7 +345,7 @@ export async function runConsultation(
   symptoms: string,
   sessionId?: string,
   consultationId?: string,
-  patientContext?: string
+  patientContext?: string,
 ): Promise<ConsultationState> {
   let graph;
   let invokeConfig: { configurable?: { thread_id: string } } | undefined;
@@ -345,7 +353,9 @@ export async function runConsultation(
   if (consultationId && process.env.DIRECT_URL) {
     const cp = await getCheckpointer();
     graph = createConsultationGraph(cp);
-    invokeConfig = { configurable: { thread_id: `consultation-${consultationId}` } };
+    invokeConfig = {
+      configurable: { thread_id: `consultation-${consultationId}` },
+    };
   } else {
     graph = createConsultationGraph();
   }
@@ -381,7 +391,7 @@ export async function* streamConsultation(
   symptoms: string,
   sessionId?: string,
   consultationId?: string,
-  patientContext?: string
+  patientContext?: string,
 ): AsyncGenerator<StreamEvent> {
   let graph;
   let streamConfig: { configurable?: { thread_id: string } } | undefined;
@@ -389,7 +399,9 @@ export async function* streamConsultation(
   if (consultationId && process.env.DIRECT_URL) {
     const cp = await getCheckpointer();
     graph = createConsultationGraph(cp);
-    streamConfig = { configurable: { thread_id: `consultation-${consultationId}` } };
+    streamConfig = {
+      configurable: { thread_id: `consultation-${consultationId}` },
+    };
   } else {
     graph = createConsultationGraph();
   }
@@ -412,56 +424,71 @@ export async function* streamConsultation(
 
   // Use streamEvents (v2) to get token-level deltas from on_llm_stream events
   // and full node output from on_chain_end events
-  for await (const event of graph.streamEvents(initialState, { version: 'v2', ...streamConfig })) {
-    if (event.event === 'on_llm_stream') {
+  for await (const event of graph.streamEvents(initialState, {
+    version: "v2",
+    ...streamConfig,
+  })) {
+    if (event.event === "on_llm_stream") {
       // Token-level delta from whichever agent node is currently running
       const chunk = event.data?.chunk;
-      const tokenText = typeof chunk?.content === 'string' ? chunk.content : '';
+      const tokenText = typeof chunk?.content === "string" ? chunk.content : "";
       if (tokenText) {
         const nodeName = event.metadata?.langgraph_node as string | undefined;
-        const agent = nodeName ? agentRegistry[nodeName as AgentRole] : undefined;
+        const agent = nodeName
+          ? agentRegistry[nodeName as AgentRole]
+          : undefined;
         yield {
-          step: nodeName || 'unknown',
+          step: nodeName || "unknown",
           data: {},
           agentName: agent?.name,
           agentRole: agent?.role,
           specialty: agent?.specialties?.[0],
-          eventType: 'token_delta',
+          eventType: "token_delta",
           delta: tokenText,
         };
       }
-    } else if (event.event === 'on_chain_end' && event.metadata?.langgraph_node) {
+    } else if (
+      event.event === "on_chain_end" &&
+      event.metadata?.langgraph_node
+    ) {
       // Full node output — emit as node_output with complete data and agent identity
       const nodeName = event.metadata.langgraph_node as string;
       // Skip internal LangGraph wrapper nodes
-      if (['__start__', '__end__', 'LangGraph'].includes(nodeName)) continue;
+      if (["__start__", "__end__", "LangGraph"].includes(nodeName)) continue;
 
       const agent = agentRegistry[nodeName as AgentRole];
       const nodeOutput = event.data?.output;
 
       // Only yield node_output if there's meaningful output data
-      if (nodeOutput && typeof nodeOutput === 'object' && Object.keys(nodeOutput).length > 0) {
+      if (
+        nodeOutput &&
+        typeof nodeOutput === "object" &&
+        Object.keys(nodeOutput).length > 0
+      ) {
         yield {
           step: nodeName,
           data: nodeOutput as Partial<ConsultationState>,
           agentName: agent?.name,
           agentRole: agent?.role,
           specialty: agent?.specialties?.[0],
-          eventType: 'node_output',
+          eventType: "node_output",
         };
       }
 
       // After triage, emit routing event with relevant specialists (CONS-03)
-      if (nodeName === 'triage') {
+      if (nodeName === "triage") {
         const triageData = nodeOutput as Partial<ConsultationState>;
-        if (triageData?.relevantSpecialties && triageData.relevantSpecialties.length > 0) {
+        if (
+          triageData?.relevantSpecialties &&
+          triageData.relevantSpecialties.length > 0
+        ) {
           yield {
-            step: 'routing',
+            step: "routing",
             data: { relevantSpecialties: triageData.relevantSpecialties },
-            eventType: 'routing',
-            agentName: 'MediCrew AI — Coordinator',
-            agentRole: 'orchestrator',
-            specialty: 'Routing',
+            eventType: "routing",
+            agentName: "MediCrew AI — Coordinator",
+            agentRole: "orchestrator",
+            specialty: "Routing",
           };
         }
       }

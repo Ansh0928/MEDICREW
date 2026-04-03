@@ -1,6 +1,9 @@
 "use client";
 
-import type { AnalyticsEventPayload, AnalyticsEventName } from "@/lib/analytics/events";
+import type {
+  AnalyticsEventPayload,
+  AnalyticsEventName,
+} from "@/lib/analytics/events";
 import { LANDING_VARIANT_COOKIE } from "@/lib/marketing/landing-variants";
 
 function getCookieValue(name: string): string | undefined {
@@ -15,18 +18,26 @@ function getCookieValue(name: string): string | undefined {
 
 export async function trackEvent(
   event: AnalyticsEventName,
-  properties?: Record<string, unknown>
+  properties?: Record<string, unknown>,
 ): Promise<void> {
   const variant = getCookieValue(LANDING_VARIANT_COOKIE);
   const mergedProperties = {
     ...(properties ?? {}),
     ...(variant ? { variant } : {}),
   };
-  const payload: AnalyticsEventPayload = { event, properties: mergedProperties };
+  const payload: AnalyticsEventPayload = {
+    event,
+    properties: mergedProperties,
+  };
 
   try {
-    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
-      const body = new Blob([JSON.stringify(payload)], { type: "application/json" });
+    if (
+      typeof navigator !== "undefined" &&
+      typeof navigator.sendBeacon === "function"
+    ) {
+      const body = new Blob([JSON.stringify(payload)], {
+        type: "application/json",
+      });
       navigator.sendBeacon("/api/analytics", body);
       return;
     }

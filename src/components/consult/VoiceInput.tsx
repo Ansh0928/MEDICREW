@@ -19,11 +19,11 @@ function isSpeechRecognitionSupported(): boolean {
   return "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
 }
 
-export function VoiceInput({ 
-  onTranscript, 
+export function VoiceInput({
+  onTranscript,
   onInterimTranscript,
   disabled,
-  className 
+  className,
 }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
@@ -37,9 +37,11 @@ export function VoiceInput({
 
   const startListening = useCallback(() => {
     if (typeof window === "undefined") return;
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
@@ -82,12 +84,16 @@ export function VoiceInput({
       console.warn("Speech recognition error:", event.error);
       setIsListening(false);
       setInterimText("");
-      
+
       // Show user-friendly message for common errors
       if (event.error === "network") {
-        alert("Voice input requires internet connection. Please type your symptoms instead.");
+        alert(
+          "Voice input requires internet connection. Please type your symptoms instead.",
+        );
       } else if (event.error === "not-allowed") {
-        alert("Microphone access denied. Please allow microphone permission and try again.");
+        alert(
+          "Microphone access denied. Please allow microphone permission and try again.",
+        );
       }
     };
 
@@ -129,7 +135,7 @@ export function VoiceInput({
         disabled={disabled}
         className={cn(
           "relative transition-all",
-          isListening && "animate-pulse"
+          isListening && "animate-pulse",
         )}
         title={isListening ? "Stop listening" : "Start voice input"}
       >
@@ -138,7 +144,7 @@ export function VoiceInput({
         ) : (
           <Mic className="w-4 h-4" />
         )}
-        
+
         <AnimatePresence>
           {isListening && (
             <motion.div

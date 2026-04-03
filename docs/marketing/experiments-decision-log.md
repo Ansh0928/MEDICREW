@@ -2,10 +2,10 @@
 
 Use this file to keep two experiments per week with explicit stop rules and decisions.
 
-| Date | Experiment | Hypothesis | Primary Metric | Sample Threshold | Result | Decision |
-| --- | --- | --- | --- | --- | --- | --- |
-| 2026-03-27 | Hero copy: speed vs follow-up value | Follow-up-oriented promise improves consultation completion quality | `consultation_completed / consultation_started` | 300 sessions | Pending | Pending |
-| 2026-03-27 | CTA label: Start consultation vs Start free consultation | More explicit label improves CTA click-through without hurting auth success | `landing_cta_click / landing_page_sessions` | 300 sessions | Pending | Pending |
+| Date       | Experiment                                               | Hypothesis                                                                  | Primary Metric                                  | Sample Threshold | Result  | Decision |
+| ---------- | -------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------- | ---------------- | ------- | -------- |
+| 2026-03-27 | Hero copy: speed vs follow-up value                      | Follow-up-oriented promise improves consultation completion quality         | `consultation_completed / consultation_started` | 300 sessions     | Pending | Pending  |
+| 2026-03-27 | CTA label: Start consultation vs Start free consultation | More explicit label improves CTA click-through without hurting auth success | `landing_cta_click / landing_page_sessions`     | 300 sessions     | Pending | Pending  |
 
 ## Pre-registration Checklist
 

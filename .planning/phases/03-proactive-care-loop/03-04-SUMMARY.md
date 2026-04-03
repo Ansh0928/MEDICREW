@@ -114,5 +114,6 @@ None - no external service configuration required.
 - FOUND: commit ad5abad (feat(03-wave2): notification inbox UI, Resend email, doctor monitoring queue)
 
 ---
-*Phase: 03-proactive-care-loop*
-*Completed: 2026-03-26*
+
+_Phase: 03-proactive-care-loop_
+_Completed: 2026-03-26_

@@ -5,7 +5,13 @@ import { getAuthenticatedPatient } from "@/lib/auth";
 import { detectEmergency } from "@/lib/emergency-rules";
 import { createFastModel } from "@/lib/ai/config";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { IntakeAnswer, IntakeQuestion, INTAKE_QUESTION_IDS } from "@/lib/intake-types";
+import {
+  IntakeAnswer,
+  IntakeQuestion,
+  INTAKE_QUESTION_IDS,
+} from "@/lib/intake-types";
+
+export const dynamic = "force-dynamic";
 
 const MAX_ANSWERS = 10;
 
@@ -53,7 +59,8 @@ const STATIC_QUESTIONS: IntakeQuestion[] = [
   },
 ];
 
-const CONFIRM_QUESTION: IntakeQuestion = STATIC_QUESTIONS[STATIC_QUESTIONS.length - 1];
+const CONFIRM_QUESTION: IntakeQuestion =
+  STATIC_QUESTIONS[STATIC_QUESTIONS.length - 1];
 
 // ── Input schema ──────────────────────────────────────────────────────────────
 const IntakeAnswerSchema = z.object({
@@ -116,7 +123,12 @@ Return ONLY valid JSON in this exact format:
   const parsed = JSON.parse(jsonMatch[0]) as IntakeQuestion;
 
   // Validate required fields
-  if (!parsed.questionId || !parsed.question || !parsed.type || typeof parsed.done !== "boolean") {
+  if (
+    !parsed.questionId ||
+    !parsed.question ||
+    !parsed.type ||
+    typeof parsed.done !== "boolean"
+  ) {
     throw new Error("LLM response missing required fields");
   }
 
@@ -131,11 +143,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Onboarding required" }, { status: 403 });
   }
 
-  const bodyResult = IntakeRequestSchema.safeParse(await request.json().catch(() => null));
+  const bodyResult = IntakeRequestSchema.safeParse(
+    await request.json().catch(() => null),
+  );
   if (!bodyResult.success) {
     return NextResponse.json(
       { error: bodyResult.error.issues[0]?.message ?? "Invalid request" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

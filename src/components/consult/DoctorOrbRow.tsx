@@ -21,8 +21,8 @@ export function DoctorOrbRow({ orbs }: { orbs: OrbState[] }) {
               status === "done"
                 ? `${agent?.name ?? role} - complete`
                 : status === "active"
-                ? `${agent?.name ?? role} - thinking`
-                : `${agent?.name ?? role} - waiting`
+                  ? `${agent?.name ?? role} - thinking`
+                  : `${agent?.name ?? role} - waiting`
             }
             initial={{ scale: 0.8, opacity: 0.4 }}
             animate={{
@@ -40,26 +40,26 @@ export function DoctorOrbRow({ orbs }: { orbs: OrbState[] }) {
                 status === "active"
                   ? "border-blue-400 bg-blue-950 shadow-[0_0_12px_#60a5fa80]"
                   : status === "done"
-                  ? "border-green-500 bg-green-950"
-                  : "border-gray-600 bg-gray-800"
+                    ? "border-green-500 bg-green-950"
+                    : "border-gray-600 bg-gray-800"
               }`}
             >
-              {status === "done" ? "✓" : agent?.emoji ?? "👤"}
+              {status === "done" ? "✓" : (agent?.emoji ?? "👤")}
             </div>
             <span
               className={`text-[10px] ${
                 status === "active"
                   ? "text-blue-400"
                   : status === "done"
-                  ? "text-green-400"
-                  : "text-gray-500"
+                    ? "text-green-400"
+                    : "text-gray-500"
               }`}
             >
               {status === "active"
                 ? "thinking"
                 : status === "done"
-                ? "done"
-                : agent?.name.split(" ")[0]}
+                  ? "done"
+                  : agent?.name.split(" ")[0]}
             </span>
           </motion.div>
         );

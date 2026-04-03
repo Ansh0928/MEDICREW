@@ -36,7 +36,11 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export function SessionsColumn({ activePatientId }: { activePatientId?: string }) {
+export function SessionsColumn({
+  activePatientId,
+}: {
+  activePatientId?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("patient") ?? activePatientId;
@@ -53,7 +57,7 @@ export function SessionsColumn({ activePatientId }: { activePatientId?: string }
     const url = `/api/doctor/patients?skip=${currentSkip}&take=${PAGE_SIZE}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json() as PatientRecord[];
+    const data = (await res.json()) as PatientRecord[];
     if (append) {
       setPatients((prev) => [...prev, ...data]);
     } else {
@@ -69,13 +73,16 @@ export function SessionsColumn({ activePatientId }: { activePatientId?: string }
       try {
         await fetchPage(0, false);
       } catch (err) {
-        if (!cancelled) console.error("SessionsColumn: failed to fetch patients", err);
+        if (!cancelled)
+          console.error("SessionsColumn: failed to fetch patients", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
     void init();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadMore() {
@@ -128,47 +135,56 @@ export function SessionsColumn({ activePatientId }: { activePatientId?: string }
 
         {!loading && patients.length === 0 && (
           <div className="flex items-center justify-center py-8 px-3">
-            <span className="text-[11px] text-gray-400 text-center">No patient sessions found.</span>
+            <span className="text-[11px] text-gray-400 text-center">
+              No patient sessions found.
+            </span>
           </div>
         )}
 
-        {!loading && patients.map((p) => {
-          const isActive = selectedId === p.id;
-          const urgency = p.latestConsultation?.urgencyLevel ?? "routine";
-          const time = p.latestConsultation
-            ? relativeTime(p.latestConsultation.createdAt)
-            : "No consult";
-          const symptomSnippet = p.latestConsultation?.symptoms.slice(0, 40);
+        {!loading &&
+          patients.map((p) => {
+            const isActive = selectedId === p.id;
+            const urgency = p.latestConsultation?.urgencyLevel ?? "routine";
+            const time = p.latestConsultation
+              ? relativeTime(p.latestConsultation.createdAt)
+              : "No consult";
+            const symptomSnippet = p.latestConsultation?.symptoms.slice(0, 40);
 
-          return (
-            <button
-              key={p.id}
-              onClick={() => selectPatient(p.id)}
-              className={`w-full text-left flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 border-b border-gray-50 transition-colors ${isActive ? "bg-blue-50" : ""}`}
-            >
-              <div className="relative flex-shrink-0">
-                <img
-                  src={`https://api.dicebear.com/8.x/notionists-neutral/svg?seed=${p.name.split(" ")[0]}&size=32`}
-                  alt={p.name}
-                  className="w-8 h-8 rounded-full bg-gray-100"
-                />
-                {isActive && (
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-1 ring-white" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-800 truncate">{p.name}</p>
-                {symptomSnippet && (
-                  <p className="text-[10px] text-gray-400 truncate">{symptomSnippet}…</p>
-                )}
-                <p className="text-[10px] text-gray-400">{time}</p>
-              </div>
-              <span className={`text-[9px] px-1 py-0.5 rounded font-medium shrink-0 ${urgencyColor[urgency] ?? urgencyColor.routine}`}>
-                {urgency}
-              </span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={p.id}
+                onClick={() => selectPatient(p.id)}
+                className={`w-full text-left flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 border-b border-gray-50 transition-colors ${isActive ? "bg-blue-50" : ""}`}
+              >
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={`https://api.dicebear.com/8.x/notionists-neutral/svg?seed=${p.name.split(" ")[0]}&size=32`}
+                    alt={p.name}
+                    className="w-8 h-8 rounded-full bg-gray-100"
+                  />
+                  {isActive && (
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-1 ring-white" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-800 truncate">
+                    {p.name}
+                  </p>
+                  {symptomSnippet && (
+                    <p className="text-[10px] text-gray-400 truncate">
+                      {symptomSnippet}…
+                    </p>
+                  )}
+                  <p className="text-[10px] text-gray-400">{time}</p>
+                </div>
+                <span
+                  className={`text-[9px] px-1 py-0.5 rounded font-medium shrink-0 ${urgencyColor[urgency] ?? urgencyColor.routine}`}
+                >
+                  {urgency}
+                </span>
+              </button>
+            );
+          })}
 
         {!loading && hasMore && (
           <button

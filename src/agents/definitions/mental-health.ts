@@ -5,8 +5,16 @@ export const mentalHealthAgent: AgentDefinition = {
   role: "mental_health",
   name: "Maya AI \u2014 Mental Health",
   emoji: "🧠",
-  description: "Mental health specialist providing support for psychological wellbeing",
-  specialties: ["anxiety", "depression", "stress", "sleep issues", "emotional wellbeing", "crisis support"],
+  description:
+    "Mental health specialist providing support for psychological wellbeing",
+  specialties: [
+    "anxiety",
+    "depression",
+    "stress",
+    "sleep issues",
+    "emotional wellbeing",
+    "crisis support",
+  ],
   systemPrompt: `You are Maya AI, a Mental Health Specialist AI assistant focused on psychological wellbeing and support.
 
 ## Your Approach:

@@ -46,33 +46,38 @@ async function ensureReady() {
 
 export async function persistAnalyticsEvent(
   event: AnalyticsEventName,
-  properties: Record<string, unknown>
+  properties: Record<string, unknown>,
 ) {
   await ensureReady();
 
-  const variant = typeof properties.variant === "string" ? properties.variant : null;
+  const variant =
+    typeof properties.variant === "string" ? properties.variant : null;
   await prisma.$executeRawUnsafe(
     `INSERT INTO "AnalyticsEvent" (event, properties, variant) VALUES ($1, $2::jsonb, $3)`,
     event,
     JSON.stringify(properties ?? {}),
-    variant
+    variant,
   );
 }
 
-export async function fetchAnalyticsEventsSince(since: Date): Promise<AnalyticsRow[]> {
+export async function fetchAnalyticsEventsSince(
+  since: Date,
+): Promise<AnalyticsRow[]> {
   await ensureReady();
 
-  const rows = await prisma.$queryRawUnsafe<Array<{
-    ts: Date;
-    event: string;
-    properties: unknown;
-    variant: string | null;
-  }>>(
+  const rows = await prisma.$queryRawUnsafe<
+    Array<{
+      ts: Date;
+      event: string;
+      properties: unknown;
+      variant: string | null;
+    }>
+  >(
     `SELECT ts, event, properties, variant
      FROM "AnalyticsEvent"
      WHERE ts >= $1
      ORDER BY ts DESC`,
-    since
+    since,
   );
 
   return rows.map((row) => ({
