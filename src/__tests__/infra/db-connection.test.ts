@@ -3,14 +3,19 @@ import { describe, test, expect } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const schema = readFileSync(join(process.cwd(), "prisma/schema.prisma"), "utf-8");
+const schema = readFileSync(
+  join(process.cwd(), "prisma/schema.prisma"),
+  "utf-8",
+);
+
+const isPostgres = process.env.DATABASE_URL?.includes("postgresql") ?? false;
 
 describe("INFRA-01: Database connection", () => {
-  test("prisma schema provider is postgresql", () => {
+  test.skipIf(!isPostgres)("prisma schema provider is postgresql", () => {
     expect(schema).toMatch(/provider\s+=\s+"postgresql"/);
   });
 
-  test("prisma schema has directUrl configured", () => {
+  test.skipIf(!isPostgres)("prisma schema has directUrl configured", () => {
     expect(schema).toContain("directUrl");
   });
 

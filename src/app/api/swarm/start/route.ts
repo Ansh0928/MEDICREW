@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 // src/app/api/swarm/start/route.ts
 import { NextRequest } from "next/server";
 import { streamSwarm } from "@/agents/swarm";
@@ -15,8 +16,11 @@ export async function POST(request: NextRequest) {
   const rateCheck = await checkRateLimit(ip);
   if (!rateCheck.allowed) {
     return new Response(
-      JSON.stringify({ error: "Too many requests", retryAfter: rateCheck.retryAfter }),
-      { status: 429, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: "Too many requests",
+        retryAfter: rateCheck.retryAfter,
+      }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -24,10 +28,15 @@ export async function POST(request: NextRequest) {
   const { symptoms, patientInfo } = body;
 
   if (!symptoms || typeof symptoms !== "string") {
-    return new Response(JSON.stringify({ error: "symptoms required" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "symptoms required" }), {
+      status: 400,
+    });
   }
   if (symptoms.length > 2000) {
-    return new Response(JSON.stringify({ error: "symptoms must be under 2000 characters" }), { status: 400 });
+    return new Response(
+      JSON.stringify({ error: "symptoms must be under 2000 characters" }),
+      { status: 400 },
+    );
   }
 
   // C1: Emergency detection MUST run before any LLM call (AHPRA compliance rule)
@@ -40,26 +49,40 @@ export async function POST(request: NextRequest) {
   }
 
   // Validate patientInfo using canonical consultation schema
-  const patientInfoResult = ConsultationPatientInfoSchema.safeParse(patientInfo);
+  const patientInfoResult =
+    ConsultationPatientInfoSchema.safeParse(patientInfo);
   if (!patientInfoResult.success) {
     const firstIssue = patientInfoResult.error.issues[0];
     const path = firstIssue?.path?.join(".");
     const prefix = path ? `${path}: ` : "";
-    return new Response(JSON.stringify({ error: `${prefix}${firstIssue?.message ?? "Invalid patientInfo"}` }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: `${prefix}${firstIssue?.message ?? "Invalid patientInfo"}`,
+      }),
+      { status: 400 },
+    );
   }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: SwarmEvent) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+        );
       };
       try {
-        for await (const event of streamSwarm(symptoms, patientInfoResult.data)) {
+        for await (const event of streamSwarm(
+          symptoms,
+          patientInfoResult.data,
+        )) {
           send(event);
         }
       } catch (err) {
-        send({ type: "error", message: "Consultation failed. Please try again." });
+        send({
+          type: "error",
+          message: "Consultation failed. Please try again.",
+        });
       } finally {
         controller.close();
       }

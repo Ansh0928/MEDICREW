@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getAllSymptomChecks,
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     console.error("Symptom checks fetch error:", error);
     return NextResponse.json(
       { error: "Failed to fetch symptom checks" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

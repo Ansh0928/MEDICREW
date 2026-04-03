@@ -20,7 +20,7 @@ vi.mock("@/agents/orchestrator", () => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     patient: { findUnique: vi.fn() },
-    consultation: { create: vi.fn() },
+    consultation: { create: vi.fn(), count: vi.fn().mockResolvedValue(0) },
   },
 }));
 
@@ -52,32 +52,51 @@ describe("POST /api/consult swarm gatekeeper lifecycle", () => {
       medications: ["salbutamol"],
       allergies: ["penicillin"],
     } as any);
-    vi.mocked(prisma.consultation.create).mockResolvedValue({ id: "c1" } as any);
+    vi.mocked(prisma.consultation.create).mockResolvedValue({
+      id: "c1",
+    } as any);
     vi.mocked(inngest.send).mockResolvedValue({} as any);
-    vi.mocked(streamSwarm).mockReturnValue((async function* () {
-      yield { type: "triage_complete", data: { urgency: "routine", relevantDoctors: ["gp"], redFlags: [] } };
-      yield { type: "gatekeeper_review", decision: "approved", rationale: "safe", changed: false, approvedUrgency: "routine" };
-      yield {
-        type: "synthesis_complete",
-        data: {
-          urgency: "routine",
-          primaryRecommendation: "Book GP review",
-          nextSteps: ["Hydrate"],
-          bookingNeeded: true,
-          disclaimer: "AI guidance",
-        },
-      };
-      yield { type: "done" };
-    })() as any);
+    vi.mocked(streamSwarm).mockReturnValue(
+      (async function* () {
+        yield {
+          type: "triage_complete",
+          data: { urgency: "routine", relevantDoctors: ["gp"], redFlags: [] },
+        };
+        yield {
+          type: "gatekeeper_review",
+          decision: "approved",
+          rationale: "safe",
+          changed: false,
+          approvedUrgency: "routine",
+        };
+        yield {
+          type: "synthesis_complete",
+          data: {
+            urgency: "routine",
+            primaryRecommendation: "Book GP review",
+            nextSteps: ["Hydrate"],
+            bookingNeeded: true,
+            disclaimer: "AI guidance",
+          },
+        };
+        yield { type: "done" };
+      })() as any,
+    );
   });
 
   it("streams gatekeeper review events and synthesis output", async () => {
     const { POST } = await import("@/app/api/consult/route");
-    const res = await POST(new Request("http://localhost/api/consult", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ symptoms: "persistent nausea", stream: true, swarm: true }),
-    }) as any);
+    const res = await POST(
+      new Request("http://localhost/api/consult", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          symptoms: "persistent nausea",
+          stream: true,
+          swarm: true,
+        }),
+      }) as any,
+    );
 
     expect(res.status).toBe(200);
     const body = await res.text();
@@ -89,11 +108,17 @@ describe("POST /api/consult swarm gatekeeper lifecycle", () => {
     const { POST } = await import("@/app/api/consult/route");
     const { streamSwarm } = await import("@/agents/swarm");
 
-    await POST(new Request("http://localhost/api/consult", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ symptoms: "persistent nausea", stream: true, swarm: true }),
-    }) as any);
+    await POST(
+      new Request("http://localhost/api/consult", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          symptoms: "persistent nausea",
+          stream: true,
+          swarm: true,
+        }),
+      }) as any,
+    );
 
     expect(streamSwarm).toHaveBeenCalledWith(
       "persistent nausea",
@@ -103,7 +128,7 @@ describe("POST /api/consult swarm gatekeeper lifecycle", () => {
         knownConditions: "asthma",
         medications: ["salbutamol"],
         allergies: ["penicillin"],
-      })
+      }),
     );
   });
 });

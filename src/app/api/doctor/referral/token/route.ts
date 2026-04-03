@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getDoctorAuth } from "@/lib/auth";
@@ -10,7 +11,10 @@ export async function POST(request: NextRequest) {
   if (error) return error;
 
   if (!doctor!.clinicId) {
-    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Doctor not assigned to a clinic" },
+      { status: 403 },
+    );
   }
 
   let consultationId: string;
@@ -18,24 +22,40 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     consultationId = body.consultationId;
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   if (!consultationId || typeof consultationId !== "string") {
-    return NextResponse.json({ error: "consultationId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "consultationId is required" },
+      { status: 400 },
+    );
   }
 
   const consultation = await prisma.consultation.findUnique({
     where: { id: consultationId },
-    select: { id: true, patientId: true, patient: { select: { clinicId: true } } },
+    select: {
+      id: true,
+      patientId: true,
+      patient: { select: { clinicId: true } },
+    },
   });
   if (!consultation) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   const patientClinicId = consultation.patient.clinicId;
   if (patientClinicId && patientClinicId !== doctor!.clinicId) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
   if (!patientClinicId) {
     await prisma.patient.update({
@@ -51,8 +71,13 @@ export async function POST(request: NextRequest) {
     data: { consultationId, expiresAt },
   });
 
-  const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const origin =
+    request.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
   const url = `${origin}/referral/${referralToken.token}`;
 
-  return NextResponse.json({ token: referralToken.token, url, expiresAt: expiresAt.toISOString() });
+  return NextResponse.json({
+    token: referralToken.token,
+    url,
+    expiresAt: expiresAt.toISOString(),
+  });
 }

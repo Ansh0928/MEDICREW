@@ -1,9 +1,13 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import {
   generateDoctorInsights,
   generateTreatmentPlan,
 } from "@/lib/ai/doctors-patients-ai";
-import { getSymptomCheckById, updateSymptomCheckStatus } from "@/lib/doctors-patients-store";
+import {
+  getSymptomCheckById,
+  updateSymptomCheckStatus,
+} from "@/lib/doctors-patients-store";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (!symptomCheckId) {
       return NextResponse.json(
         { error: "symptomCheckId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -21,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (!symptomCheck) {
       return NextResponse.json(
         { error: "Symptom check not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -33,7 +37,7 @@ export async function POST(request: NextRequest) {
       generateDoctorInsights(symptomCheck),
       generateTreatmentPlan(
         symptomCheck.aiAssessment.possibleConditions[0] ?? "Further evaluation",
-        symptomCheck.symptoms
+        symptomCheck.symptoms,
       ),
     ]);
 
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
     console.error("Case insights error:", error);
     return NextResponse.json(
       { error: "Failed to generate case insights" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

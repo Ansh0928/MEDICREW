@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getDoctorAuth } from "@/lib/auth";
 import { createModel } from "@/lib/ai/config";
@@ -25,7 +26,10 @@ export async function POST(request: NextRequest) {
   if (error) return error;
 
   if (!doctor!.clinicId) {
-    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Doctor not assigned to a clinic" },
+      { status: 403 },
+    );
   }
 
   let consultationId: string;
@@ -33,11 +37,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     consultationId = body.consultationId;
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   if (!consultationId || typeof consultationId !== "string") {
-    return NextResponse.json({ error: "consultationId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "consultationId is required" },
+      { status: 400 },
+    );
   }
 
   const consultation = await prisma.consultation.findUnique({
@@ -58,12 +68,18 @@ export async function POST(request: NextRequest) {
   });
 
   if (!consultation) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   const patientClinicId = consultation.patient.clinicId;
   if (patientClinicId && patientClinicId !== doctor!.clinicId) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
   if (!patientClinicId) {
     await prisma.patient.update({
@@ -80,8 +96,14 @@ export async function POST(request: NextRequest) {
     }
   })();
 
-  const recommendation = consultation.recommendation as Record<string, unknown> | null;
-  const differentials = recommendation?.differentials ?? recommendation?.ranked_differentials ?? null;
+  const recommendation = consultation.recommendation as Record<
+    string,
+    unknown
+  > | null;
+  const differentials =
+    recommendation?.differentials ??
+    recommendation?.ranked_differentials ??
+    null;
   const nextSteps = recommendation?.next_steps ?? recommendation?.plan ?? null;
   const synthesis = recommendation?.synthesis ?? null;
 
@@ -115,14 +137,21 @@ ${consultationContext}`;
       new HumanMessage(userPrompt),
     ]);
 
-    const rawContent = typeof response.content === "string"
-      ? response.content
-      : JSON.stringify(response.content);
+    const rawContent =
+      typeof response.content === "string"
+        ? response.content
+        : JSON.stringify(response.content);
 
     const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("SOAP generation: no JSON found in LLM response", rawContent);
-      return NextResponse.json({ error: "Failed to parse generated note" }, { status: 500 });
+      console.error(
+        "SOAP generation: no JSON found in LLM response",
+        rawContent,
+      );
+      return NextResponse.json(
+        { error: "Failed to parse generated note" },
+        { status: 500 },
+      );
     }
 
     const parsed = JSON.parse(jsonMatch[0]) as {
@@ -151,7 +180,7 @@ ${consultationContext}`;
     console.error("SOAP note generation error:", err);
     return NextResponse.json(
       { error: "Failed to generate clinical note" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

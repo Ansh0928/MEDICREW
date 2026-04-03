@@ -1,16 +1,20 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getDoctorAuth } from "@/lib/auth";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { doctor, error } = await getDoctorAuth();
   if (error) return error;
 
   if (!doctor!.clinicId) {
-    return NextResponse.json({ error: "Doctor not assigned to a clinic" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Doctor not assigned to a clinic" },
+      { status: 403 },
+    );
   }
 
   const { id } = await params;

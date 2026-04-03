@@ -15,9 +15,20 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     doctor: {
       findMany: vi.fn().mockResolvedValue([mockDoctor]),
-      create: vi.fn().mockResolvedValue({ id: "d2", name: "Dr Jones", email: "jones@test.com", specialty: "Cardiology" }),
-      upsert: vi.fn().mockResolvedValue({ id: "d2", name: "Dr Jones", email: "jones@test.com", specialty: "Cardiology" }),
+      create: vi.fn().mockResolvedValue({
+        id: "d2",
+        name: "Dr Jones",
+        email: "jones@test.com",
+        specialty: "Cardiology",
+      }),
+      upsert: vi.fn().mockResolvedValue({
+        id: "d2",
+        name: "Dr Jones",
+        email: "jones@test.com",
+        specialty: "Cardiology",
+      }),
       findUnique: vi.fn().mockResolvedValue(mockDoctor),
+      findFirst: vi.fn().mockResolvedValue(mockDoctor),
     },
     patient: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -44,11 +55,17 @@ describe("POST /api/doctors", () => {
 
   it("returns 410 deprecated", async () => {
     const { POST } = await import("@/app/api/doctors/route");
-    const res = await POST(new Request("http://localhost/api/doctors", {
-      method: "POST",
-      body: JSON.stringify({ name: "Dr Jones", email: "jones@test.com", specialty: "Cardiology" }),
-      headers: { "Content-Type": "application/json" },
-    }) as any);
+    const res = await POST(
+      new Request("http://localhost/api/doctors", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "Dr Jones",
+          email: "jones@test.com",
+          specialty: "Cardiology",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }) as any,
+    );
     expect(res.status).toBe(410);
   });
 });
@@ -95,7 +112,7 @@ describe("GET /api/doctor/monitoring", () => {
       sessionClaims: { publicMetadata: { role: "doctor" } },
     } as any);
     const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.doctor.findUnique).mockResolvedValueOnce({
+    vi.mocked(prisma.doctor.findFirst).mockResolvedValueOnce({
       ...mockDoctor,
       clinicId: null,
     });

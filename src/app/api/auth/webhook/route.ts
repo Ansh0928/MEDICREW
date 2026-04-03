@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { prisma } from "@/lib/prisma";
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     // Dev fallback: no secret configured — trust the request and parse JSON
     // directly. Logs a warning so it's obvious in production this should be set.
     console.warn(
-      "[webhook] CLERK_WEBHOOK_SECRET is not set — skipping signature verification (dev mode only)"
+      "[webhook] CLERK_WEBHOOK_SECRET is not set — skipping signature verification (dev mode only)",
     );
     try {
       event = JSON.parse(body) as ClerkUserCreatedEvent;
@@ -37,7 +38,10 @@ export async function POST(request: Request) {
     const svixSignature = request.headers.get("svix-signature");
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-      return NextResponse.json({ error: "Missing svix headers" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing svix headers" },
+        { status: 400 },
+      );
     }
 
     try {
@@ -48,7 +52,10 @@ export async function POST(request: Request) {
         "svix-signature": svixSignature,
       }) as ClerkUserCreatedEvent;
     } catch {
-      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 400 },
+      );
     }
   }
 
@@ -56,14 +63,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  const { id: clerkUserId, email_addresses, primary_email_address_id, first_name, last_name } = event.data;
+  const {
+    id: clerkUserId,
+    email_addresses,
+    primary_email_address_id,
+    first_name,
+    last_name,
+  } = event.data;
 
-  const primaryEmail = email_addresses.find((e) => e.id === primary_email_address_id);
+  const primaryEmail = email_addresses.find(
+    (e) => e.id === primary_email_address_id,
+  );
   if (!primaryEmail) {
-    return NextResponse.json({ error: "No primary email found" }, { status: 400 });
+    return NextResponse.json(
+      { error: "No primary email found" },
+      { status: 400 },
+    );
   }
 
-  const name = [first_name, last_name].filter(Boolean).join(" ") || primaryEmail.email_address;
+  const name =
+    [first_name, last_name].filter(Boolean).join(" ") ||
+    primaryEmail.email_address;
 
   await prisma.patient.create({
     data: {

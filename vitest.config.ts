@@ -9,6 +9,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["src/__tests__/setup.ts"],
     include: ["src/__tests__/**/*.test.ts", "src/__tests__/**/*.test.tsx"],
+    env: {
+      // Prevent auth dev bypass so Clerk mocks work correctly in tests
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_placeholder",
+    },
   },
   resolve: {
     alias: {

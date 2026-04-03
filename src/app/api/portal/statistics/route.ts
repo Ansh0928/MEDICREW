@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { getStatistics } from "@/lib/doctors-patients-store";
 
@@ -9,7 +10,7 @@ export async function GET() {
     console.error("Statistics fetch error:", error);
     return NextResponse.json(
       { error: "Failed to fetch statistics" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

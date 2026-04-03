@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -5,10 +6,13 @@ import { prisma } from "@/lib/prisma";
 // Public endpoint — no auth required. Gated by REFERRAL_SHARING_ENABLED env var.
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   if (!process.env.REFERRAL_SHARING_ENABLED) {
-    return NextResponse.json({ error: "Referral sharing is not enabled" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Referral sharing is not enabled" },
+      { status: 403 },
+    );
   }
 
   const { token } = await params;
@@ -18,11 +22,17 @@ export async function GET(
   });
 
   if (!referralToken) {
-    return NextResponse.json({ error: "Invalid or expired referral link" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Invalid or expired referral link" },
+      { status: 404 },
+    );
   }
 
   if (referralToken.expiresAt < new Date()) {
-    return NextResponse.json({ error: "This referral link has expired" }, { status: 410 });
+    return NextResponse.json(
+      { error: "This referral link has expired" },
+      { status: 410 },
+    );
   }
 
   const consultation = await prisma.consultation.findUnique({
@@ -50,7 +60,10 @@ export async function GET(
   });
 
   if (!consultation) {
-    return NextResponse.json({ error: "Consultation not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Consultation not found" },
+      { status: 404 },
+    );
   }
 
   let redFlags: string[] = [];

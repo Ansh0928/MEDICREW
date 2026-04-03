@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { streamDoctorConsultation } from "@/agents/doctorConsultation";
 import { getSymptomCheckById } from "@/lib/doctors-patients-store";
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     if (!symptomCheckId) {
       return NextResponse.json(
         { error: "symptomCheckId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (!symptomCheck) {
       return NextResponse.json(
         { error: "Symptom check not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -35,7 +36,10 @@ export async function POST(request: NextRequest) {
           controller.close();
         } catch (error) {
           console.error("Doctor consultation streaming error:", error);
-          const errorEvent = JSON.stringify({ error: true, message: "Doctor consultation failed. Please retry." });
+          const errorEvent = JSON.stringify({
+            error: true,
+            message: "Doctor consultation failed. Please retry.",
+          });
           controller.enqueue(encoder.encode(`data: ${errorEvent}\n\n`));
           controller.close();
         }
@@ -53,7 +57,7 @@ export async function POST(request: NextRequest) {
     console.error("Doctor consultation error:", error);
     return NextResponse.json(
       { error: "Failed to process doctor consultation" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

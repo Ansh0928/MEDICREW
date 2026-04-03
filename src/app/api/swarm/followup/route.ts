@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { createJsonModel, createFastModel } from "@/lib/ai/config";
@@ -9,24 +10,41 @@ import { detectEmergency } from "@/lib/emergency-rules";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { AGENT_COMPLIANCE_RULE } from "@/lib/compliance";
-import { buildPatientContext, resolveConsultationPatientInfo } from "@/lib/consultation-intake";
+import {
+  buildPatientContext,
+  resolveConsultationPatientInfo,
+} from "@/lib/consultation-intake";
 
 export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
-  const { patient: authPatient, needsOnboarding, error: authError } = await getAuthenticatedPatient();
+  const {
+    patient: authPatient,
+    needsOnboarding,
+    error: authError,
+  } = await getAuthenticatedPatient();
   if (authError) return authError;
-  if (needsOnboarding) return Response.json({ error: "Onboarding required", redirect: "/onboarding" }, { status: 403 });
+  if (needsOnboarding)
+    return Response.json(
+      { error: "Onboarding required", redirect: "/onboarding" },
+      { status: 403 },
+    );
   const patientId = authPatient!.id;
   const hasConsent = await checkConsent(patientId);
   if (!hasConsent) {
-    return Response.json({ error: "Consent required", redirectTo: "/consent" }, { status: 403 });
+    return Response.json(
+      { error: "Consent required", redirectTo: "/consent" },
+      { status: 403 },
+    );
   }
 
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
   const rateCheck = await checkRateLimit(ip);
   if (!rateCheck.allowed) {
-    return Response.json({ error: "Too many requests", retryAfter: rateCheck.retryAfter }, { status: 429 });
+    return Response.json(
+      { error: "Too many requests", retryAfter: rateCheck.retryAfter },
+      { status: 429 },
+    );
   }
 
   const body = await request.json().catch(() => ({}));
@@ -39,26 +57,42 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "question required" }, { status: 400 });
   }
   if (question.length > 500) {
-    return Response.json({ error: "question must be under 500 characters" }, { status: 400 });
+    return Response.json(
+      { error: "question must be under 500 characters" },
+      { status: 400 },
+    );
   }
 
-  const emergency = detectEmergency(`${question}\n${typeof synthesisContext === "string" ? synthesisContext : ""}`);
+  const emergency = detectEmergency(
+    `${question}\n${typeof synthesisContext === "string" ? synthesisContext : ""}`,
+  );
   if (emergency.isEmergency) {
     return Response.json(emergency.response, { status: 200 });
   }
 
   const patientProfile = await prisma.patient.findUnique({
     where: { id: patientId },
-    select: { age: true, gender: true, knownConditions: true, medications: true, allergies: true },
+    select: {
+      age: true,
+      gender: true,
+      knownConditions: true,
+      medications: true,
+      allergies: true,
+    },
   });
-  const resolvedPatientInfo = resolveConsultationPatientInfo(patientProfile, undefined);
+  const resolvedPatientInfo = resolveConsultationPatientInfo(
+    patientProfile,
+    undefined,
+  );
   const patientContext = buildPatientContext(resolvedPatientInfo);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: SwarmEvent) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+        );
       };
 
       try {
@@ -71,22 +105,32 @@ Complex: involves new symptoms, contradicts recommendation, or needs clinical re
 
 Respond ONLY with valid JSON: { "type": "simple" | "complex", "relevantResidentRoles": ["conservative" | "pharmacological" | "investigative" | "red-flag"] }
 relevantResidentRoles is only populated for complex questions.`),
-          new HumanMessage(`Follow-up question: "${question}"\nContext: ${synthesisContext ?? "General consultation"}`),
+          new HumanMessage(
+            `Follow-up question: "${question}"\nContext: ${synthesisContext ?? "General consultation"}`,
+          ),
         ]);
 
         let questionType: "simple" | "complex" = "simple";
         let relevantResidentRoles: ResidentRole[] = [];
 
         try {
-          const parsed = JSON.parse((classifyResponse.content as string).replace(/```json\n?|\n?```/g, ""));
+          const parsed = JSON.parse(
+            (classifyResponse.content as string).replace(
+              /```json\n?|\n?```/g,
+              "",
+            ),
+          );
           questionType = parsed.type ?? "simple";
           // Validate roles against known RESIDENT_ROLES
           const rawRoles: string[] = parsed.relevantResidentRoles ?? [];
           relevantResidentRoles = rawRoles.filter((r): r is ResidentRole =>
-            RESIDENT_ROLES.includes(r as ResidentRole)
+            RESIDENT_ROLES.includes(r as ResidentRole),
           );
           // Default to all roles if complex but none specified
-          if (questionType === "complex" && relevantResidentRoles.length === 0) {
+          if (
+            questionType === "complex" &&
+            relevantResidentRoles.length === 0
+          ) {
             relevantResidentRoles = [...RESIDENT_ROLES];
           }
         } catch (e) {
@@ -96,14 +140,21 @@ relevantResidentRoles is only populated for complex questions.`),
         send({
           type: "followup_routed",
           questionType,
-          activatedRoles: questionType === "simple" ? ["lead"] : relevantResidentRoles,
+          activatedRoles:
+            questionType === "simple" ? ["lead"] : relevantResidentRoles,
         });
 
         if (questionType === "complex" && relevantResidentRoles.length > 0) {
           // Complex follow-up re-enters the full swarm cycle.
           const followUpSymptoms = `${patientContext}\n\nPrevious recommendation context:\n${synthesisContext ?? "Not provided"}\n\nFollow-up question:\n${question}`;
-          let finalSynthesis: { primaryRecommendation: string; nextSteps: string[] } | null = null;
-          for await (const event of streamSwarm(followUpSymptoms, resolvedPatientInfo)) {
+          let finalSynthesis: {
+            primaryRecommendation: string;
+            nextSteps: string[];
+          } | null = null;
+          for await (const event of streamSwarm(
+            followUpSymptoms,
+            resolvedPatientInfo,
+          )) {
             if (event.type === "synthesis_complete") {
               finalSynthesis = {
                 primaryRecommendation: event.data.primaryRecommendation,
@@ -114,9 +165,10 @@ relevantResidentRoles is only populated for complex questions.`),
             send(event);
           }
           if (finalSynthesis) {
-            const nextStepsText = finalSynthesis.nextSteps.length > 0
-              ? ` Next steps: ${finalSynthesis.nextSteps.join("; ")}`
-              : "";
+            const nextStepsText =
+              finalSynthesis.nextSteps.length > 0
+                ? ` Next steps: ${finalSynthesis.nextSteps.join("; ")}`
+                : "";
             send({
               type: "followup_answer",
               answer: `${finalSynthesis.primaryRecommendation}${nextStepsText} Please consult a healthcare provider for personalised advice.`,
