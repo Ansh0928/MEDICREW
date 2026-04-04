@@ -78,14 +78,7 @@ export function Features() {
               className={`group relative rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${f.size}`}
               style={{ background: "#FAFAFA", borderColor: "#E5E7EB" }}
             >
-              <div
-                className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-5 transition-transform duration-300 group-hover:scale-110"
-                style={{
-                  background: `${f.color}15`,
-                  border: `1px solid ${f.color}25`,
-                  color: f.color,
-                }}
-              >
+              <div className="mb-5" style={{ color: f.color }}>
                 {f.icon}
               </div>
               <h3
