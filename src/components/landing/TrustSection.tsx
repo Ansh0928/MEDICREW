@@ -35,7 +35,7 @@ export function TrustSection() {
     <section
       id="safety"
       className="py-28 px-6"
-      style={{ background: "linear-gradient(to bottom, transparent, #AE9ED4)" }}
+      style={{ background: "linear-gradient(to bottom, #F8FBFF, #E7F3FF)" }}
     >
       <LandingSectionViewTracker sectionId="safety" surface="trust_safety" />
       <div className="max-w-6xl mx-auto">
