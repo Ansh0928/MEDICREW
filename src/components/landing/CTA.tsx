@@ -42,9 +42,10 @@ export function CTA({ variant = "specialist" }: { variant?: LandingVariant }) {
             color: "#637288",
           }}
         >
-          <span className="text-lg" style={{ color: "#F7C543" }}>
-            ✦
-          </span>
+          <span
+            className="w-1.5 h-1.5 rounded-full inline-block"
+            style={{ background: "#F7C543" }}
+          />
           <span className="font-[family-name:var(--font-mono)] text-[11px] tracking-wider">
             Free start · Secure account · Follow-up reminders
           </span>
