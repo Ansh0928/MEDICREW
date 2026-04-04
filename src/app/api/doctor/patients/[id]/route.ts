@@ -51,17 +51,9 @@ export async function GET(
     return NextResponse.json({ error: "Patient not found" }, { status: 404 });
   }
 
-  // Reject if patient belongs to a different clinic
-  if (patient.clinicId && patient.clinicId !== doctor!.clinicId) {
+  // Reject if patient is unassigned or belongs to a different clinic
+  if (!patient.clinicId || patient.clinicId !== doctor!.clinicId) {
     return NextResponse.json({ error: "Patient not found" }, { status: 404 });
-  }
-
-  // Auto-assign unassigned patient to this doctor's clinic on first view
-  if (!patient.clinicId) {
-    await prisma.patient.update({
-      where: { id },
-      data: { clinicId: doctor!.clinicId },
-    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

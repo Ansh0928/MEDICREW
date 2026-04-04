@@ -79,6 +79,6 @@
     "vitest": "^4.1.1"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "bun prisma/seed.ts"
   }
 }

@@ -50,18 +50,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const patientClinicId = consultation.patient.clinicId;
-  if (patientClinicId && patientClinicId !== doctor!.clinicId) {
+  // Reject if patient is unassigned or belongs to a different clinic
+  if (
+    !consultation.patient.clinicId ||
+    consultation.patient.clinicId !== doctor!.clinicId
+  ) {
     return NextResponse.json(
       { error: "Consultation not found" },
       { status: 404 },
     );
-  }
-  if (!patientClinicId) {
-    await prisma.patient.update({
-      where: { id: consultation.patientId },
-      data: { clinicId: doctor!.clinicId },
-    });
   }
 
   // 30-day expiry

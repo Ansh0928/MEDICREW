@@ -11,7 +11,9 @@ const DEMO_DOCTOR = {
   specialty: "General Practice",
   clerkUserId: "demo-user-id",
   createdAt: new Date(),
-  clinicId: null,
+  // WARNING: dev bypass only — must match Clinic id in prisma/seed.ts.
+  // Ensure NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is set in production to prevent this bypass activating.
+  clinicId: "clinic-demo",
 } as unknown as Doctor;
 
 const DEMO_PATIENT = {

@@ -43,20 +43,12 @@ export async function GET(
 
   const patientClinicId = consultation.patient.clinicId;
 
-  // Reject if patient belongs to a different clinic
-  if (patientClinicId && patientClinicId !== doctor!.clinicId) {
+  // Reject if patient is unassigned or belongs to a different clinic
+  if (!patientClinicId || patientClinicId !== doctor!.clinicId) {
     return NextResponse.json(
       { error: "Consultation not found" },
       { status: 404 },
     );
-  }
-
-  // Auto-assign unassigned patient to this doctor's clinic on first consultation view
-  if (!patientClinicId) {
-    await prisma.patient.update({
-      where: { id: consultation.patientId },
-      data: { clinicId: doctor!.clinicId },
-    });
   }
 
   // Parse redFlags from stored JSON string to array
