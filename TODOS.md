@@ -7,7 +7,8 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 
 ## P1 — Critical / Pre-Launch
 
-- [ ] **Doctor access scoping by clinic/org** — Any doctor currently sees all patients. Need a Clinic/Org model and a DoctorPatient association so doctors only see their own patients. Required before any real clinic pilot. _(CEO review: org model chosen)_
+- ✅ **Doctor access scoping by clinic/org** — Clinic model + FK on Doctor/Patient. Auto-assign removed from all 4 doctor routes. Seed tooling + 15 regression tests. _(Shipped 2026-04-04)_
+- [ ] **Audit existing Patient.clinicId assignments** — Before any clinic pilot, audit production DB: `SELECT id, email, "clinicId" FROM "Patient" WHERE "clinicId" IS NOT NULL` in Supabase. Verify each assignment was intentional (not from the auto-assign hack). Reset incorrect rows to null. Privacy Act data integrity risk. _(Eng review 2026-04-04: added after auto-assign removal)_
 - [ ] **TGA SaMD assessment** — External process required before public launch. MediCrew may qualify as a Software as a Medical Device (SaMD) under TGA regulation. Engage a regulatory consultant. Not a code task.
 - [ ] **AHPRA-safe agent naming audit** — Verify all 7 lead agents and 4 residents follow "Alex AI — GP" format (em dash, contains "AI") in every prompt and UI surface. _(Compliance)_
 
@@ -36,4 +37,4 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 
 ---
 
-_Last updated: Session F (2026-03-28) — generated from Phase 3–6 improvement plan and CEO review_
+_Last updated: 2026-04-04 — clinic access scoping shipped; data audit TODO added_
