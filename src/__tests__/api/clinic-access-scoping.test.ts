@@ -27,7 +27,7 @@ const mockPatientSameClinic = {
   onboardingComplete: true,
   clinicId: CLINIC_A,
   consultations: [],
-};
+} as any;
 
 const mockConsultationSameClinic = {
   id: "consult-1",
@@ -38,7 +38,7 @@ const mockConsultationSameClinic = {
   recommendation: null,
   createdAt: new Date(),
   patient: { clinicId: CLINIC_A },
-};
+} as any;
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {

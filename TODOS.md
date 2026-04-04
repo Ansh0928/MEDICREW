@@ -16,7 +16,7 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 
 ## P2 — High Value / Next Sprint
 
-- [ ] **A/B test analytics dashboard** — A Supabase SQL query showing Version A vs. Version B helpful rate in real-time: `SELECT variant, COUNT(*) total, SUM(CASE WHEN helpful THEN 1 ELSE 0 END) helpful_count, ROUND(100.0 * SUM(CASE WHEN helpful THEN 1 ELSE 0 END) / COUNT(*), 1) helpful_pct FROM ab_feedback GROUP BY variant;`. Create as a saved query in Supabase dashboard. Required to monitor the A/B test toward n≥150/variant. _(Trust Validation Sprint — CEO review 2026-04-04)_
+- [ ] **A/B test analytics dashboard** — Query showing Version A vs. Version B helpful rate in real-time: `SELECT variant, COUNT(*) total, SUM(CASE WHEN helpful THEN 1 ELSE 0 END) helpful_count, ROUND(100.0 * SUM(CASE WHEN helpful THEN 1 ELSE 0 END) / COUNT(*), 1) helpful_pct FROM "AbFeedback" GROUP BY variant;`. Run directly against Neon DB via Prisma Studio or psql. Required to monitor the A/B test toward n≥150/variant. _(Trust Validation Sprint — CEO review 2026-04-04; updated for Neon/Prisma 2026-04-04)_
 - [ ] **Outcome follow-up for /try no-auth users** — After a /try consultation, ask "How did that turn out?" 48h later. Creates the only supervised health AI dataset in AU (MediCrew prediction vs GP reality). Requires: ephemeral session token or email collection, Privacy Act consent flow, new Inngest trigger (existing CheckIn is tied to Patient FK — needs redesign for no-auth context). Defer until after A/B test validates demand. _(Trust Validation Sprint deferred — CEO review 2026-04-04)_
 - [ ] **LLM fallback chain** — If Groq is unavailable or returns an error, fall back to Ollama (local) then graceful degradation message. `createModel()` in `src/lib/ai/config.ts` is the injection point. Note: Ollama fallback does NOT work on Vercel serverless — ensure graceful user-facing error is the real fallback path in production. _(Reliability)_
 - [ ] **Consultation PDF download** — Add a "Download PDF" button to the patient consultation summary page. Use `@react-pdf/renderer` or `jsPDF`. SynthesisCard already has the content. _(Patient portal UX)_
@@ -34,8 +34,11 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 - [ ] **Notification bell badge count** — The bell icon shows no unread count. Query `Notification.read = false` count on load. _(Patient portal UX)_
 - [ ] **Check-in response UI** — `CheckIn` model has `response: "better" | "same" | "worse"` but there's no patient-facing UI to respond. Wire the 48h Inngest notification to a response button. _(Patient engagement)_
 
+- [ ] **/try sunset decision** — After A/B test concludes (n≥150/variant), decide what /try becomes: public marketing demo, gated behind auth, or removed. Currently a permanent public unauthenticated endpoint with no auth and 5 req/IP/hour rate limit. Needs a decision before it becomes a support or liability burden. _(Eng review 2026-04-04)_
+
 ## P4 — Future / Post-MVP
 
+- [ ] **RLS policy cleanup in initial Prisma migration** — `prisma/migrations/0001_supabase_init/migration.sql` contains `CREATE POLICY` statements using Supabase's `auth.uid()` function, which doesn't exist on Neon. Dead code since Supabase migration. Requires a new migration to drop the policies and update the init file comment. Not blocking — harmless on Neon. _(Eng review 2026-04-04)_
 - [ ] **FHIR/HL7 export** — Export consultation as FHIR R4 Bundle for practice software integration. _(Requires clinic partner to validate format)_
 - [ ] **Practice software integration** — Best Health, Medical Director, Genie webhook or plugin. _(Requires partner agreements)_
 - [ ] **Multilingual support** — i18n framework (next-intl). Priority languages: Mandarin, Vietnamese, Arabic. _(Requires translation budget)_
@@ -43,4 +46,4 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 
 ---
 
-_Last updated: 2026-04-04 — Trust Validation Sprint CEO review: 2 P1 blockers added, outcome tracking + analytics dashboard added to P2, HotDoc API integration added to P3_
+_Last updated: 2026-04-04 — Eng review: Supabase removed (Neon/Prisma throughout), analytics dashboard updated for Neon, /try sunset (P3) and RLS cleanup (P4) added, eval now in-sprint_

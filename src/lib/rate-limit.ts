@@ -4,7 +4,13 @@ import { Redis } from "@upstash/redis";
 
 let _ratelimit: Ratelimit | null = null;
 
-function getRatelimit(): Ratelimit {
+function getRatelimit(): Ratelimit | null {
+  if (
+    !process.env.UPSTASH_REDIS_REST_URL ||
+    !process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    return null;
+  }
   if (!_ratelimit) {
     _ratelimit = new Ratelimit({
       redis: Redis.fromEnv(),
@@ -18,7 +24,11 @@ function getRatelimit(): Ratelimit {
 export async function checkRateLimit(
   ip: string,
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
-  const { success, reset } = await getRatelimit().limit(ip);
+  const ratelimit = getRatelimit();
+  if (!ratelimit) {
+    return { allowed: true };
+  }
+  const { success, reset } = await ratelimit.limit(ip);
   if (!success) {
     return {
       allowed: false,
