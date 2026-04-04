@@ -14,7 +14,7 @@ bun run lint         # ESLint
 # Run a single test file
 bunx vitest run src/__tests__/path/to/file.test.ts
 
-# Embed medical corpus into Supabase pgvector (one-time, ~20 min)
+# Embed medical corpus into pgvector (one-time, ~20 min)
 DATABASE_URL=... NOMIC_API_KEY=... bun run scripts/embed-corpus.ts
 ```
 
@@ -55,11 +55,11 @@ Middleware protects `/patient/*`, `/doctor/*`, `/consult/*`, `/onboarding/*` via
 
 ### RAG Pipeline
 
-`src/lib/rag/retrieve.ts` — fetches relevant medical context from Supabase pgvector. Catches all errors and returns `{}` silently (RAG failure must never block a consultation). Triage must run first to get `relevantDoctors` for specialty-scoped queries. `buildResidentPrompt()` in `swarm.ts` is the injection point.
+`src/lib/rag/retrieve.ts` — fetches relevant medical context from pgvector. Catches all errors and returns `{}` silently (RAG failure must never block a consultation). Triage must run first to get `relevantDoctors` for specialty-scoped queries. `buildResidentPrompt()` in `swarm.ts` is the injection point.
 
 ### Database
 
-Postgres via Prisma + Supabase (`ap-southeast-2` — must not change, Privacy Act).
+Postgres via Prisma + Neon.
 
 - `DIRECT_URL` required (pooled URL breaks LangGraph `PostgresSaver` migrations).
 - Key models: `Patient`, `Consultation`, `CheckIn`, `CareTeamStatus`, `PatientConsent`, `SymptomJournal`.

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { CARE_TEAM } from "@/lib/care-team-config";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -32,42 +31,32 @@ function formatRelativeTime(isoString: string): string {
 }
 
 export function CareTeamCard({
-  patientId,
+  patientId: _patientId,
   initialStatuses,
 }: CareTeamCardProps) {
   const [statuses, setStatuses] =
     useState<Record<string, AgentStatus>>(initialStatuses);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowser();
-    if (!supabase) return; // Supabase not configured — skip realtime subscription
+    const fetchStatuses = async () => {
+      try {
+        const res = await fetch("/api/patient/care-team-status");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.statuses) {
+          setStatuses(data.statuses as Record<string, AgentStatus>);
+        }
+      } catch {
+        // Silently ignore fetch errors — stale data is acceptable
+      }
+    };
 
-    const channel = supabase
-      .channel(`care-status-${patientId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "CareTeamStatus",
-          filter: `patientId=eq.${patientId}`,
-        },
-        (payload) => {
-          if (
-            payload.new &&
-            typeof payload.new === "object" &&
-            "statuses" in payload.new
-          ) {
-            setStatuses(payload.new.statuses as Record<string, AgentStatus>);
-          }
-        },
-      )
-      .subscribe();
+    const intervalId = setInterval(fetchStatuses, 30_000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
-  }, [patientId]);
+  }, []);
 
   // Filter out triage from the care team display
   const displayTeam = CARE_TEAM.filter((member) => member.role !== "triage");
