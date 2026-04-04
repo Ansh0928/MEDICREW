@@ -8,19 +8,25 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 ## P1 — Critical / Pre-Launch
 
 - ✅ **Doctor access scoping by clinic/org** — Clinic model + FK on Doctor/Patient. Auto-assign removed from all 4 doctor routes. Seed tooling + 15 regression tests. _(Shipped 2026-04-04)_
-- [ ] **Audit existing Patient.clinicId assignments** — Before any clinic pilot, audit production DB: `SELECT id, email, "clinicId" FROM "Patient" WHERE "clinicId" IS NOT NULL` in Supabase. Verify each assignment was intentional (not from the auto-assign hack). Reset incorrect rows to null. Privacy Act data integrity risk. _(Eng review 2026-04-04: added after auto-assign removal)_
+- ✅ **Audit existing Patient.clinicId assignments** — Queried prod DB 2026-04-04: 0 patients with clinicId. Auto-assign hack never fired in production. Clean slate. _(Verified 2026-04-04)_
+- [ ] **LLM error handling in /api/test-consult** — Before /try goes live, add: try/catch around Groq call returning `{ error: "Service temporarily unavailable", status: 503 }`, 15s hard timeout, 1x retry on Groq 429, module-init validation of `GROQ_API_KEY`, fail-open behavior if Upstash rate limiter is unreachable. Currently all Groq failures return raw 500. _(Trust Validation Sprint P1 blocker — CEO review 2026-04-04)_
+- [ ] **AGENT_COMPLIANCE_RULE injection in /try prompts** — Both Version A and Version B system prompts must include `AGENT_COMPLIANCE_RULE` from `src/lib/compliance.ts`. Currently missing from all prompt specs. AHPRA non-compliance risk before any patient-facing URL. _(CEO review 2026-04-04)_
 - [ ] **TGA SaMD assessment** — External process required before public launch. MediCrew may qualify as a Software as a Medical Device (SaMD) under TGA regulation. Engage a regulatory consultant. Not a code task.
 - [ ] **AHPRA-safe agent naming audit** — Verify all 7 lead agents and 4 residents follow "Alex AI — GP" format (em dash, contains "AI") in every prompt and UI surface. _(Compliance)_
 
 ## P2 — High Value / Next Sprint
 
-- [ ] **LLM fallback chain** — If Groq is unavailable or returns an error, fall back to Ollama (local) then graceful degradation message. `createModel()` in `src/lib/ai/config.ts` is the injection point. _(Reliability)_
+- [ ] **A/B test analytics dashboard** — A Supabase SQL query showing Version A vs. Version B helpful rate in real-time: `SELECT variant, COUNT(*) total, SUM(CASE WHEN helpful THEN 1 ELSE 0 END) helpful_count, ROUND(100.0 * SUM(CASE WHEN helpful THEN 1 ELSE 0 END) / COUNT(*), 1) helpful_pct FROM ab_feedback GROUP BY variant;`. Create as a saved query in Supabase dashboard. Required to monitor the A/B test toward n≥150/variant. _(Trust Validation Sprint — CEO review 2026-04-04)_
+- [ ] **Outcome follow-up for /try no-auth users** — After a /try consultation, ask "How did that turn out?" 48h later. Creates the only supervised health AI dataset in AU (MediCrew prediction vs GP reality). Requires: ephemeral session token or email collection, Privacy Act consent flow, new Inngest trigger (existing CheckIn is tied to Patient FK — needs redesign for no-auth context). Defer until after A/B test validates demand. _(Trust Validation Sprint deferred — CEO review 2026-04-04)_
+- [ ] **LLM fallback chain** — If Groq is unavailable or returns an error, fall back to Ollama (local) then graceful degradation message. `createModel()` in `src/lib/ai/config.ts` is the injection point. Note: Ollama fallback does NOT work on Vercel serverless — ensure graceful user-facing error is the real fallback path in production. _(Reliability)_
 - [ ] **Consultation PDF download** — Add a "Download PDF" button to the patient consultation summary page. Use `@react-pdf/renderer` or `jsPDF`. SynthesisCard already has the content. _(Patient portal UX)_
 - [ ] **Demo consultation IDs in development** — HuddleRoom in doctor portal uses hardcoded symptoms. Need a dev-mode selector to pick from existing DB consultations to test the full flow. _(Developer experience)_
 - [ ] **Doctor list pagination (frontend)** — `/api/doctor/patients` now returns max 50. The patient list UI has no pagination controls. Add skip/take pagination or infinite scroll. _(Scale)_
 - [ ] **`/api/swarm/followup` sessionId** — Currently the client sends `"current"` as sessionId. Need to capture a real `session_id` SSE event from `/api/swarm/start` and pass it to follow-up. _(Correctness)_
 
 ## P3 — Polish / Non-Blocking
+
+- [ ] **Full HotDoc/Healthengine API integration** — Replace the /try GP handoff deep-link with a proper referral API that sends pre-triaged patient context to a booking system. Revenue model: referral fee per booking or clinic SaaS subscription. Requires HotDoc partnership agreement + API access (not public). _(Deferred until demand validated — CEO review 2026-04-04)_
 
 - [ ] **Voice input for symptoms** — Microphone icon in consultation intake. Use Web Speech API or Whisper via backend. Requires WebRTC permission flow. _(Requires user research before building)_
 - [ ] **How It Works interactive demo / Lottie animation** — Marketing page shows static steps. A Lottie or CSS animation would increase conversion. _(Marketing polish)_
@@ -37,4 +43,4 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 
 ---
 
-_Last updated: 2026-04-04 — clinic access scoping shipped; data audit TODO added_
+_Last updated: 2026-04-04 — Trust Validation Sprint CEO review: 2 P1 blockers added, outcome tracking + analytics dashboard added to P2, HotDoc API integration added to P3_
