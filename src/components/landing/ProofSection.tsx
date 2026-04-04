@@ -63,7 +63,7 @@ export function ProofSection() {
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <p
-                className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold"
+                className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold text-balance"
                 style={{ color: "#118CFD" }}
               >
                 {s.value}
@@ -92,7 +92,7 @@ export function ProofSection() {
               Proof in Practice
             </p>
             <h2
-              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight"
+              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight text-balance"
               style={{ color: "#12181B", letterSpacing: "-1px" }}
             >
               What users actually get{" "}

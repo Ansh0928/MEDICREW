@@ -65,7 +65,7 @@ export function MeetTheTeam() {
               Your AI Care Team
             </p>
             <h2
-              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-[1.08]"
+              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-[1.08] text-balance"
               style={{ color: "#12181B", letterSpacing: "-1.5px" }}
             >
               Eight specialists.

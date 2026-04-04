@@ -52,7 +52,7 @@ export function CTA({ variant = "specialist" }: { variant?: LandingVariant }) {
         </div>
 
         <h2
-          className="font-[family-name:var(--font-display)] text-4xl md:text-6xl leading-tight mb-6"
+          className="font-[family-name:var(--font-display)] text-4xl md:text-6xl leading-tight mb-6 text-balance"
           style={{ color: "#12181B", letterSpacing: "-2px" }}
         >
           {copy.title}{" "}

@@ -309,7 +309,7 @@ export function HowItWorks() {
             How It Works
           </p>
           <h2
-            className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight"
+            className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight text-balance"
             style={{ color: "#12181B", letterSpacing: "-1px" }}
           >
             From symptoms to clarity{" "}

@@ -45,7 +45,7 @@ export function Problem() {
               The Problem
             </p>
             <h2
-              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight mb-6"
+              className="font-[family-name:var(--font-display)] text-4xl md:text-5xl leading-tight mb-6 text-balance"
               style={{ color: "#12181B", letterSpacing: "-1px" }}
             >
               Healthcare access{" "}
@@ -78,7 +78,7 @@ export function Problem() {
                   {s.icon}
                 </div>
                 <div
-                  className="font-[family-name:var(--font-display)] text-3xl mb-1"
+                  className="font-[family-name:var(--font-display)] text-3xl mb-1 text-balance"
                   style={{ color: s.color }}
                 >
                   {s.stat}
