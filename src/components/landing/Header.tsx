@@ -20,26 +20,6 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pt-4 px-4 pointer-events-none">
-      {/* Aurora circles */}
-      <div className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none overflow-hidden h-32">
-        <div
-          className="absolute top-[-40px] left-[10%]  w-48 h-48 rounded-full blur-3xl opacity-70"
-          style={{ background: "#C8D7FF" }}
-        />
-        <div
-          className="absolute top-[-20px] left-[30%]  w-40 h-40 rounded-full blur-3xl opacity-60"
-          style={{ background: "#FFE1A4" }}
-        />
-        <div
-          className="absolute top-[-30px] right-[30%] w-36 h-36 rounded-full blur-3xl opacity-50"
-          style={{ background: "#FFE5E5" }}
-        />
-        <div
-          className="absolute top-[-10px] right-[10%] w-44 h-44 rounded-full blur-3xl opacity-60"
-          style={{ background: "#C3EFDA" }}
-        />
-      </div>
-
       {/* Pill navbar */}
       <nav
         className="pointer-events-auto relative flex items-center gap-6 px-5 py-2.5 rounded-full border border-white/60 shadow-lg shadow-black/5"
@@ -65,10 +45,8 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="font-[family-name:var(--font-mono)] text-xs transition-colors"
+              className="font-[family-name:var(--font-mono)] text-xs transition-colors hover:text-[#12181B]"
               style={{ color: "#637288" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#12181B")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#637288")}
             >
               {item.label}
             </Link>
@@ -107,11 +85,12 @@ export function Header() {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden ml-2"
+          className="md:hidden ml-2 p-2.5 -mr-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
           style={{ color: "#384248" }}
           onClick={() => setOpen(!open)}
+          aria-label={open ? "Close menu" : "Open menu"}
         >
-          {open ? <X size={16} /> : <Menu size={16} />}
+          {open ? <X size={18} /> : <Menu size={18} />}
         </button>
       </nav>
 
