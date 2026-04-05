@@ -73,7 +73,12 @@ export function PatientProfilePanel() {
         return r.json();
       })
       .then((data: PatientProfile) => {
-        setProfile(data);
+        // medications/allergies may be null after text[] → text schema migration
+        setProfile({
+          ...data,
+          medications: Array.isArray(data.medications) ? data.medications : [],
+          allergies: Array.isArray(data.allergies) ? data.allergies : [],
+        });
         setLoading(false);
       })
       .catch((err: Error) => {
