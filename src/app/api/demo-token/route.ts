@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Clerk user IDs for the shared demo accounts
+// Clerk user IDs for the shared demo accounts (emerging-velvet-99 instance)
 const DEMO_USER_IDS: Record<"patient" | "doctor", string> = {
-  patient: "user_3BWy2YDbESIkylb67hOPsXLiZFe",
-  doctor: "user_3BWy2aPdfCM4aKgb5OWxowbKH1c",
+  patient: "user_3Bv5gwsEmjP3seD7ZFiY5fuCeu1",
+  doctor: "user_3Bv5hxmupvYOBziCQUIPSNyc9bp",
 };
 
 function getDemoLoginStatus() {

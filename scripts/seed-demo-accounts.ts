@@ -3,22 +3,22 @@
  * Run with: bun scripts/seed-demo-accounts.ts
  *
  * Clerk user IDs:
- *   demo-patient@medicrew.dev  → user_3BWy2YDbESIkylb67hOPsXLiZFe
- *   demo-doctor@medicrew.dev   → user_3BWy2aPdfCM4aKgb5OWxowbKH1c
+ *   demo-patient@medicrew.dev  → user_3Bv5gwsEmjP3seD7ZFiY5fuCeu1
+ *   demo-doctor@medicrew.dev   → user_3Bv5hxmupvYOBziCQUIPSNyc9bp
  */
 
 import { prisma } from "../src/lib/prisma";
 
 const DEMO_USERS = [
   {
-    clerkUserId: "user_3BWy2YDbESIkylb67hOPsXLiZFe",
+    clerkUserId: "user_3Bv5gwsEmjP3seD7ZFiY5fuCeu1",
     name: "Demo Patient",
     email: "demo-patient@medicrew.dev",
     gender: "prefer_not_to_say",
     age: 30,
   },
   {
-    clerkUserId: "user_3BWy2aPdfCM4aKgb5OWxowbKH1c",
+    clerkUserId: "user_3Bv5hxmupvYOBziCQUIPSNyc9bp",
     name: "Demo Doctor",
     email: "demo-doctor@medicrew.dev",
     gender: "prefer_not_to_say",
