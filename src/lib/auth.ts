@@ -39,7 +39,7 @@ export async function getDoctorAuth(): Promise<{
     return { doctor: DEMO_DOCTOR as Doctor, error: null };
   }
 
-  const { userId, sessionClaims } = await auth();
+  const { userId } = await auth();
   if (!userId) {
     return {
       doctor: null,
@@ -49,18 +49,8 @@ export async function getDoctorAuth(): Promise<{
       ),
     };
   }
-  const role = (
-    sessionClaims?.publicMetadata as Record<string, string> | undefined
-  )?.role;
-  if (role !== "doctor") {
-    return {
-      doctor: null,
-      error: NextResponse.json(
-        { error: "Doctor access required" },
-        { status: 403 },
-      ),
-    };
-  }
+  // Use DB lookup for role check — Clerk default JWT does not include publicMetadata
+  // without a custom JWT template. A Doctor row in the DB is the authoritative gate.
   const doctor = await prisma.doctor.findFirst({
     where: { clerkUserId: userId },
   });
@@ -68,7 +58,7 @@ export async function getDoctorAuth(): Promise<{
     return {
       doctor: null,
       error: NextResponse.json(
-        { error: "Doctor profile not found" },
+        { error: "Doctor access required" },
         { status: 403 },
       ),
     };

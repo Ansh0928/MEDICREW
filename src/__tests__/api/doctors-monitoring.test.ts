@@ -81,12 +81,11 @@ describe("GET /api/doctor/monitoring", () => {
     expect(res.status).toBe(401);
   });
 
-  it("returns 403 when role is not doctor", async () => {
+  it("returns 403 when user has no Doctor record in DB", async () => {
     const { auth } = await import("@clerk/nextjs/server");
-    vi.mocked(auth).mockResolvedValue({
-      userId: "user-1",
-      sessionClaims: { publicMetadata: { role: "patient" } },
-    } as any);
+    vi.mocked(auth).mockResolvedValue({ userId: "non-doctor-user" } as any);
+    const { prisma } = await import("@/lib/prisma");
+    vi.mocked(prisma.doctor.findFirst).mockResolvedValueOnce(null);
     const { GET } = await import("@/app/api/doctor/monitoring/route");
     const res = await GET();
     expect(res.status).toBe(403);
