@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
+import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import {
   HeartPulse,
   BookOpen,
 } from "lucide-react";
+import { useState } from "react";
 import { CareTeamCard } from "@/components/dashboard/CareTeamCard";
 import { CarePlanDetail } from "@/components/dashboard/CarePlanDetail";
 import { ConsultationHistoryList } from "@/components/dashboard/ConsultationHistoryList";
@@ -27,24 +29,12 @@ import { SymptomJournalWidget } from "@/components/dashboard/SymptomJournalWidge
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/client";
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface AgentStatus {
   agentName: string;
   message: string;
   updatedAt: string;
-}
-
-interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  gender: string | null;
-  knownConditions: string | null;
-  consultations: Consultation[];
-  notifications: Notification[];
-  careTeamStatus?: { statuses: Record<string, AgentStatus> } | null;
-  subscriptionPlan?: string;
-  subscriptionStatus?: string;
-  stripeCustomerId?: string | null;
 }
 
 interface Consultation {
@@ -65,98 +55,178 @@ interface Notification {
   doctor?: { name: string };
 }
 
+interface DashboardData {
+  profile: {
+    id: string;
+    name: string;
+    gender: string | null;
+    knownConditions: string | null;
+    onboardingComplete: boolean;
+    subscriptionPlan: string;
+    subscriptionStatus: string;
+    stripeCustomerId: string | null;
+  };
+  consultations: Consultation[];
+  careTeamStatus: {
+    statuses: Record<string, AgentStatus>;
+    updatedAt: string | null;
+  };
+  notifications: Notification[];
+  checkIns: Array<{
+    id: string;
+    notificationId: string | null;
+    status: string;
+  }>;
+}
+
+// ── SWR fetcher ───────────────────────────────────────────────────────────────
+
+const fetcher = async (url: string): Promise<DashboardData> => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const error = new Error(
+      err.error ?? "Failed to load dashboard",
+    ) as Error & {
+      status: number;
+      redirect?: string;
+    };
+    error.status = res.status;
+    error.redirect = err.redirect;
+    throw error;
+  }
+  return res.json();
+};
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-8 w-36 bg-blue-100 dark:bg-blue-900/30 rounded animate-pulse" />
+          </div>
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="flex flex-wrap gap-2">
+            {[120, 100, 110, 90, 130].map((w, i) => (
+              <div
+                key={i}
+                className="h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                style={{ width: w }}
+              />
+            ))}
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-3"
+            >
+              <div className="h-5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function PatientPortal() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
-  const [patient, setPatient] = useState<Patient | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const hasTrackedVisit = useRef(false);
   const [activeTab, setActiveTab] = useState<
     "care-team" | "care-plan" | "history" | "journal" | "notifications"
   >("care-team");
-  const [checkIns, setCheckIns] = useState<
-    Array<{ id: string; notificationId: string | null; status: string }>
-  >([]);
 
+  // SWR: stale-while-revalidate — first load fetches, return visits are instant.
+  // Disabled until Clerk reports the user is loaded, to avoid a premature 401.
+  const {
+    data,
+    error: swrError,
+    isLoading,
+    mutate,
+  } = useSWR<DashboardData>(
+    // Key includes user.id so cached data is never shared across Clerk accounts
+    // in the same browser session (e.g. sign-out → sign-in as different patient).
+    isLoaded && user ? `/api/patient/dashboard?uid=${user.id}` : null,
+    fetcher,
+    { revalidateOnFocus: false },
+  );
+
+  // Handle auth + onboarding redirects from the API response.
   useEffect(() => {
-    // Local development bypass
-    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-      loadDashboard();
-      return;
-    }
-
     if (!isLoaded) return;
     if (!user) {
       router.push("/login/patient");
       return;
     }
-    loadDashboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user]);
+  }, [isLoaded, user, router]);
 
-  const loadDashboard = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [profileRes, consultationsRes, careTeamRes] = await Promise.all([
-        fetch("/api/patient/profile"),
-        fetch("/api/patient/consultations"),
-        fetch("/api/patient/care-team-status"),
-      ]);
+  useEffect(() => {
+    if (!swrError) return;
+    const err = swrError as Error & { status?: number; redirect?: string };
+    if (err.status === 401) {
+      router.push("/login/patient");
+    } else if (err.status === 404) {
+      router.push("/onboarding");
+    } else if (err.status === 403 && err.redirect) {
+      router.push(err.redirect);
+    }
+  }, [swrError, router]);
 
-      if (profileRes.status === 401) {
-        router.push("/login/patient");
-        return;
-      }
-      if (profileRes.status === 404) {
-        // Patient record not yet created (webhook pending)
-        router.push("/onboarding");
-        return;
-      }
-      if (!profileRes.ok) {
-        throw new Error("Failed to load profile");
-      }
+  useEffect(() => {
+    if (data && !data.profile.onboardingComplete) {
+      router.push("/onboarding?step=1");
+    }
+  }, [data, router]);
 
-      const profile = await profileRes.json();
-      if (!profile.onboardingComplete) {
-        router.push("/onboarding?step=1");
-        return;
-      }
-
-      const [notificationsRes, checkInsRes] = await Promise.all([
-        fetch("/api/notifications"),
-        fetch("/api/checkin"),
-      ]);
-
-      const consultationsData = consultationsRes.ok
-        ? await consultationsRes.json()
-        : { consultations: [] };
-      const careTeamData = careTeamRes.ok ? await careTeamRes.json() : null;
-      const notifications = notificationsRes.ok
-        ? await notificationsRes.json()
-        : [];
-      const checkInsData = checkInsRes.ok ? await checkInsRes.json() : [];
-
-      setPatient({
-        id: profile.id,
-        name: profile.name,
-        email: user?.emailAddresses[0]?.emailAddress ?? "patient@demo.com",
-        gender: profile.gender ?? null,
-        knownConditions: profile.knownConditions ?? null,
-        consultations: consultationsData.consultations ?? [],
-        notifications: Array.isArray(notifications) ? notifications : [],
-        careTeamStatus: careTeamData,
-        subscriptionPlan: profile.subscriptionPlan ?? "free",
-        subscriptionStatus: profile.subscriptionStatus ?? "active",
-        stripeCustomerId: profile.stripeCustomerId ?? null,
-      });
-      setCheckIns(Array.isArray(checkInsData) ? checkInsData : []);
+  // Track return visit once per page mount — not on every SWR revalidation.
+  useEffect(() => {
+    if (data && !hasTrackedVisit.current) {
+      hasTrackedVisit.current = true;
       trackEvent(ANALYTICS_EVENTS.returnVisit, { surface: "patient_portal" });
+    }
+  }, [data]);
+
+  // Optimistic markAsRead — updates UI instantly, revalidates after PATCH.
+  const markAsRead = async (notificationId: string) => {
+    mutate(
+      (current) =>
+        current
+          ? {
+              ...current,
+              notifications: current.notifications.map((n) =>
+                n.id === notificationId ? { ...n, read: true } : n,
+              ),
+            }
+          : current,
+      false,
+    );
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId }),
+      });
+      mutate();
     } catch {
-      setError("Failed to load your dashboard. Please try again.");
-    } finally {
-      setLoading(false);
+      console.error("Failed to mark notification as read");
+      mutate(); // revert by revalidating
     }
   };
 
@@ -165,80 +235,32 @@ export default function PatientPortal() {
     router.push("/");
   };
 
-  const markAsRead = async (notificationId: string) => {
-    try {
-      await fetch("/api/notifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notificationId }),
-      });
-      await loadDashboard();
-    } catch {
-      console.error("Failed to mark as read");
-    }
-  };
+  if (!isLoaded || isLoading) return <DashboardSkeleton />;
 
-  const unreadCount = patient?.notifications.filter((n) => !n.read).length ?? 0;
-
-  if (!isLoaded || loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-        {/* Skeleton header */}
-        <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              <div className="h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              <div className="h-8 w-36 bg-blue-100 dark:bg-blue-900/30 rounded animate-pulse" />
-            </div>
-          </div>
-        </header>
-        {/* Skeleton body */}
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* Tab row skeleton */}
-            <div className="flex flex-wrap gap-2">
-              {[120, 100, 110, 130].map((w, i) => (
-                <div
-                  key={i}
-                  className="h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
-                  style={{ width: w }}
-                />
-              ))}
-            </div>
-            {/* Card skeletons */}
-            {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-3"
-              >
-                <div className="h-5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (error) {
+  if (swrError && !data) {
+    const isAuthError = (swrError as { status?: number }).status === 401;
+    if (isAuthError) return null; // redirect in progress
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-3">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
-          <p className="text-sm text-red-600">{error}</p>
-          <Button variant="outline" size="sm" onClick={loadDashboard}>
+          <p className="text-sm text-red-600">
+            Failed to load your dashboard. Please try again.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => mutate()}>
             Try Again
           </Button>
         </div>
       </div>
     );
   }
+
+  const profile = data?.profile;
+  const consultations = data?.consultations ?? [];
+  const notifications = data?.notifications ?? [];
+  const checkIns = data?.checkIns ?? [];
+  const careTeamStatuses = data?.careTeamStatus?.statuses ?? {};
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -255,32 +277,32 @@ export default function PatientPortal() {
             <h1 className="text-base sm:text-xl font-bold text-blue-600">
               Patient Portal
             </h1>
-            {patient && (
+            {profile && (
               <span className="hidden md:block text-sm text-muted-foreground">
-                Welcome, {patient.name}
+                Welcome, {profile.name}
               </span>
             )}
-            {patient?.subscriptionPlan === "pro" && (
+            {profile?.subscriptionPlan === "pro" && (
               <Badge className="bg-sky-600 text-white text-xs">Pro</Badge>
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-            {patient?.stripeCustomerId && (
+            {profile?.stripeCustomerId && (
               <button
                 onClick={async () => {
                   const res = await fetch("/api/billing/portal", {
                     method: "POST",
                   });
-                  const data = await res.json();
-                  if (data.url) window.location.href = data.url;
+                  const d = await res.json();
+                  if (d.url) window.location.href = d.url;
                 }}
                 className="hidden sm:block text-sm text-slate-500 hover:text-slate-700 underline"
               >
                 Manage billing
               </button>
             )}
-            {!patient?.stripeCustomerId &&
-              patient?.subscriptionPlan === "free" && (
+            {!profile?.stripeCustomerId &&
+              profile?.subscriptionPlan === "free" && (
                 <a
                   href="/pricing"
                   className="hidden sm:block text-sm text-sky-600 hover:underline font-medium"
@@ -336,9 +358,9 @@ export default function PatientPortal() {
             >
               <FileText className="w-4 h-4 mr-2" />
               History
-              {patient && patient.consultations.length > 0 && (
+              {consultations.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
-                  {patient.consultations.length}
+                  {consultations.length}
                 </Badge>
               )}
             </Button>
@@ -363,66 +385,48 @@ export default function PatientPortal() {
             </Button>
           </div>
 
-          <AnimatePresence mode="wait">
+          {/* Tab content — mode="sync" removes the exit-then-enter gap */}
+          <AnimatePresence mode="sync">
             {activeTab === "care-team" && (
               <motion.div
                 key="care-team"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.15 }}
               >
-                {patient ? (
-                  <CareTeamCard
-                    patientId={patient.id}
-                    initialStatuses={patient.careTeamStatus?.statuses ?? {}}
-                  />
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>Loading your care team...</p>
-                  </div>
-                )}
+                <CareTeamCard
+                  patientId={profile!.id}
+                  initialStatuses={careTeamStatuses}
+                />
               </motion.div>
             )}
 
             {activeTab === "care-plan" && (
               <motion.div
                 key="care-plan"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.15 }}
               >
-                {patient ? (
-                  <CarePlanDetail />
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>Loading your care plan...</p>
-                  </div>
-                )}
+                <CarePlanDetail />
               </motion.div>
             )}
 
             {activeTab === "history" && (
               <motion.div
                 key="history"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.15 }}
               >
                 <Card className="p-6">
                   <h2 className="text-xl font-semibold mb-4">
                     Consultation History
                   </h2>
-                  <ConsultationHistoryList
-                    consultations={
-                      patient?.consultations.map((c) => ({
-                        id: c.id,
-                        symptoms: c.symptoms,
-                        urgencyLevel: c.urgencyLevel,
-                        recommendation: c.recommendation,
-                        createdAt: c.createdAt,
-                      })) ?? []
-                    }
-                  />
+                  <ConsultationHistoryList consultations={consultations} />
                 </Card>
               </motion.div>
             )}
@@ -430,9 +434,10 @@ export default function PatientPortal() {
             {activeTab === "journal" && (
               <motion.div
                 key="journal"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.15 }}
               >
                 <SymptomJournalWidget />
               </motion.div>
@@ -441,17 +446,18 @@ export default function PatientPortal() {
             {activeTab === "notifications" && (
               <motion.div
                 key="notifications"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.15 }}
               >
                 <Card className="p-6">
                   <h2 className="text-xl font-semibold mb-4">Notifications</h2>
                   <NotificationInbox
-                    notifications={patient?.notifications ?? []}
+                    notifications={notifications}
                     checkIns={checkIns}
                     onMarkRead={markAsRead}
-                    onRefresh={loadDashboard}
+                    onRefresh={() => mutate()}
                   />
                 </Card>
               </motion.div>

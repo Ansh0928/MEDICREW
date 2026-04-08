@@ -39,6 +39,8 @@ export function CareTeamCard({
 
   useEffect(() => {
     const fetchStatuses = async () => {
+      // Skip poll when browser tab is hidden — saves battery and network.
+      if (document.visibilityState === "hidden") return;
       try {
         const res = await fetch("/api/patient/care-team-status");
         if (!res.ok) return;
