@@ -37,6 +37,8 @@ Items marked ✅ are complete. Items without ✅ are not yet started.
 - [ ] **Notification bell badge count** — The bell icon shows no unread count. Query `Notification.read = false` count on load. _(Patient portal UX)_
 - [ ] **Check-in response UI** — `CheckIn` model has `response: "better" | "same" | "worse"` but there's no patient-facing UI to respond. Wire the 48h Inngest notification to a response button. _(Patient engagement)_
 
+- [ ] **Playwright E2E suite for patient portal** — Set up Playwright and write tests for the 5 client-side flows that unit tests can't cover: (1) SWR return visit renders from cache instantly, (2) markAsRead optimistic flip + revert on PATCH failure, (3) 401 → /login/patient redirect, (4) 403 → /onboarding redirect, (5) tab-return triggers CareTeamCard immediate re-poll via visibilitychange. Defer until after A/B test validates demand. _(Eng review 2026-04-08)_
+
 - [ ] **/try sunset decision** — After A/B test concludes (n≥150/variant), decide what /try becomes: public marketing demo, gated behind auth, or removed. Currently a permanent public unauthenticated endpoint with no auth and 5 req/IP/hour rate limit. Needs a decision before it becomes a support or liability burden. _(Eng review 2026-04-04)_
 
 ## P4 — Future / Post-MVP

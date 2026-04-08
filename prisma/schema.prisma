@@ -77,6 +77,8 @@ model Consultation {
 
   createdAt     DateTime @default(now())
   checkIns      CheckIn[]
+
+  @@index([patientId])
 }
 
 // Clinic model - org/practice that groups doctors and patients
@@ -120,6 +122,8 @@ model Notification {
   read        Boolean  @default(false)
 
   createdAt   DateTime @default(now())
+
+  @@index([patientId])
 }
 
 // PatientConsent model - Privacy Act APP 11 consent records
@@ -175,4 +179,6 @@ model CheckIn {
   scheduledFor    DateTime
   respondedAt     DateTime?
   createdAt       DateTime @default(now())
+
+  @@index([patientId])
 }

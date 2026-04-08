@@ -5,11 +5,7 @@ import { CARE_TEAM } from "@/lib/care-team-config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-interface AgentStatus {
-  agentName: string;
-  message: string;
-  updatedAt: string;
-}
+import type { AgentStatus } from "@/lib/types/care-team";
 
 interface CareTeamCardProps {
   patientId: string;
@@ -53,10 +49,18 @@ export function CareTeamCard({
       }
     };
 
+    // Fire immediately when the user returns to the tab so they never see
+    // stale care team statuses for up to 30s after switching back.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") fetchStatuses();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const intervalId = setInterval(fetchStatuses, 30_000);
 
     return () => {
       clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 

@@ -31,11 +31,7 @@ import { trackEvent } from "@/lib/analytics/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface AgentStatus {
-  agentName: string;
-  message: string;
-  updatedAt: string;
-}
+import type { AgentStatus } from "@/lib/types/care-team";
 
 interface Consultation {
   id: string;
